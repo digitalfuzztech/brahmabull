@@ -21,7 +21,7 @@
 
         @foreach($this->agents as $agent)
             @if(auth()->user()->hasRole('admin'))
-                <a href="{{ url('/admin/wallets/agent-' . $agent->id) }}"
+                <a href="{{ url('/admin/accounts/agent-' . $agent->id) }}"
                    class="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-purple-500 transition">
 
                     <h2 class="text-white font-bold text-lg">
@@ -36,7 +36,7 @@
             @endif
 
             @if(auth()->user()->hasRole('agent'))
-                    <a href="{{ url('/agent/wallets/agent-' . $agent->id) }}"
+                    <a href="{{ url('/agent/accounts/agent-' . $agent->id) }}"
                        class="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-purple-500 transition">
 
                         <h2 class="text-white font-bold text-lg">

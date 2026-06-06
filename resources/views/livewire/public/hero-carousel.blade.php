@@ -32,7 +32,7 @@
 
                         @if($active === 0)
 
-                            <a href="/games"
+                            <a href="#games"
                                class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
                                 Explore Games
                             </a>
@@ -49,7 +49,7 @@
                                 Learn More
                             </a>
 
-                            <a href="/games"
+                            <a href="/login"
                                class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
                                 Start Playing
                             </a>
@@ -81,12 +81,12 @@
 
                             @if($active === 0)
 
-                                <a href="/games"
+                                <a href="/catalog"
                                    class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
                                     Explore Games
                                 </a>
 
-                                <a href="/games"
+                                <a href="/catalog"
                                    class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
                                     Play Now
                                 </a>
@@ -98,7 +98,7 @@
                                     My Details
                                 </a>
 
-                                <a href="/games"
+                                <a href="/catalog"
                                    class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
                                     Play Now
                                 </a>
@@ -113,7 +113,7 @@
                                     Invite Friends
                                 </button>
 
-                                <a href="/games"
+                                <a href="/catalog"
                                    class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
 
                                     Start Playing

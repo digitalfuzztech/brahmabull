@@ -15,12 +15,12 @@
             </p>
         </div>
         @if(auth()->user()->hasRole('admin'))
-            <a href="{{ url('/admin/wallets/agent-'.$type->wallet_agent_id) }}"
+            <a href="{{ url('/admin/accounts/agent-'.$type->wallet_agent_id) }}"
                class="px-4 py-2 bg-slate-800 rounded-xl">
                 ← Back
             </a>
         @elseif(auth()->user()->hasRole('agent'))
-            <a href="{{ url('/agent/wallets/agent-'.$type->wallet_agent_id) }}"
+            <a href="{{ url('/agent/accounts/agent-'.$type->wallet_agent_id) }}"
                class="px-4 py-2 bg-slate-800 rounded-xl">
                 ← Back
             </a>
