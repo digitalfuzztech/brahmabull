@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    scroll-behavior: smooth;
+}
+:root {
+    --casino-bg: #0B1020;
+    --casino-card: #141B34;
+    --casino-purple: #6D28D9;
+    --casino-purple-light: #9333EA;
+    --casino-gold: #FBBF24;
+}
+.font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+}
+
+.font-rajdhani {
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.glass-card {
+    backdrop-filter: blur(16px);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.casino-gradient {
+    background:
+        linear-gradient(
+            135deg,
+            #0B1020 0%,
+            #1E1B4B 50%,
+            #0B1020 100%
+        );
+}
+/* Hide scrollbar for Chrome, Safari and Edge */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+#preloader {
+    transition: opacity 0.3s ease;
+}
+#preloader.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.4s ease;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: relative;
+}
+
+/* OUTER SPIN */
+.loader-outter {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* INNER SPIN */
+.loader-inner {
+    position: absolute;
+    width: 70%;
+    height: 70%;
+    top: 15%;
+    left: 15%;
+    border: 4px solid transparent;
+    border-bottom-color: #6366f1;
+    border-radius: 50%;
+    animation: spin-reverse 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse {
+    to { transform: rotate(-360deg); }
+}
+@keyframes spin-slow {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 1.5s linear infinite;
+}
+
+.scrollbar-purple::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scrollbar-purple::-webkit-scrollbar-track {
+    background: #0f0f0f;
+    border-radius: 10px;
+}
+
+.scrollbar-purple::-webkit-scrollbar-thumb {
+    background: #a855f7;
+    border-radius: 10px;
+}
+
+.scrollbar-purple::-webkit-scrollbar-thumb:hover {
+    background: #c084fc;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #0f172a; /* slate-900 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #7c3aed; /* purple */
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #8b5cf6;
+}
