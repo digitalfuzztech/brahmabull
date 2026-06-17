@@ -76,38 +76,49 @@
             </h2>
 
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-auto">
-                <div class="overflow-x-auto scrollbar-purple">
-                    <table class="w-full text-sm text-left">
+                <div class="overflow-x-auto scrollbar-purple relative">
 
-                    <thead class="border-b border-slate-800 text-slate-400">
+                    <table class="min-w-[2200px] text-sm text-left border-collapse">
+
+                    <thead class="text-slate-400 border-b border-slate-800 bg-slate-950">
                     <tr>
 
-                        <th class="p-3">SN</th>
-                        <th>Ref</th>
-                        <th>Player</th>
-                        <th>Username</th>
-                        <th>Game</th>
-                        <th>Game Username</th>
+                        <th class="
+                        px-5
+                        py-4
+                        whitespace-nowrap
+                        sticky
+                        left-0
+                        z-40
+                        bg-slate-950
+                        shadow-[4px_0_8px_rgba(0,0,0,0.3)]
+                        "
+                        >SN</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Ref</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Player</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Username</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Game</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Game Username</th>
 
-                        <th>Amount</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Amount</th>
 
-                        <th>Player Wallet Type</th>
-                        <th>Player Wallet</th>
-                        <th>Player QR</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Player Wallet Type</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Player Wallet</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Player QR</th>
 
-                        <th>Our Wallet Type</th>
-                        <th>Our Wallet</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Our Wallet Type</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Our Wallet</th>
 
-                        <th>Status</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Status</th>
 
-                        <th>Handled By</th>
-                        <th>Handled At</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Handled By</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Handled At</th>
 
-                        <th>Paid At</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Paid At</th>
 
-                        <th>Payment Proof</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Payment Proof</th>
 
-                        <th>Action</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-right">Action</th>
 
                     </tr>
                     </thead>
@@ -122,35 +133,56 @@
 
                         <tr class="
     border-b border-slate-800 text-white
-    {{ $isPending ? 'bg-gray-700/60' : 'opacity-80' }}
+    hover:bg-gray-400/40 transition
+    {{ $isPending ? 'bg-gray-700/60' : 'bg-transparent opacity-80' }}
 ">
-                            <td class="p-3">{{ $i + 1 }}</td>
+                            <td
+                                class="
+        px-5
+        py-4
+        whitespace-nowrap
+        sticky
+        left-0
+        z-30
+        bg-slate-900
+        shadow-[4px_0_8px_rgba(0,0,0,0.3)]
+    ">{{ $i + 1 }}</td>
 
-                            <td>{{ $cashout->reference }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->reference }}</td>
 
-                            <td>{{ $cashout->user?->name }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->user?->name }}</td>
                             <td class="text-purple-400">
                                 {{ $cashout->user?->username ?? '-' }}
                             </td>
-                            <td>{{ $cashout->game?->name }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->game?->name }}</td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $cashout->gameAccount?->game_username }}
                             </td>
 
-                            <td>{{ $cashout->amount }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->amount }}</td>
 
-                            <td>{{ $cashout->wallet_type }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->wallet_type }}</td>
 
-                            <td>{{ $cashout->wallet_address }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->wallet_address }}</td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
 
                                 @if($cashout->qr_image)
 
                                     <img
                                         src="{{ asset('storage/'.$cashout->qr_image) }}"
-                                        class="h-10 w-10 rounded-lg object-cover cursor-pointer"
+                                        class="
+        h-14
+        w-14
+        rounded-xl
+        cursor-pointer
+        object-cover
+        border
+        border-slate-700
+        hover:scale-105
+        transition
+    "
                                         wire:click="openProof('{{ $cashout->qr_image }}')"
                                     >
 
@@ -162,35 +194,45 @@
 
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $cashout->wallet?->walletType?->name ?? '-' }}
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $cashout->wallet?->name ?? '-' }}
                             </td>
 
-                            <td>{{ $cashout->status }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $cashout->status }}</td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $cashout->verifier?->name ?? '-' }}
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $cashout->verified_at ?? '-' }}
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $cashout->paid_at ?? '-' }}
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
 
                                 @if($cashout->payment_proof)
 
                                     <img
                                         src="{{ asset('storage/'.$cashout->payment_proof) }}"
-                                        class="h-10 w-10 rounded-lg object-cover cursor-pointer"
+                                        class="
+        h-14
+        w-14
+        rounded-xl
+        cursor-pointer
+        object-cover
+        border
+        border-slate-700
+        hover:scale-105
+        transition
+    "
                                         wire:click="openProof('{{ $cashout->payment_proof }}')"
                                     >
 
@@ -202,10 +244,10 @@
 
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-right">
                                 @if($cashout->status === 'paid')
 
-                                    <div class="flex gap-2">
+                                    <div class="flex gap-2 justify-end">
 
         <span class="px-3 py-1 bg-green-700 rounded-lg">
             Paid
@@ -279,15 +321,20 @@
                         Game:
                         {{ $selectedCashout->game?->name }}
                     </p>
+                    <p class="text-white">
+                        Amount:
+                       $ {{ $selectedCashout->amount }}
+                    </p>
+
 
                     <select
                         wire:model.live="status"
                         class="w-full bg-slate-800 rounded-xl p-2 text-white"
                     >
                         <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
                         <option value="paid">Paid</option>
+                        <option value="rejected">Rejected</option>
+
                     </select>
 
                     @if($status === 'paid')

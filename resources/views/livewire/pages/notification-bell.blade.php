@@ -52,24 +52,48 @@
     @if($open)
 
         <div
-            class="absolute right-0 mt-2 w-[380px]
-    bg-slate-900 border border-slate-700
-    rounded-2xl overflow-hidden
-    shadow-2xl z-[999]"
+            class="
+        fixed md:absolute
+        left-1/2 md:left-auto
+        -translate-x-1/2 md:translate-x-0
+        top-20 md:top-full
+        md:right-0
+        w-[calc(100vw-1.5rem)] md:w-[420px]
+        max-w-[420px]
+        bg-slate-900 border border-slate-700
+        rounded-2xl overflow-hidden
+        shadow-2xl z-[999]
+    "
         >
 
             {{-- HEADER --}}
-            <div class="p-4 border-b border-slate-700">
+            <div class="p-4 border-b border-slate-700 flex items-start justify-between">
 
-                <h3 class="font-bold text-white">
-                    Notifications
-                </h3>
+                <div>
+                    <h3 class="font-bold text-white">
+                        Notifications
+                    </h3>
 
-                <p class="text-sm text-slate-400 mt-1">
-                    {{ $this->unreadCount }} unread notifications
-                </p>
+                    <p class="text-sm text-slate-400 mt-1">
+                        {{ $this->unreadCount }} unread notifications
+                    </p>
+                </div>
+
+
+                <button
+                    wire:click="toggle"
+                    class="
+            text-slate-400
+            hover:text-white
+            text-xl
+            leading-none
+        "
+                >
+                    ✕
+                </button>
 
             </div>
+
 
             {{-- SCROLLABLE AREA --}}
             <div class="max-h-[400px] overflow-y-auto">

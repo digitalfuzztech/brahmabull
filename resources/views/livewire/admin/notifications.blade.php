@@ -42,8 +42,9 @@
     </div>
 
     {{-- TABLE --}}
+    <div class="grid grid-cols-1 mb-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-
+        <div class="overflow-x-auto scrollbar-purple">
         <table class="w-full text-sm text-left">
 
             <thead class="text-slate-400 border-b border-slate-800">
@@ -111,7 +112,7 @@
                         @if($notification->type === 'cashout_admin')
                             <button
                                 wire:click="markAndRedirect({{ $notification->id }})"
-                                class="px-3 py-1 bg-blue-600 rounded-lg"
+                                class="px-3 py-1 bg-green-600 rounded-lg"
                             >
                                 View Cashouts
                             </button>
@@ -131,9 +132,9 @@
 
                             @if($notification->is_read)
 
-                                <span class="px-3 py-1 bg-green-700 rounded-lg">
+                                <button class="px-3 py-1 bg-green-700 rounded-lg">
             ✓ Got It
-        </span>
+        </button>
 
                             @else
 
@@ -180,9 +181,9 @@
             </tbody>
 
         </table>
-
+        </div>
     </div>
-
+    </div>
     <div class="mt-4 custom-page-styles">
         {{ $notifications->links() }}
     </div>

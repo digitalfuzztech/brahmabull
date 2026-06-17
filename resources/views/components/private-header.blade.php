@@ -9,8 +9,9 @@
             <div class="flex gap-3 items-center">
                 <button onclick="toggleSidebar()"
                         id="sidebarToggleBtn"
-                        class="p-2 rounded text-purple-400 bg-white hover:bg-gray-300">
-                    <i data-lucide="menu"></i>
+                        class="p-2 rounded text-purple-800 font-bold bg-white hover:bg-gray-300">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-logs-icon lucide-logs"><path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/><path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/></svg>
                 </button>
                 <h2 class="text-sm md:text-xl font-bold">
                     Control Panel

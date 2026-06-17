@@ -62,11 +62,6 @@
             @endforeach
 
         </select>
-
-    </div>
-
-    <div class="mb-6">
-
         <select
             wire:model.live="statusFilter"
             class="bg-slate-800 rounded-xl p-2"
@@ -88,8 +83,9 @@
             </option>
 
         </select>
-
     </div>
+
+
     @if (session()->has('success'))
         <div
             x-data="{ show: true }"
@@ -111,29 +107,44 @@
 
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
 
-                <div class="overflow-x-auto scrollbar-purple">
-                    <table class="w-full text-sm text-left">
+                <div class="overflow-x-auto scrollbar-purple relative">
 
-                    <thead class="text-slate-400 border-b border-slate-800">
+                    <table class="min-w-[2200px] text-sm text-left border-collapse">
+
+                        <thead class="text-slate-400 border-b border-slate-800 bg-slate-950">
                     <tr>
-                        <th class="p-3">SN</th>
-                        <th>Ref</th>
-                        <th>Player</th>
-                        <th>Username</th>
-                        <th>Game</th>
-                        <th>Game Username</th>
-                        <th>Amount</th>
-                        <th>Points Loaded</th>
-                        <th>Bonus</th>
-                        <th>Agent</th>
-                        <th>Type</th>
-                        <th>Wallet</th>
-                        <th>Proof</th>
-                        <th>Status</th>
-                        <th>Original Verifier</th>
-                        <th>Handled By</th>
-                        <th>Handled At</th>
-                        <th>Action</th>
+
+                        <th
+                            class="
+        px-5
+        py-4
+        whitespace-nowrap
+        sticky
+        left-0
+        z-40
+        bg-slate-950
+        shadow-[4px_0_8px_rgba(0,0,0,0.3)]
+    "
+                        >
+                            S.N.
+                        </th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Reference No.</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Player</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Username</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Game</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Game Username</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Amount</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Points Loaded</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Bonus</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Agent</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Type</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Wallet</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Proof</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Status</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Original Verifier</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Handled By</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-left">Handled At</th>
+                        <th class="px-5 py-4 whitespace-nowrap text-right">Action</th>
                     </tr>
                     </thead>
 
@@ -147,17 +158,32 @@
 
                         <tr class="
     border-b border-slate-800 text-white
+    hover:bg-gray-400/40 transition
     {{ $isPending ? 'bg-gray-700/60' : 'bg-transparent opacity-80' }}
 ">
 
-                            <td class="p-3">{{ $i + 1 }}</td>
-                            <td>{{ $deposit->reference }}</td>
-                            <td>{{ $deposit->user->name }}</td>
-                            <td class="text-purple-400">
+
+                            <td
+                                class="
+        px-5
+        py-4
+        whitespace-nowrap
+        sticky
+        left-0
+        z-30
+        bg-slate-900
+        shadow-[4px_0_8px_rgba(0,0,0,0.3)]
+    "
+                            > {{ $i + 1 }}
+
+                            </td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left"> {{ $deposit->reference }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $deposit->user->name }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left text-purple-400">
                                 {{ $deposit->user?->username ?? '-' }}
                             </td>
-                            <td>{{ $deposit->game->name }}</td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $deposit->game->name }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
 
                                 {{
                                     \App\Models\GameAccount::where(
@@ -173,55 +199,65 @@
                                 }}
 
                             </td>
-                            <td>{{ $deposit->amount }}</td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $deposit->amount }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
 
                                 {{ $deposit->game_points_loaded ?? '-' }}
 
                             </td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
 
                                 {{ $deposit->bonus_points_added ?? '-' }}
 
                             </td>
-                            <td>{{ $deposit->wallet?->walletAgent?->name ?? '-' }}</td>
-                            <td>{{ $deposit->wallet?->walletType?->name ?? '-' }}</td>
-                            <td>{{ $deposit->wallet?->name ?? '-' }}</td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $deposit->wallet?->walletAgent?->name ?? '-' }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $deposit->wallet?->walletType?->name ?? '-' }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">{{ $deposit->wallet?->name ?? '-' }}</td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 @if($deposit->proof_image)
                                     <img
                                         src="{{ asset('storage/'.$deposit->proof_image) }}"
-                                        class="h-10 w-10 rounded-lg cursor-pointer object-cover"
+                                        class="
+        h-14
+        w-14
+        rounded-xl
+        cursor-pointer
+        object-cover
+        border
+        border-slate-700
+        hover:scale-105
+        transition
+    "
                                         wire:click="openProof('{{ $deposit->proof_image }}')"
                                     >
                                 @else
                                     -
                                 @endif
                             </td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
     <span class="{{ $deposit->status === 'verified' ? 'text-green-400' : ($deposit->status === 'rejected' ? 'text-red-400' : 'text-yellow-400') }}">
         {{ $deposit->status ?? 'pending' }}
     </span>
                             </td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $deposit->original_verified_by
                                     ? \App\Models\User::find($deposit->original_verified_by)?->name
                                     : '-' }}
                             </td>
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $deposit->verified_by
                                     ? \App\Models\User::find($deposit->verified_by)?->name
                                     : '-' }}
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-left">
                                 {{ $deposit->verified_at ? \Carbon\Carbon::parse($deposit->verified_at)->format('Y-m-d H:i:s') : '-' }}
                             </td>
 
-                            <td>
+                            <td class="px-5 py-4 whitespace-nowrap text-right">
                                 @if($deposit->status === 'verified')
 
-                                    <div class="flex gap-2">
+                                    <div class="flex gap-2 justify-end">
 
         <span class="px-3 py-1 bg-green-700 rounded-lg">
             Verified
