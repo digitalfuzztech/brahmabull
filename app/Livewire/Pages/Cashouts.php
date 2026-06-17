@@ -99,7 +99,7 @@ class Cashouts extends Component
 
             'status' => 'pending',
         ]);
-
+        $gameAccount = GameAccount::find($this->game_account_id);
         Notification::create([
             'user_id' => auth()->id(),
 
@@ -113,7 +113,7 @@ class Cashouts extends Component
                 '] of $' .
                 $cashout->amount .
                 ' for ' .
-                $cashout->gameAccount?->game_username .
+                $gameAccount->game_username .
                 ' is submitted. Our agent will verify it and inform you shortly.',
 
             'action_text' => 'Got It',
@@ -140,7 +140,7 @@ class Cashouts extends Component
                     ' for game ' .
                     $cashout->game?->name .
                     ' (' .
-                    $cashout->gameAccount?->game_username .
+                    $gameAccount->game_username .
                     ')',
 
                 'action_text' => 'View Cashouts',

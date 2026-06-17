@@ -108,7 +108,14 @@
                                 View Cashouts
                             </button>
                         @endif
-
+                        @if($notification->type === 'cashout_admin')
+                            <button
+                                wire:click="markAndRedirect({{ $notification->id }})"
+                                class="px-3 py-1 bg-blue-600 rounded-lg"
+                            >
+                                View Cashouts
+                            </button>
+                        @endif
                         {{-- WALLET --}}
                         @if($notification->type === 'wallet')
                             <button
@@ -142,7 +149,7 @@
                         @endif
 
                         {{-- 🔥 FALLBACK (IMPORTANT FIX) --}}
-                        @if(!in_array($notification->type, ['deposit_created','cashout_created','wallet','game']))
+                        @if(!in_array($notification->type, ['deposit_created','cashout_created','wallet','game','cashout_admin']))
 
                             @if($notification->is_read)
 
@@ -176,7 +183,7 @@
 
     </div>
 
-    <div class="mt-4">
+    <div class="mt-4 custom-page-styles">
         {{ $notifications->links() }}
     </div>
 

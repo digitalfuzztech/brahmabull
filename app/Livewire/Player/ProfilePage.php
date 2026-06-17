@@ -10,7 +10,8 @@ use App\Models\Deposit;
 use App\Models\Cashout;
 use App\Models\Referral;
 use App\Models\GameAccount;
-
+use Livewire\Attributes\Layout;
+#[Layout('layouts.public')]
 class ProfilePage extends Component
 {
     use WithFileUploads;
@@ -25,6 +26,7 @@ class ProfilePage extends Component
     public $password_confirmation;
 
     public $photo;
+    public $username;
     public $year;
     public $current_password;
     public string $activeTab = 'deposits';
@@ -37,6 +39,7 @@ class ProfilePage extends Component
         $this->year = now()->year;
 
         $this->phone = auth()->user()->phone;
+        $this->username = auth()->user()->username;
     }
 
     public function previousMonth()
@@ -65,10 +68,11 @@ class ProfilePage extends Component
 
         // Detect if anything is being changed
         $isChangingPhone = $this->phone !== $user->phone;
+        $isChangingUsername = $this->username !== $user->username;
         $isChangingPhoto = $this->photo !== null;
         $isChangingPassword = !empty($this->password);
 
-        if ($isChangingPhone || $isChangingPhoto || $isChangingPassword) {
+        if ($isChangingPhone || $isChangingUsername || $isChangingPhoto || $isChangingPassword) {
             $this->resetErrorBag('current_password');
             // MUST VERIFY CURRENT PASSWORD
             if (empty($this->current_password)) {
@@ -84,6 +88,14 @@ class ProfilePage extends Component
 
         $rules = [
             'phone' => ['nullable','string','max:20'],
+            'username' => [
+                'required',
+                'string',
+                'min:4',
+                'max:20',
+                'alpha_dash',
+                'unique:users,username,' . $user->id,
+            ],
             'photo' => ['nullable','image','max:2048'],
         ];
 
@@ -116,6 +128,7 @@ class ProfilePage extends Component
 
         $this->validate($rules);
 
+        $user->username = $this->username;
         // UPDATE PHONE
         $user->phone = $this->phone;
 
@@ -140,21 +153,41 @@ class ProfilePage extends Component
             'password',
             'password_confirmation',
             'photo',
-            'current_password'
+            'current_password',
+            'username'
         ]);
 
         $this->showEditModal = false;
 
         session()->flash('success', 'Profile updated successfully.');
     }
+
+    public function openEditModal()
+    {
+        $user = auth()->user();
+
+        $this->username = $user->username;
+        $this->phone = $user->phone;
+
+        // Always clear sensitive fields
+        $this->password = null;
+        $this->password_confirmation = null;
+        $this->current_password = null;
+
+        $this->resetErrorBag();
+
+        $this->showEditModal = true;
+    }
     public function closeModal()
     {
         $this->reset([
+            'username',
             'password',
             'password_confirmation',
             'photo',
             'current_password',
         ]);
+        $this->phone = auth()->user()->phone;
         $this->resetErrorBag();
         $this->showEditModal = false;
     }
@@ -238,6 +271,6 @@ class ProfilePage extends Component
                 ->whereYear('created_at', $this->year)
                 ->latest()
                 ->get(),
-        ])->layout('layouts.public');
+        ]);
     }
 }

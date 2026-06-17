@@ -136,3 +136,62 @@ html {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #8b5cf6;
 }
+
+
+.custom-page-styles span span span{
+    color: white !important;
+    background: rgb(37 99 235 / var(--tw-bg-opacity, 1));;
+}
+.custom-page-styles button{
+    background: #8b5cf6;
+    color: white;
+}
+.custom-page-styles button:hover {
+    color: white;
+    opacity: 0.8;
+}
+.custom-page-styles button:active {
+    color: white;
+    background: #2c019f;
+}
+
+
+/* SIDEBAR COLLAPSE STATE */
+#sidebar.collapsed {
+    width: 80px !important;
+}
+
+/* hide text when collapsed */
+#sidebar.collapsed .sidebar-text {
+    display: none !important;
+}
+
+/* center icons when collapsed */
+#sidebar.collapsed nav a,
+#sidebar.collapsed summary {
+    justify-content: center !important;
+    gap: 0 !important;
+}
+
+/* hide logo text */
+#sidebar.collapsed #sidebarTitle {
+    display: none !important;
+}
+
+/* reduce header padding when collapsed */
+#sidebar.collapsed #sidebarHeader {
+    padding: 12px !important;
+}
+
+/* ensure full height correctness */
+#sidebar {
+    height: 100vh;
+    width: 256px;
+}
+#mainContent {
+    transition: margin-left 0.3s ease;
+}
+
+#headerBar {
+    transition: left 0.3s ease;
+}

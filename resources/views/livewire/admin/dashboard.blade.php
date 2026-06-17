@@ -58,7 +58,7 @@
             Games
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 overflow-x-auto pb-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 overflow-x-auto pb-2 scrollbar-purple">
 <div class="flex gap-4">
     @foreach($games as $game)
         @if(auth()->user()->hasRole('admin'))

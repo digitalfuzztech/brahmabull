@@ -201,6 +201,10 @@ class Cashouts extends Component
 
         $proofPath = $cashout->payment_proof;
 
+        $cashout = Cashout::with(['user', 'game', 'gameAccount'])
+            ->findOrFail($this->selectedCashout->id);
+
+        $gameUsername = $cashout->gameAccount?->game_username ?? 'N/A';
         /*
         |--------------------------------------------------------------------------
         | PAID STATUS
@@ -285,12 +289,15 @@ class Cashouts extends Component
                     ' for player ' . $cashout->user->name .
                     ' (' . $cashout->user->playerProfile?->player_id . ')' .
                     ' game ' . $cashout->game?->name .
-                    ' (' . $cashout->gameAccount?->game_username . ')' .
+                    ' (' . $gameUsername . ')' .
                     ' has been ' . $this->status .
                     ' by ' . $admin->name,
 
                 'action_text' => 'View Cashouts',
-                'action_url' => route('admin.cashouts'),
+                'action_url' =>
+                    $receiver->hasRole('admin')
+                        ? route('admin.cashouts')
+                        : route('agent.cashouts'),
 
                 'is_read' => false,
             ]);
@@ -317,12 +324,18 @@ class Cashouts extends Component
                     '] of $' .
                     $cashout->amount .
                     ' for ' .
-                    $cashout->gameAccount?->game_username .
+                    $gameUsername .
                     ' has been verified and paid.',
+                'data' => [
+                    'payment_proof' => $cashout->payment_proof
+                        ? asset('storage/' . $cashout->payment_proof)
+                        : null,
+                    'reference' => $cashout->reference,
+                    'amount' => $cashout->amount,
+                ],
+                'action_text' => 'View Proof',
 
-                'action_text' => 'Play',
-
-                'action_url' => route('games'),
+                'action_url' => null,
 
                 'is_read' => false,
             ]);
@@ -344,7 +357,7 @@ class Cashouts extends Component
                     '] of $' .
                     $cashout->amount .
                     ' for ' .
-                    $cashout->gameAccount?->game_username .
+                    $gameUsername .
                     ' is rejected. Please contact the agent.',
 
                 'action_text' => 'Play',

@@ -50,14 +50,14 @@
         </select>
 
     </div>
-
+    <div class="grid grid-cols-1 mb-4">
     {{-- TOP 10 --}}
     <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 mb-8">
 
         <h2 class="text-white font-bold mb-4">
             Top 10 Players
         </h2>
-
+        <div class="overflow-x-auto scrollbar-purple">
         <table class="w-full text-sm text-white">
 
             <thead class="text-slate-400">
@@ -75,7 +75,9 @@
                 <th class="text-left">
                     Player
                 </th>
-
+                <th class="text-left">
+                    Username
+                </th>
                 <th class="text-left">
                     Deposits
                 </th>
@@ -108,7 +110,9 @@
                     <td>
                         {{ $row->player->name }}
                     </td>
-
+                    <td class="text-purple-400">
+                        {{ $row->player->username ?? '-' }}
+                    </td>
                     <td>
                         {{ $row->deposit_count }}
                     </td>
@@ -128,14 +132,17 @@
             </tbody>
 
         </table>
-
+        </div>
+    </div>
     </div>
 
-
     {{-- FULL RANKINGS --}}
+    <div class="grid grid-cols-1 mb-4">
     <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
 
-        <div class="max-h-[1200px] overflow-y-auto">
+        <div class="max-h-[1200px] overflow-y-auto overflow-x-auto scrollbar-purple">
+
+
         <table class="w-full text-sm text-white">
 
             <thead class="text-slate-400 border-b border-slate-800">
@@ -149,7 +156,7 @@
                 <th class="text-left p-2">Game Username</th>
 
                 <th class="text-left p-2">Player Name</th>
-
+                <th class="text-left p-2">Username</th>
                 <th class="text-left p-2">Points Used</th>
 
                 <th class="text-left p-2">Game</th>
@@ -189,7 +196,9 @@
                     <td class="p-3">
                         {{ $row->account->user->name }}
                     </td>
-
+                    <td class="p-3 text-purple-400">
+                        {{ $row->account->user->username ?? '-' }}
+                    </td>
                     <td class="p-3">
                         {{ number_format($row->points_used,2) }}
                     </td>
@@ -226,6 +235,7 @@
 
         </table>
 
+    </div>
     </div>
     </div>
 </div>

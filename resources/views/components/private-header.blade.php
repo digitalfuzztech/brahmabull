@@ -1,14 +1,18 @@
 
 <div>
-    <header
-        class="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl"
+    <header id="headerBar"
+        class="fixed left-0 right-0 lg:left-64 top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl transition-all duration-300"
     >
 
         <div class="h-20 px-8 flex items-center justify-between">
 
-            <div>
-
-                <h2 class="text-xl font-bold">
+            <div class="flex gap-3 items-center">
+                <button onclick="toggleSidebar()"
+                        id="sidebarToggleBtn"
+                        class="p-2 rounded text-purple-400 bg-white hover:bg-gray-300">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h2 class="text-sm md:text-xl font-bold">
                     Control Panel
                 </h2>
 

@@ -25,9 +25,11 @@
         placeholder="Search players..."
     />
 
+    <div class="grid grid-cols-1 mb-4">
     {{-- TABLE --}}
     <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
 
+            <div class="overflow-x-auto scrollbar-purple">
         <table class="w-full text-sm text-white">
 
             <thead class="text-slate-400 border-b border-slate-800">
@@ -35,6 +37,7 @@
                 <th class="text-left p-3">ID</th>
                 <th class="text-left p-3">Name</th>
                 <th class="text-left p-3">Email</th>
+                <th class="text-left p-3">Username</th>
                 <th class="text-left p-3">Phone</th>
                 <th class="text-left p-3">Referred By</th>
                 <th class="text-right p-3">Action</th>
@@ -50,6 +53,9 @@
                     <td class="p-2">P{{ $player->playerProfile?->player_id }}</td>
                     <td class="p-2">{{ $player->name }}</td>
                     <td class="p-2">{{ $player->email }}</td>
+                    <td class="p-2 text-purple-400">
+                        {{ $player->username ?? '-' }}
+                    </td>
                     <td class="p-2">{{ $player->phone }}</td>
                     <td class="p-2">{{ $player->referrer?->name ?? '-' }}</td>
 
@@ -69,6 +75,8 @@
             </tbody>
 
         </table>
+            </div>
+    </div>
 
     </div>
     <div class="mt-6">
@@ -96,6 +104,12 @@
 
                     <h2 class="text-white text-xl font-bold">
                         {{ $player->name }}
+
+                        @if($player->username)
+                            <span class="text-purple-400 text-base">
+            ({{ $player->username }})
+        </span>
+                        @endif
                     </h2>
 
                     <p class="text-slate-400">
@@ -112,6 +126,7 @@
                 <div class="p-5 space-y-5 text-white">
 
                     {{-- GAME ACCOUNTS --}}
+                    <div class="max-h-[350px] overflow-y-auto rounded-xl custom-scrollbar">
                     <table class="w-full text-sm mb-8">
 
                         <thead class="text-slate-400">
@@ -137,7 +152,7 @@
                         </tbody>
 
                     </table>
-
+                    </div>
                     {{-- STATS --}}
                     <div class="grid grid-cols-2 gap-3">
 

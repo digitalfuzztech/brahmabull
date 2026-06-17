@@ -90,7 +90,7 @@
 
         @foreach($this->types as $type)
             @if(auth()->user()->hasRole('admin'))
-                <a href="{{ url('/admin/accounts/agent-'.$agent->id.'/wallet-type-'.$type->id) }}"
+                <a href="{{ url('/admin/accounts/agent-'.$agent->id.'/accounts-type-'.$type->id) }}"
                    class="p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-purple-500">
 
                     <h3 class="text-white font-bold">
@@ -105,7 +105,7 @@
             @endif
 
             @if(auth()->user()->hasRole('agent'))
-                    <a href="{{ url('/agent/accounts/agent-'.$agent->id.'/wallet-type-'.$type->id) }}"
+                    <a href="{{ url('/agent/accounts/agent-'.$agent->id.'/accounts-type-'.$type->id) }}"
                        class="p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-purple-500">
 
                         <h3 class="text-white font-bold">

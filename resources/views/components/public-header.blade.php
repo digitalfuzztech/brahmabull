@@ -17,13 +17,13 @@
             <div class="flex h-20 items-center justify-between">
 
                 <!-- Logo -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1 md:gap-3">
 
                     <a
-                        class="flex w-20 items-center justify-center rounded-xl" href="/">
+                        href="/">
 
                         <img src="{{asset('images/logo.png')}}"
-                             class="w-20 rounded-xl object-cover"
+                             class="w-10 md:w-20 rounded-xl object-cover"
                              alt="logo">
 
                     </a>
@@ -284,12 +284,10 @@
             <!-- Links -->
             <div class="p-4 space-y-2">
 
-                <a
-                    href="{{route('games')}}"
-                    class="block rounded-xl px-4 py-3 hover:bg-slate-800"
-                >
-                     Games
-                </a>
+                <a href="{{ route('games') }}" class="block rounded-xl px-4 py-3 hover:bg-slate-800">Play Now</a>
+
+
+                <a href="{{route('cashouts')}}"  class="block rounded-xl px-4 py-3 hover:bg-slate-800">Request Withdrawal</a>
 
                 <a
                     href="{{route('profile')}}"

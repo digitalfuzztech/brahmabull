@@ -18,7 +18,15 @@ class PlayersAll extends Component
         return User::role('player')
             ->with('playerProfile')
             ->when($this->search, function ($q) {
-                $q->where('name', 'like', "%{$this->search}%");
+
+                $q->where(function($query){
+
+                    $query->where('name','like',"%{$this->search}%")
+                        ->orWhere('username','like',"%{$this->search}%")
+                        ->orWhere('email','like',"%{$this->search}%");
+
+                });
+
             })
             ->latest()
             ->paginate(30);

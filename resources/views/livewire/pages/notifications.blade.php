@@ -117,21 +117,22 @@
                     <td class="p-3 space-x-2">
 
                         {{-- PLAY BUTTONS --}}
-                        @if(
-     in_array(
-         $notification->type,
-         [
-             'deposit_verified',
-             'cashout_paid'
-         ]
-     )
- )
+                        @if($notification->type === 'cashout_paid')
+
+                            <button
+                                wire:click="viewProof({{ $notification->id }})"
+                                class="px-4 py-2 bg-purple-600 rounded-lg"
+                            >
+                                View Proof
+                            </button>
+
+
+                        @elseif($notification->type === 'deposit_verified')
 
                             <a
-                                href="{{ $notification->action_url }}"
-                                target="_blank"
+                                href="{{ $notification->action_url }}" target="_blank"
                                 wire:click="markPlayRead({{ $notification->id }})"
-                                class="inline-block px-4 py-2 bg-purple-600 rounded-lg opacity-100"
+                                class="inline-block px-4 py-2 bg-purple-600 rounded-lg"
                             >
                                 Play
                             </a>
@@ -205,10 +206,29 @@
 
     </div>
 
-    <div class="mt-4">
+    <div class="mt-4 custom-page-styles">
 
         {{ $notifications->links() }}
 
     </div>
+    @if(!empty($previewImage))
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+            <div class="relative bg-slate-900 p-4 rounded-xl">
+
+                <button
+                    wire:click="closePreview"
+                    class="absolute top-2 right-2 bg-red-600 px-2 rounded"
+                >
+                    ✕
+                </button>
+
+                <img
+                    src="{{ $previewImage }}"
+                    class="max-h-[600px] rounded-lg"
+                >
+
+            </div>
+        </div>
+    @endif
 
 </div>

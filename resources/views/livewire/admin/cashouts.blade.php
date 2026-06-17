@@ -77,7 +77,7 @@
 
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-auto">
                 <div class="overflow-x-auto scrollbar-purple">
-                    <table class="min-w-[1700px] text-sm text-left">
+                    <table class="w-full text-sm text-left">
 
                     <thead class="border-b border-slate-800 text-slate-400">
                     <tr>
@@ -85,8 +85,9 @@
                         <th class="p-3">SN</th>
                         <th>Ref</th>
                         <th>Player</th>
-                        <th>Game</th>
                         <th>Username</th>
+                        <th>Game</th>
+                        <th>Game Username</th>
 
                         <th>Amount</th>
 
@@ -128,7 +129,9 @@
                             <td>{{ $cashout->reference }}</td>
 
                             <td>{{ $cashout->user?->name }}</td>
-
+                            <td class="text-purple-400">
+                                {{ $cashout->user?->username ?? '-' }}
+                            </td>
                             <td>{{ $cashout->game?->name }}</td>
 
                             <td>
@@ -244,7 +247,7 @@
         </div>
     @endforeach
 
-    <div class="mt-6">
+    <div class="mt-6 custom-page-styles">
         {{ $this->cashouts->links() }}
     </div>
 

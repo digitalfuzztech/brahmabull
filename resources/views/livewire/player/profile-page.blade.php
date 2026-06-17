@@ -21,9 +21,17 @@
 
             <div class="flex-1">
 
-                <h2 class="text-3xl font-black">
-                    {{ auth()->user()->name }}
-                </h2>
+                <div class="flex items-center gap-3">
+
+                    <h2 class="text-3xl font-black">
+                        {{ auth()->user()->name }}
+                    </h2>
+
+                    <span class="px-3 py-1 rounded-full bg-purple-600/20 text-purple-400 text-sm">
+        @ {{ auth()->user()->username }}
+    </span>
+
+                </div>
 
                 <div class="mt-3 space-y-1 text-slate-300">
 
@@ -44,11 +52,26 @@
                         </span>
                     </div>
 
-                    <div class="flex flex-wrap gap-3 items-center">
+                    <div
+                        x-data="{
+        copied: false,
+        copyLink() {
+            const input = document.getElementById('invite-link');
+            navigator.clipboard.writeText(input.value);
 
-                        <span>
-                            Invite Link:
-                        </span>
+            this.copied = true;
+
+            setTimeout(() => {
+                this.copied = false;
+            }, 3000);
+        }
+    }"
+                        class="flex flex-wrap gap-3 items-center"
+                    >
+
+    <span>
+        Invite Link:
+    </span>
 
                         <input
                             readonly
@@ -57,25 +80,49 @@
                             class="bg-slate-800 rounded px-3 py-1 text-sm w-full md:w-[420px]"
                         >
 
+                        <!-- COPY BUTTON -->
                         <button
-                            onclick="
-                                navigator.clipboard.writeText(
-                                    document.getElementById('invite-link').value
-                                )
-                            "
-                            class="px-4 py-2 rounded-xl bg-purple-600"
+                            @click="copyLink()"
+                            :class="copied
+            ? 'bg-green-600 text-white'
+            : 'bg-purple-600 text-white'
+        "
+                            class="px-4 py-2 rounded-xl flex items-center gap-2 transition-all"
                         >
-                            Copy
+
+                            <!-- ICON -->
+                            <template x-if="!copied">
+                                <span>Copy</span>
+                            </template>
+
+                            <template x-if="copied">
+            <span class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="3"
+                          d="M5 13l4 4L19 7"/>
+                </svg>
+
+                Copied
+            </span>
+                            </template>
+
                         </button>
 
-                    </div>
 
+
+                    </div>
                 </div>
 
             </div>
 
             <button
-                wire:click="$set('showEditModal',true)"
+                wire:click="openEditModal"
                 class="px-5 py-3 rounded-xl bg-purple-600"
             >
                 Edit Profile
@@ -416,10 +463,28 @@
                         wire:submit="saveProfile"
                         wire:loading.attr="disabled"
                         wire:target="saveProfile"
+                        autocomplete="off"
                         class="flex flex-col flex-1 min-h-0"
                     >
                     {{-- SCROLLABLE BODY --}}
                     <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 custom-scrollbar">
+
+                        {{-- USERNAME --}}
+                        <div>
+                            <label>Username</label>
+
+                            <input
+                                wire:model="username"
+                                type="text"
+                                class="w-full mt-2 bg-slate-800 rounded-xl p-3"
+                            >
+
+                            @error('username')
+                            <span class="text-red-400 text-sm">
+            {{ $message }}
+        </span>
+                            @enderror
+                        </div>
 
                         {{-- PHONE --}}
                         <div>
@@ -498,6 +563,8 @@
                                 <input
                                     wire:model="password"
                                     x-bind:type="show ? 'text' : 'password'"
+                                    autocomplete="new-password"
+                                    name="new_password"
                                     class="w-full bg-slate-800 rounded-xl p-3 pr-12"
                                 >
 
@@ -544,6 +611,8 @@
                                 <input
                                     wire:model="password_confirmation"
                                     x-bind:type="show ? 'text' : 'password'"
+                                    autocomplete="new-password"
+                                    name="new_password_confirmation"
                                     class="w-full bg-slate-800 rounded-xl p-3 pr-12"
                                 >
 
@@ -589,6 +658,7 @@
                                 wire:model="current_password"
                                 type="password"
                                 class="w-full mt-2 bg-slate-800 rounded-xl p-3"
+                                name="current_password"
                             >
                         </div>
 

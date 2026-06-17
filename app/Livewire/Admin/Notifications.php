@@ -89,10 +89,10 @@ class Notifications extends Component
             ]);
 
             if (auth()->user()->hasRole('admin')) {
-                return redirect('/admin/games');
+                return redirect('/admin/catalog');
             }
 
-            return redirect('/agent/games');
+            return redirect('/agent/catalog');
         }
 
         if ($notification->type === 'wallet') {
@@ -103,22 +103,59 @@ class Notifications extends Component
             ]);
 
             if (auth()->user()->hasRole('admin')) {
-                return redirect('/admin/wallets');
+                return redirect('/admin/accounts');
             }
 
-            return redirect('/agent/wallets');
+            return redirect('/agent/accounts');
         }
 
-
-
-        // redirect based on type
         if ($notification->type === 'deposit_created') {
-            return redirect()->route('admin.deposits');
-        }
 
-        if ($notification->type === 'cashout_created') {
-            return redirect()->route('admin.cashouts');
+            $notification->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+            if (auth()->user()->hasRole('admin')) {
+                return redirect('/admin/funding');
+            }
+
+            return redirect('/agent/funding');
         }
+        if ($notification->type === 'cashout_created') {
+
+            $notification->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+            if (auth()->user()->hasRole('admin')) {
+                return redirect('/admin/payout');
+            }
+
+            return redirect('/agent/payout');
+        }
+        if ($notification->type === 'cashout_admin') {
+
+            $notification->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+            if (auth()->user()->hasRole('admin')) {
+                return redirect('/admin/payout');
+            }
+
+            return redirect('/agent/payout');
+        }
+        // redirect based on type
+      //  if ($notification->type === 'deposit_created') {
+     //       return redirect()->route('admin.deposits');
+     //   }
+
+     //   if ($notification->type === 'cashout_created') {
+    //        return redirect()->route('admin.cashouts');
+     //   }
 
         return redirect()->route('admin.notifications');
     }

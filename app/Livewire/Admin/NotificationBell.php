@@ -57,7 +57,7 @@ class NotificationBell extends Component
             return;
         }
 
-        // Only mark read if it has an action_url
+
         if ($notification->action_url) {
 
             $notification->update([
@@ -68,10 +68,56 @@ class NotificationBell extends Component
             $this->dispatch('refreshBell');
         }
 
-        return redirect(
-            $notification->action_url
-            ?? route('admin.notifications')
-        );
+
+        $url = $notification->action_url;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fix admin/agent routes
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            auth()->user()->hasRole('agent')
+            &&
+            str_contains($url, 'admin.')
+        ) {
+
+            $url = str_replace(
+                'admin.',
+                'agent.',
+                $url
+            );
+
+        }
+
+
+        if (
+            auth()->user()->hasRole('agent')
+            &&
+            str_contains($url, '/admin/')
+        ) {
+
+            $url = str_replace(
+                '/admin/',
+                '/agent/',
+                $url
+            );
+
+        }
+
+
+        if (!$url) {
+
+            $url = auth()->user()->hasRole('admin')
+                ? route('admin.notifications')
+                : route('agent.notifications');
+
+        }
+
+
+        return redirect($url);
     }
     public function render()
     {

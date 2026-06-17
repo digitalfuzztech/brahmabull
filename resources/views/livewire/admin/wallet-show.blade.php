@@ -31,12 +31,12 @@
             </p>
         </div>
         @if(auth()->user()->hasRole('admin'))
-            <a href="{{ url('/admin/accounts/agent-'.$wallet->wallet_agent_id.'/wallet-type-'.$wallet->wallet_type_id) }}"
+            <a href="{{ url('/admin/accounts/agent-'.$wallet->wallet_agent_id.'/accounts-type-'.$wallet->wallet_type_id) }}"
                class="px-4 py-2 bg-slate-800 rounded-xl">
                 ← Back
             </a>
         @elseif(auth()->user()->hasRole('agent'))
-            <a href="{{ url('/agent/accounts/agent-'.$wallet->wallet_agent_id.'/wallet-type-'.$wallet->wallet_type_id) }}"
+            <a href="{{ url('/agent/accounts/agent-'.$wallet->wallet_agent_id.'/accounts-type-'.$wallet->wallet_type_id) }}"
                class="px-4 py-2 bg-slate-800 rounded-xl">
                 ← Back
             </a>

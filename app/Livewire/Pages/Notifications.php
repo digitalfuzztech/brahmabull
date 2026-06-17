@@ -14,6 +14,7 @@ class Notifications extends Component
 
     public $type = '';
     public $readStatus = '';
+    public $previewImage = null;
     protected $listeners = [
         'refreshNotifications' => '$refresh'
     ];
@@ -114,13 +115,9 @@ class Notifications extends Component
         |--------------------------------------------------------------------------
         */
         if (
-            in_array(
-                $notification->type,
-                [
-                    'deposit_verified',
-                    'cashout_paid',
-                ]
-            )
+            $notification->type === 'deposit_verified'
+            ||
+            $notification->type === 'cashout_paid'
         ) {
             return redirect(
                 $notification->action_url
@@ -154,6 +151,32 @@ class Notifications extends Component
             'is_read' => true,
             'read_at' => now(),
         ]);
+    }
+
+    public function viewProof($id)
+    {
+        $notification = Notification::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$notification) {
+            return;
+        }
+
+        $notification->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+
+        $data = $notification->data;
+
+        $this->previewImage = $data['payment_proof'] ?? null;
+
+        $this->dispatch('refreshBell');
+    }
+    public function closePreview()
+    {
+        $this->previewImage = null;
     }
     public function render()
     {

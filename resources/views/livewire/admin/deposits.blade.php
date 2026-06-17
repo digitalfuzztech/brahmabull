@@ -112,15 +112,16 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
 
                 <div class="overflow-x-auto scrollbar-purple">
-                    <table class="min-w-[1700px] text-sm text-left">
+                    <table class="w-full text-sm text-left">
 
                     <thead class="text-slate-400 border-b border-slate-800">
                     <tr>
                         <th class="p-3">SN</th>
                         <th>Ref</th>
                         <th>Player</th>
-                        <th>Game</th>
                         <th>Username</th>
+                        <th>Game</th>
+                        <th>Game Username</th>
                         <th>Amount</th>
                         <th>Points Loaded</th>
                         <th>Bonus</th>
@@ -152,6 +153,9 @@
                             <td class="p-3">{{ $i + 1 }}</td>
                             <td>{{ $deposit->reference }}</td>
                             <td>{{ $deposit->user->name }}</td>
+                            <td class="text-purple-400">
+                                {{ $deposit->user?->username ?? '-' }}
+                            </td>
                             <td>{{ $deposit->game->name }}</td>
                             <td>
 
@@ -258,7 +262,7 @@
         </div>
 
     @endforeach
-    <div class="mt-6">
+    <div class="mt-6 custom-page-styles">
         {{ $this->deposits->links() }}
     </div>
 
