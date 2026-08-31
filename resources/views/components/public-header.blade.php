@@ -74,6 +74,10 @@
 
                 @if($isPlayer)
                     <div class="flex items-center gap-4">
+                        <div class="hidden sm:block">
+                            <livewire:pages.brahma-balance />
+                        </div>
+
                         <!-- MOBILE HAMBURGER -->
                         <button
                             @click="mobileMenu = true"
@@ -284,6 +288,10 @@
             <!-- Links -->
             <div class="p-4 space-y-2">
 
+                <div class="rounded-2xl border border-slate-800 bg-slate-900 p-3">
+                    <livewire:pages.brahma-balance />
+                </div>
+
                 <a href="{{ route('games') }}" class="block rounded-xl px-4 py-3 hover:bg-slate-800">Play Now</a>
 
 
@@ -395,4 +403,3 @@
 
     </div>
 </div>
-

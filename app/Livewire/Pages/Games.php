@@ -10,6 +10,7 @@ use App\Models\Deposit;
 use Illuminate\Support\Str;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\BrahmaPlayRequest;
 
 
 class Games extends Component
@@ -23,15 +24,21 @@ class Games extends Component
     public $amount = null;
     public $showWalletPreview = false;
     public $proofImage;
+    public $playModalTab = 'payment';
+    public $pointsToLoad = null;
 
     public $depositSubmitted = false;
     public $depositReference = null;
+    public $brahmaPlaySubmitted = false;
+    public $brahmaPlayReference = null;
 
     public function openPlayModal($gameId)
     {
         $game = Game::findOrFail($gameId);
 
         $this->depositSubmitted = false;
+        $this->brahmaPlaySubmitted = false;
+        $this->playModalTab = 'payment';
 
         $this->selectedGame = $game;
         $this->showModal = true;
@@ -47,8 +54,12 @@ class Games extends Component
         $this->amount = null;
         $this->showWalletPreview = false;
         $this->proofImage = null;
+        $this->playModalTab = 'payment';
+        $this->pointsToLoad = null;
         $this->depositSubmitted = false;
         $this->depositReference = null;
+        $this->brahmaPlaySubmitted = false;
+        $this->brahmaPlayReference = null;
     }
 
     public function updatedPaymentType()
@@ -158,10 +169,73 @@ class Games extends Component
     {
         $this->selectedWallet = $walletId;
     }
+
+    public function submitBrahmaPlay()
+    {
+        abort_unless(auth()->check() && auth()->user()->hasRole('player'), 403);
+
+        $this->validate([
+            'pointsToLoad' => 'required|numeric|min:1|max:9999999999.99',
+        ]);
+
+        $game = Game::where('is_active', true)->findOrFail($this->selectedGame?->id);
+        $player = User::whereKey(auth()->id())->firstOrFail();
+
+        if ((float) $this->pointsToLoad > (float) $player->brahma_balance) {
+            $this->addError('pointsToLoad', "You don't have sufficient balance.");
+
+            return;
+        }
+
+        $playRequest = BrahmaPlayRequest::create([
+            'user_id' => $player->id,
+            'game_id' => $game->id,
+            'points_to_load' => $this->pointsToLoad,
+            'balance_at_submission' => $player->brahma_balance,
+            'status' => 'pending',
+        ]);
+
+        Notification::create([
+            'user_id' => $player->id,
+            'type' => 'brahma_play_submitted',
+            'title' => 'Play Request Submitted',
+            'message' => 'Your Play request is submitted. Please wait for a few minutes for game username, game password and game link. Game: ' . $game->name . '. Points: ' . number_format((float) $playRequest->points_to_load, 2) . '. Reference: ' . $playRequest->reference . '.',
+            'action_text' => 'Got It',
+            'action_url' => route('player.notifications'),
+            'entity_type' => BrahmaPlayRequest::class,
+            'entity_id' => $playRequest->id,
+            'game_id' => $game->id,
+            'is_read' => false,
+        ]);
+
+        foreach (User::role(['admin', 'agent'])->get() as $receiver) {
+            Notification::create([
+                'user_id' => $receiver->id,
+                'type' => 'brahma_play_created',
+                'title' => 'Brahma Play Request Received',
+                'message' => $player->name . ' (' . $player->username . ', P' . $player->playerProfile?->player_id . ') requested ' . number_format((float) $playRequest->points_to_load, 2) . ' points for ' . $game->name . '. Reference: ' . $playRequest->reference . '.',
+                'action_text' => 'View Brahma Plays',
+                'action_url' => $receiver->hasRole('admin')
+                    ? route('admin.brahma.plays')
+                    : route('agent.brahma.plays'),
+                'entity_type' => BrahmaPlayRequest::class,
+                'entity_id' => $playRequest->id,
+                'game_id' => $game->id,
+                'created_by' => $player->id,
+            ]);
+        }
+
+        $this->brahmaPlaySubmitted = true;
+        $this->brahmaPlayReference = $playRequest->reference;
+        $this->pointsToLoad = null;
+        $this->dispatch('refreshBell');
+    }
+
     public function render()
     {
         return view('livewire.pages.games', [
             'games' => Game::where('is_active', true)->get(),
+            'playerBalance' => auth()->user()?->fresh()?->brahma_balance ?? 0,
             'walletTypes' => Wallet::where('is_active', true)
                 ->select('type')
                 ->distinct()

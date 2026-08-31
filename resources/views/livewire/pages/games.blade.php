@@ -70,7 +70,28 @@
                     <button wire:click="closeModal" class="text-white text-xl">✕</button>
 
                 </div>
-                @if($depositSubmitted)
+
+                <div class="px-6 pb-3">
+                    <div class="grid grid-cols-2 rounded-xl border border-slate-700 bg-slate-950 p-1 text-sm font-bold">
+                        <button
+                            type="button"
+                            wire:click="$set('playModalTab', 'payment')"
+                            class="rounded-lg px-3 py-2 {{ $playModalTab === 'payment' ? 'bg-purple-600 text-white' : 'text-slate-400' }}"
+                        >
+                            Existing Payment
+                        </button>
+
+                        <button
+                            type="button"
+                            wire:click="$set('playModalTab', 'brahma')"
+                            class="rounded-lg px-3 py-2 {{ $playModalTab === 'brahma' ? 'bg-purple-600 text-white' : 'text-slate-400' }}"
+                        >
+                            Use Brahma Balance
+                        </button>
+                    </div>
+                </div>
+
+                @if($depositSubmitted && $playModalTab === 'payment')
 
                     <div
                         class="mb-6 mx-2 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-300"
@@ -94,8 +115,27 @@
                     </div>
 
                 @endif
+
+                @if($brahmaPlaySubmitted && $playModalTab === 'brahma')
+
+                    <div
+                        class="mb-6 mx-2 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-300"
+                    >
+
+                        <h3 class="font-bold text-lg">
+                            Play Request Submitted </br> [ {{ $brahmaPlayReference }}]
+                        </h3>
+
+                        <p class="mt-2">
+                            Please wait for a few minutes for game username, game password and game link.
+                        </p>
+
+                    </div>
+
+                @endif
                 <!-- BODY (SCROLL AREA) -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 custom-scrollbar">
+                    @if($playModalTab === 'payment')
                 <!-- GAME -->
                 <div class="mb-4">
                     <label class="text-sm text-slate-400">Game</label>
@@ -265,10 +305,76 @@
                     </div>
                 </div>
 
+                    @else
+
+                        <div class="mb-4">
+                            <label class="text-sm text-slate-400">Game</label>
+
+                            <input
+                                type="text"
+                                disabled
+                                value="{{ $selectedGame->name }}"
+                                class="w-full mt-1 rounded-xl bg-slate-800 border-slate-700 text-white"
+                            >
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-sm text-slate-400">Player Name</label>
+
+                            <input
+                                type="text"
+                                disabled
+                                value="{{ auth()->user()->name }}"
+                                class="w-full mt-1 rounded-xl bg-slate-800 border-slate-700 text-white"
+                            >
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-sm text-slate-400">Player Username</label>
+
+                            <input
+                                type="text"
+                                disabled
+                                value="{{ auth()->user()->username }}"
+                                class="w-full mt-1 rounded-xl bg-slate-800 border-slate-700 text-white"
+                            >
+                        </div>
+
+                        <div class="mb-4 rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4">
+                            <p class="text-sm text-slate-300">
+                                Current Brahma Balance
+                            </p>
+
+                            <p class="mt-1 text-2xl font-black text-white">
+                                ${{ number_format((float) $playerBalance, 2) }}
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-sm text-slate-400">Points to Load</label>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                wire:model="pointsToLoad"
+                                class="w-full mt-1 rounded-xl bg-slate-800 border-slate-700 text-white"
+                                placeholder="Enter points"
+                            />
+
+                            @error('pointsToLoad')
+                            <p class="mt-2 text-sm text-red-400">
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </div>
+
+                    @endif
+
 
                 </div>
                 <!-- SUBMIT -->
                 <div class="p-6 border-t border-slate-800">
+                    @if($playModalTab === 'payment')
                 <button
                     wire:click="submitDeposit"
                     wire:loading.attr="disabled"
@@ -291,6 +397,30 @@
     </span>
 
                 </button>
+                    @else
+                        <button
+                            wire:click="submitBrahmaPlay"
+                            wire:loading.attr="disabled"
+                            wire:target="submitBrahmaPlay"
+                            class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-bold text-white"
+                        >
+
+                            <span
+                                wire:loading.remove
+                                wire:target="submitBrahmaPlay"
+                            >
+                                Submit Play Request
+                            </span>
+
+                            <span
+                                wire:loading
+                                wire:target="submitBrahmaPlay"
+                            >
+                                Submitting...
+                            </span>
+
+                        </button>
+                    @endif
                 </div>
             </div>
 

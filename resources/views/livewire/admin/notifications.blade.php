@@ -19,6 +19,8 @@
             <option value="">All Types</option>
             <option value="deposit_created">Deposits</option>
             <option value="cashout_created">Cashouts</option>
+            <option value="brahma_deposit_created">Brahma Deposits</option>
+            <option value="brahma_play_created">Brahma Plays</option>
             <option value="wallet">Wallet</option>
             <option value="game">Games</option>
 
@@ -117,6 +119,22 @@
                                 View Cashouts
                             </button>
                         @endif
+                        @if(in_array($notification->type, ['brahma_deposit_created','brahma_deposit_verified','brahma_deposit_rejected_admin']))
+                            <button
+                                wire:click="markAndRedirect({{ $notification->id }})"
+                                class="px-3 py-1 bg-purple-600 rounded-lg"
+                            >
+                                View Brahma Deposits
+                            </button>
+                        @endif
+                        @if(in_array($notification->type, ['brahma_play_created','brahma_play_verified_admin','brahma_play_rejected_admin']))
+                            <button
+                                wire:click="markAndRedirect({{ $notification->id }})"
+                                class="px-3 py-1 bg-indigo-600 rounded-lg"
+                            >
+                                View Brahma Plays
+                            </button>
+                        @endif
                         {{-- WALLET --}}
                         @if($notification->type === 'wallet')
                             <button
@@ -150,7 +168,7 @@
                         @endif
 
                         {{-- 🔥 FALLBACK (IMPORTANT FIX) --}}
-                        @if(!in_array($notification->type, ['deposit_created','cashout_created','wallet','game','cashout_admin']))
+                        @if(!in_array($notification->type, ['deposit_created','cashout_created','wallet','game','cashout_admin','brahma_deposit_created','brahma_deposit_verified','brahma_deposit_rejected_admin','brahma_play_created','brahma_play_verified_admin','brahma_play_rejected_admin']))
 
                             @if($notification->is_read)
 

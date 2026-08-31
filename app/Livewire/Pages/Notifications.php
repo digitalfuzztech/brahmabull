@@ -54,6 +54,17 @@ class Notifications extends Component
 
                     $q->where('type', 'game');
 
+                } elseif ($this->type === 'brahma') {
+
+                    $q->whereIn('type', [
+                        'brahma_deposit_submitted',
+                        'brahma_balance_loaded',
+                        'brahma_deposit_rejected',
+                        'brahma_play_submitted',
+                        'brahma_play_verified',
+                        'brahma_play_rejected',
+                    ]);
+
                 }
 
             })
@@ -118,6 +129,8 @@ class Notifications extends Component
             $notification->type === 'deposit_verified'
             ||
             $notification->type === 'cashout_paid'
+            ||
+            $notification->type === 'brahma_play_verified'
         ) {
             return redirect(
                 $notification->action_url

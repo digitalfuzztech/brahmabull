@@ -34,6 +34,10 @@
                 Games
             </option>
 
+            <option value="brahma">
+                Brahma
+            </option>
+
         </select>
         <select
             wire:model.live="readStatus"
@@ -127,7 +131,7 @@
                             </button>
 
 
-                        @elseif($notification->type === 'deposit_verified')
+                        @elseif($notification->type === 'deposit_verified' || $notification->type === 'brahma_play_verified')
 
                             <a
                                 href="{{ $notification->action_url }}" target="_blank"
@@ -145,7 +149,12 @@
                                     'deposit_submitted',
                                     'deposit_rejected',
                                     'cashout_submitted',
-                                    'cashout_rejected'
+                                    'cashout_rejected',
+                                    'brahma_deposit_submitted',
+                                    'brahma_balance_loaded',
+                                    'brahma_deposit_rejected',
+                                    'brahma_play_submitted',
+                                    'brahma_play_rejected'
                                 ]
                             )
                         )

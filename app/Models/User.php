@@ -56,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'brahma_balance' => 'decimal:2',
         ];
     }
     protected static function booted()
@@ -135,5 +136,20 @@ class User extends Authenticatable implements MustVerifyEmail
             Referral::class,
             'referrer_id'
         );
+    }
+
+    public function brahmaDeposits()
+    {
+        return $this->hasMany(\App\Models\BrahmaDeposit::class);
+    }
+
+    public function brahmaPlayRequests()
+    {
+        return $this->hasMany(\App\Models\BrahmaPlayRequest::class);
+    }
+
+    public function brahmaBalanceTransactions()
+    {
+        return $this->hasMany(\App\Models\BrahmaBalanceTransaction::class);
     }
 }

@@ -148,6 +148,18 @@ class Notifications extends Component
 
             return redirect('/agent/payout');
         }
+
+        if (in_array($notification->type, [
+            'brahma_deposit_created',
+            'brahma_deposit_verified',
+            'brahma_deposit_rejected_admin',
+            'brahma_play_created',
+            'brahma_play_verified_admin',
+            'brahma_play_rejected_admin',
+        ], true)) {
+
+            return redirect($notification->action_url);
+        }
         // redirect based on type
       //  if ($notification->type === 'deposit_created') {
      //       return redirect()->route('admin.deposits');

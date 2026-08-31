@@ -55,6 +55,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/payout', \App\Livewire\Admin\Cashouts::class)
         ->name('admin.cashouts');
 
+    Route::get('/admin/brahma-accounts/deposits', \App\Livewire\Admin\BrahmaDeposits::class)
+        ->name('admin.brahma.deposits');
+    Route::get('/admin/brahma-accounts/plays', \App\Livewire\Admin\BrahmaPlays::class)
+        ->name('admin.brahma.plays');
+
     Route::get('/admin/members', \App\Livewire\Admin\Players::class)
         ->name('admin.players');
     Route::get('/admin/members/all_members', \App\Livewire\Admin\PlayersAll::class)
@@ -95,6 +100,11 @@ Route::middleware(['auth', 'role:agent'])->group(function () {
 
     Route::get('/agent/payout', \App\Livewire\Admin\Cashouts::class)
         ->name('agent.cashouts');
+
+    Route::get('/agent/brahma-accounts/deposits', \App\Livewire\Admin\BrahmaDeposits::class)
+        ->name('agent.brahma.deposits');
+    Route::get('/agent/brahma-accounts/plays', \App\Livewire\Admin\BrahmaPlays::class)
+        ->name('agent.brahma.plays');
 
     Route::get('/agent/members', \App\Livewire\Admin\Players::class)
         ->name('agent.players');
