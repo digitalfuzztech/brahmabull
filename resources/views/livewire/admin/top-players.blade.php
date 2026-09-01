@@ -79,6 +79,9 @@
                     Username
                 </th>
                 <th class="text-left">
+                    Brahma Balance
+                </th>
+                <th class="text-left">
                     Deposits
                 </th>
 
@@ -112,6 +115,9 @@
                     </td>
                     <td class="text-purple-400">
                         {{ $row->player->username ?? '-' }}
+                    </td>
+                    <td>
+                        ${{ number_format((float) $row->player->brahma_balance, 2) }}
                     </td>
                     <td>
                         {{ $row->deposit_count }}
@@ -157,6 +163,7 @@
 
                 <th class="text-left p-2">Player Name</th>
                 <th class="text-left p-2">Username</th>
+                <th class="text-left p-2">Brahma Balance</th>
                 <th class="text-left p-2">Points Used</th>
 
                 <th class="text-left p-2">Game</th>
@@ -198,6 +205,9 @@
                     </td>
                     <td class="p-3 text-purple-400">
                         {{ $row->account->user->username ?? '-' }}
+                    </td>
+                    <td class="p-3">
+                        ${{ number_format((float) $row->account->user->brahma_balance, 2) }}
                     </td>
                     <td class="p-3">
                         {{ number_format($row->points_used,2) }}

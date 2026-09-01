@@ -22,12 +22,12 @@ new #[Layout('layouts.guest')] class extends Component
        // $user = auth()->user();
 
         if ($user->hasRole('admin')) {
-            $this->redirect(route('admin.dashboard', absolute: false), navigate: true);
+            $this->redirectRoute('admin.dashboard');
             return;
         }
 
         if ($user->hasRole('agent')) {
-            $this->redirect(route('agent.dashboard', absolute: false), navigate: true);
+            $this->redirectRoute('agent.dashboard');
             return;
         }
 

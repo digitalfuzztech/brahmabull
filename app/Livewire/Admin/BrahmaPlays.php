@@ -10,6 +10,7 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -98,6 +99,18 @@ class BrahmaPlays extends Component
 
     public function processPlay(): void
     {
+        $this->processPlayRequest(false);
+    }
+
+    public function adminProcessPlay(): void
+    {
+        abort_unless(auth()->user()?->hasRole('admin'), 403);
+
+        $this->processPlayRequest(true);
+    }
+
+    private function processPlayRequest(bool $allowAdminEdits): void
+    {
         $this->validate([
             'status' => 'required|in:pending,verified,rejected',
         ]);
@@ -115,10 +128,37 @@ class BrahmaPlays extends Component
             ]);
         }
 
-        $result = DB::transaction(function () {
+        $result = DB::transaction(function () use ($allowAdminEdits) {
             $play = BrahmaPlayRequest::whereKey($this->selectedPlay->id)->lockForUpdate()->firstOrFail();
 
             if ($play->debited_at || BrahmaBalanceTransaction::where('source_type', BrahmaPlayRequest::class)->where('source_id', $play->id)->where('type', 'debit')->exists()) {
+                if ($allowAdminEdits) {
+                    if ($this->status !== $play->status) {
+                        throw ValidationException::withMessages([
+                            'status' => 'A debited play cannot change financial status.',
+                        ]);
+                    }
+
+                    $play->update([
+                        'game_username' => $this->game_username,
+                        'game_password' => $this->game_password,
+                    ]);
+
+                    GameAccount::updateOrCreate(
+                        [
+                            'user_id' => $play->user_id,
+                            'game_id' => $play->game_id,
+                        ],
+                        [
+                            'game_username' => $this->game_username,
+                            'game_password' => $this->game_password,
+                            'created_by' => auth()->id(),
+                        ]
+                    );
+
+                    return ['play' => $play->fresh(['user', 'game']), 'debited' => false, 'already_processed' => true, 'credentials_corrected' => true];
+                }
+
                 return ['play' => $play->fresh(['user', 'game']), 'debited' => false, 'already_processed' => true];
             }
 
@@ -201,7 +241,9 @@ class BrahmaPlays extends Component
         $play = $result['play'];
         $processor = auth()->user();
 
-        if ($result['already_processed']) {
+        if (($result['credentials_corrected'] ?? false) === true) {
+            session()->flash('success', 'Game credentials updated. No additional Brahma Balance was debited.');
+        } elseif ($result['already_processed']) {
             session()->flash('success', 'This Brahma Play was already financially processed. No balance was changed.');
         } elseif ($this->status === 'verified') {
             $url = $play->game?->game_url;

@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\GameAccount;
 use App\Models\Deposit;
 use App\Models\Cashout;
+use App\Models\User;
 
 class TopPlayers extends Component
 {
@@ -134,42 +135,37 @@ class TopPlayers extends Component
 
     public function getTopTenProperty()
     {
-        return \App\Models\User::role('player')
+        return User::role('player')
 
             ->with('playerProfile')
+
+            ->withCount([
+                'deposits as normal_deposit_count' => fn ($query) => $query->where('status', 'verified'),
+                'brahmaDeposits as brahma_deposit_count' => fn ($query) => $query->where('status', 'verified'),
+            ])
+
+            ->withSum([
+                'deposits as normal_deposit_total' => fn ($query) => $query->where('status', 'verified'),
+                'brahmaDeposits as brahma_deposit_total' => fn ($query) => $query->where('status', 'verified'),
+            ], 'amount')
+
+            ->withSum([
+                'deposits as points_used' => fn ($query) => $query->where('status', 'verified'),
+            ], 'game_points_loaded')
 
             ->get()
 
             ->map(function ($player) {
 
-                $depositCount = \App\Models\Deposit::where(
-                    'user_id',
-                    $player->id
-                )
-                    ->where('status', 'verified')
-                    ->count();
-
-                $depositTotal = \App\Models\Deposit::where(
-                    'user_id',
-                    $player->id
-                )->where('status', 'verified')
-                    ->sum('amount');
-
-                $pointsUsed = \App\Models\Deposit::where(
-                    'user_id',
-                    $player->id
-                )->where('status', 'verified')
-                    ->sum('game_points_loaded');
-
                 return (object)[
 
                     'player' => $player,
 
-                    'deposit_count' => $depositCount,
+                    'deposit_count' => (int) $player->normal_deposit_count + (int) $player->brahma_deposit_count,
 
-                    'deposit_total' => $depositTotal,
+                    'deposit_total' => (float) $player->normal_deposit_total + (float) $player->brahma_deposit_total,
 
-                    'points_used' => $pointsUsed,
+                    'points_used' => (float) $player->points_used,
 
                 ];
 

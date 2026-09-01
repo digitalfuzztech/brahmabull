@@ -16,7 +16,13 @@ class PlayersAll extends Component
     public function getPlayersProperty()
     {
         return User::role('player')
-            ->with('playerProfile')
+            ->with(['playerProfile', 'referrer'])
+            ->withCount([
+                'deposits as normal_deposits_count',
+                'brahmaDeposits as brahma_deposits_count',
+            ])
+            ->withSum('deposits as normal_deposits_amount', 'amount')
+            ->withSum('brahmaDeposits as brahma_deposits_amount', 'amount')
             ->when($this->search, function ($q) {
 
                 $q->where(function($query){
@@ -39,7 +45,14 @@ class PlayersAll extends Component
             'gameAccounts.game',
             'deposits',
             'cashouts'
-        ])->findOrFail($id);
+        ])
+            ->withCount([
+                'deposits as normal_deposits_count',
+                'brahmaDeposits as brahma_deposits_count',
+            ])
+            ->withSum('deposits as normal_deposits_amount', 'amount')
+            ->withSum('brahmaDeposits as brahma_deposits_amount', 'amount')
+            ->findOrFail($id);
     }
 
     public function closePlayer()

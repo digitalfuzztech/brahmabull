@@ -75,21 +75,40 @@
                     <div class="grid grid-cols-2 rounded-xl border border-slate-700 bg-slate-950 p-1 text-sm font-bold">
                         <button
                             type="button"
-                            wire:click="$set('playModalTab', 'payment')"
-                            class="rounded-lg px-3 py-2 {{ $playModalTab === 'payment' ? 'bg-purple-600 text-white' : 'text-slate-400' }}"
-                        >
-                            Existing Payment
-                        </button>
-
-                        <button
-                            type="button"
                             wire:click="$set('playModalTab', 'brahma')"
                             class="rounded-lg px-3 py-2 {{ $playModalTab === 'brahma' ? 'bg-purple-600 text-white' : 'text-slate-400' }}"
                         >
                             Use Brahma Balance
                         </button>
+                        <button
+                            type="button"
+                            wire:click="$set('playModalTab', 'payment')"
+                            class="rounded-lg px-3 py-2 {{ $playModalTab === 'payment' ? 'bg-purple-600 text-white' : 'text-slate-400' }}"
+                        >
+                            Pay For Game
+                        </button>
+
+
                     </div>
                 </div>
+
+                @if($brahmaPlaySubmitted && $playModalTab === 'brahma')
+
+                    <div
+                        class="mb-6 mx-2 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-300"
+                    >
+
+                        <h3 class="font-bold text-lg">
+                            Play Request Submitted </br> [ {{ $brahmaPlayReference }}]
+                        </h3>
+
+                        <p class="mt-2">
+                            Please wait for a few minutes for game username, game password and game link.
+                        </p>
+
+                    </div>
+
+                @endif
 
                 @if($depositSubmitted && $playModalTab === 'payment')
 
@@ -116,23 +135,7 @@
 
                 @endif
 
-                @if($brahmaPlaySubmitted && $playModalTab === 'brahma')
 
-                    <div
-                        class="mb-6 mx-2 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-300"
-                    >
-
-                        <h3 class="font-bold text-lg">
-                            Play Request Submitted </br> [ {{ $brahmaPlayReference }}]
-                        </h3>
-
-                        <p class="mt-2">
-                            Please wait for a few minutes for game username, game password and game link.
-                        </p>
-
-                    </div>
-
-                @endif
                 <!-- BODY (SCROLL AREA) -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 custom-scrollbar">
                     @if($playModalTab === 'payment')
@@ -224,6 +227,21 @@
                 @if($selectedWallet)
 
                     <div class="mt-3">
+
+                        @if($this->selectedWalletModel?->qr_image)
+                            <button
+                                wire:click="$set('showWalletPreview', true)"
+                                type="button"
+                                class="mb-3 block rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                aria-label="Preview selected wallet QR code"
+                            >
+                                <img
+                                    src="{{ asset('storage/' . $this->selectedWalletModel->qr_image) }}"
+                                    alt="Selected wallet QR code"
+                                    class="h-24 w-24 cursor-zoom-in rounded-xl border border-slate-700 object-cover"
+                                >
+                            </button>
+                        @endif
 
                         <button
                             wire:click="$set('showWalletPreview', true)"

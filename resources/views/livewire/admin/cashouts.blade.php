@@ -313,9 +313,23 @@
                 <div class="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 custom-scrollbar">
 
                     <p class="text-white">
-                        Player:
+                        Player Name:
                         {{ $selectedCashout->user?->name }}
                     </p>
+
+                    <p class="text-white">
+                        Player Username:
+                        {{ $selectedCashout->user?->username }}
+                    </p>
+
+                    @if($selectedCashout->qr_image)
+                        <div>
+                            <p class="mb-2 text-sm text-slate-400">Player QR</p>
+                            <button type="button" wire:click="openProof('{{ $selectedCashout->qr_image }}')" class="rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <img src="{{ asset('storage/'.$selectedCashout->qr_image) }}" class="h-24 w-24 cursor-zoom-in rounded-xl border border-slate-700 object-cover" alt="Player cashout QR code">
+                            </button>
+                        </div>
+                    @endif
 
                     <p class="text-white">
                         Game:
@@ -476,9 +490,9 @@
 
     @if($proofPreview)
 
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
 
-            <div class="relative bg-slate-900 p-4 rounded-xl">
+            <div class="relative max-w-full bg-slate-900 p-4 rounded-xl">
 
                 <button
                     wire:click="closeProof"
@@ -489,7 +503,7 @@
 
                 <img
                     src="{{ asset('storage/'.$proofPreview) }}"
-                    class="max-h-[600px] rounded-lg"
+                    class="max-h-[calc(100vh-4rem)] max-w-full rounded-lg object-contain"
                 >
 
             </div>

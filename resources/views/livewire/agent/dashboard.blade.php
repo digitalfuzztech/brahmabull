@@ -51,7 +51,8 @@
                         </p>
 
                         <p class="text-xs text-slate-400">
-                            Amount: {{ $deposit->amount }}
+                            {{ $deposit instanceof \App\Models\BrahmaDeposit ? 'Brahma Balance Deposit' : 'Game Deposit' }}
+                            &middot; Amount: {{ $deposit->amount }}
                         </p>
                     </div>
 

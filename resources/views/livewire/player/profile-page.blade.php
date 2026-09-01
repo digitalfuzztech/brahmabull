@@ -132,6 +132,13 @@
 
     </div>
 
+    <div class="mt-8 rounded-3xl border border-purple-500/40 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-8">
+        <div class="text-sm font-bold uppercase tracking-wider text-purple-300">Brahma Balance</div>
+        <div class="mt-2 text-5xl font-black text-white">
+            ${{ number_format((float) $brahmaBalance, 2) }}
+        </div>
+    </div>
+
     {{-- STATS --}}
 
     <div class="grid md:grid-cols-3 gap-6 mt-8">
@@ -242,6 +249,8 @@
 
                 <div class="overflow-x-auto mt-8">
 
+                    <h4 class="mb-3 text-lg font-bold text-white">Game Deposits</h4>
+
                     <table class="w-full text-sm">
 
                         <thead>
@@ -290,6 +299,75 @@
                             <tr>
                                 <td colspan="6" class="py-6 text-center">
                                     No deposits found.
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="overflow-x-auto mt-8">
+
+                    <h4 class="mb-3 text-lg font-bold text-white">Brahma Balance Deposits</h4>
+
+                    <table class="w-full text-sm">
+
+                        <thead>
+
+                        <tr class="border-b border-slate-700">
+
+                            <th class="text-left py-3">Date</th>
+                            <th class="text-left py-3">Reference</th>
+                            <th class="text-left py-3">Payment Method</th>
+                            <th class="text-left py-3">Wallet / Account</th>
+                            <th class="text-left py-3">Amount Deposited</th>
+                            <th class="text-left py-3">Brahma Amount Loaded</th>
+                            <th class="text-left py-3">Status</th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        @forelse($brahmaDepositRows as $row)
+
+                            <tr class="border-b border-slate-800">
+
+                                <td class="py-3">
+                                    {{ $row->verified_at?->format('Y-m-d') }}
+                                </td>
+
+                                <td class="py-3">{{ $row->reference }}</td>
+
+                                <td class="py-3">{{ $row->wallet_type ?: '-' }}</td>
+
+                                <td class="py-3">
+                                    {{ $row->wallet_name ?: '-' }}
+                                    @if($row->wallet_account_identifier)
+                                        <div class="text-xs text-slate-400">{{ $row->wallet_account_identifier }}</div>
+                                    @endif
+                                </td>
+
+                                <td class="py-3">${{ number_format((float) $row->amount, 2) }}</td>
+
+                                <td class="py-3">
+                                    {{ $row->load_balance !== null ? '$'.number_format((float) $row->load_balance, 2) : '-' }}
+                                </td>
+
+                                <td class="py-3 capitalize">{{ $row->status }}</td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="7" class="py-6 text-center">
+                                    No Brahma Balance deposits found.
                                 </td>
                             </tr>
 

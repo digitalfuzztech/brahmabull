@@ -91,9 +91,17 @@
                                 <td class="whitespace-nowrap px-5 py-4">{{ $deposit->processed_at ? $deposit->processed_at->format('Y-m-d H:i:s') : '-' }}</td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right">
                                     @if($deposit->credited_at)
-                                        <span class="rounded-lg bg-green-700 px-3 py-1">Verified</span>
+                                        @if(auth()->user()?->hasRole('admin'))
+                                            <button wire:click="openModal({{ $deposit->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Edit</button>
+                                        @else
+                                            <span class="rounded-lg bg-green-700 px-3 py-1">Verified</span>
+                                        @endif
                                     @elseif($deposit->status === 'rejected')
-                                        <span class="rounded-lg bg-red-700 px-3 py-1">Rejected</span>
+                                        @if(auth()->user()?->hasRole('admin'))
+                                            <button wire:click="openModal({{ $deposit->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Edit</button>
+                                        @else
+                                            <span class="rounded-lg bg-red-700 px-3 py-1">Rejected</span>
+                                        @endif
                                     @else
                                         <button wire:click="openModal({{ $deposit->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Process Deposit</button>
                                     @endif
@@ -125,7 +133,7 @@
                     <p>Player ID: {{ $selectedDeposit->user?->playerProfile?->player_id ?? '-' }}</p>
                     <p>Reference: {{ $selectedDeposit->reference }}</p>
                     <p>Date: {{ $selectedDeposit->created_at->format('Y-m-d H:i:s') }}</p>
-                    <p>Deposit Amount: ${{ number_format((float) $selectedDeposit->amount, 2) }}</p>
+                    <p>Deposit Amount: ${{ number_format((float) $selectedDeposit->amount, 2) }} <span class="text-sm text-slate-400">(player submitted)</span></p>
                     <p>Deposited To: {{ $selectedDeposit->wallet_type ?? '-' }}</p>
                     <p>Wallet: {{ $selectedDeposit->wallet_name ?? '-' }}</p>
                     <p>Account: {{ $selectedDeposit->wallet_account_identifier ?? '-' }}</p>
@@ -134,17 +142,25 @@
                         <img src="{{ asset('storage/'.$selectedDeposit->proof_image) }}" class="h-20 w-20 cursor-pointer rounded-xl object-cover" wire:click="openProof('{{ $selectedDeposit->proof_image }}')">
                     @endif
 
-                    <select wire:model.live="status" class="w-full rounded-xl bg-slate-800 p-2 text-white">
-                        <option value="pending">Pending</option>
-                        <option value="verified">Verified</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                    @if($selectedDeposit->credited_at)
+                        <p>Status: <span class="font-semibold text-green-400">Verified (financially applied)</span></p>
+                    @else
+                        <select wire:model.live="status" class="w-full rounded-xl bg-slate-800 p-2 text-white">
+                            <option value="pending">Pending</option>
+                            <option value="verified">Verified</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    @endif
                     @error('status') <p class="text-sm text-red-400">{{ $message }}</p> @enderror
 
                     @if($status === 'verified')
                         <div>
                             <label class="text-sm text-slate-400">Load Balance</label>
-                            <input wire:model="load_balance" type="number" step="0.01" class="mt-1 w-full rounded-xl bg-slate-800 p-2 text-white" placeholder="Amount to add">
+                            @if($selectedDeposit->credited_at && !auth()->user()?->hasRole('admin'))
+                                <p class="mt-1 rounded-xl bg-slate-800 p-2 text-white">${{ number_format((float) $selectedDeposit->load_balance, 2) }} (applied)</p>
+                            @else
+                                <input wire:model="load_balance" type="number" step="0.01" class="mt-1 w-full rounded-xl bg-slate-800 p-2 text-white" placeholder="Amount to add">
+                            @endif
                             @error('load_balance') <p class="mt-1 text-sm text-red-400">{{ $message }}</p> @enderror
                         </div>
                     @endif
@@ -153,10 +169,11 @@
                 </div>
 
                 <div class="flex justify-end gap-3 border-t border-slate-800 p-5">
+                    @php($depositSaveMethod = auth()->user()?->hasRole('admin') ? 'adminProcessDeposit' : 'processDeposit')
                     <button wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
-                    <button wire:click="processDeposit" wire:loading.attr="disabled" wire:target="processDeposit" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
-                        <span wire:loading.remove wire:target="processDeposit">Save</span>
-                        <span wire:loading wire:target="processDeposit">Processing...</span>
+                    <button wire:click="{{ $depositSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $depositSaveMethod }}" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
+                        <span wire:loading.remove wire:target="{{ $depositSaveMethod }}">Save</span>
+                        <span wire:loading wire:target="{{ $depositSaveMethod }}">Processing...</span>
                     </button>
                 </div>
             </div>

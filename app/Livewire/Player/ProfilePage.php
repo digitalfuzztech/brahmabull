@@ -7,6 +7,7 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Deposit;
+use App\Models\BrahmaDeposit;
 use App\Models\Cashout;
 use App\Models\Referral;
 use App\Models\GameAccount;
@@ -198,8 +199,12 @@ class ProfilePage extends Component
             ->keyBy(fn($a) => $a->user_id.'-'.$a->game_id);
         return view('livewire.player.profile-page', [
             'gameAccounts' => $gameAccounts,
+            'brahmaBalance' => $user->brahma_balance,
             'totalDeposits' =>
                 Deposit::where(
+                    'user_id',
+                    $user->id
+                )->sum('amount') + BrahmaDeposit::where(
                     'user_id',
                     $user->id
                 )->sum('amount'),
@@ -221,6 +226,14 @@ class ProfilePage extends Component
                     'user_id',
                     $user->id
                 )
+                    ->whereMonth(
+                        'created_at',
+                        $this->month
+                    )
+                    ->sum('amount') + BrahmaDeposit::where(
+                        'user_id',
+                        $user->id
+                    )
                     ->whereMonth(
                         'created_at',
                         $this->month
@@ -249,6 +262,15 @@ class ProfilePage extends Component
                     )
                     ->count(),
             'depositRows' => Deposit::query()
+                ->with('game')
+                ->where('user_id', auth()->id())
+                ->where('status', 'verified')
+                ->whereMonth('verified_at', $this->month)
+                ->whereYear('verified_at', $this->year)
+                ->latest('verified_at')
+                ->get(),
+
+            'brahmaDepositRows' => BrahmaDeposit::query()
                 ->where('user_id', auth()->id())
                 ->where('status', 'verified')
                 ->whereMonth('verified_at', $this->month)

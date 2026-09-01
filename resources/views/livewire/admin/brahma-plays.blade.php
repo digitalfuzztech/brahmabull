@@ -72,9 +72,17 @@
                                 <td class="whitespace-nowrap px-5 py-4">{{ $play->processed_at ? $play->processed_at->format('Y-m-d H:i:s') : '-' }}</td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right">
                                     @if($play->debited_at)
-                                        <span class="rounded-lg bg-green-700 px-3 py-1">Verified</span>
+                                        @if(auth()->user()?->hasRole('admin'))
+                                            <button wire:click="openModal({{ $play->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Edit</button>
+                                        @else
+                                            <span class="rounded-lg bg-green-700 px-3 py-1">Verified</span>
+                                        @endif
                                     @elseif($play->status === 'rejected')
-                                        <span class="rounded-lg bg-red-700 px-3 py-1">Rejected</span>
+                                        @if(auth()->user()?->hasRole('admin'))
+                                            <button wire:click="openModal({{ $play->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Edit</button>
+                                        @else
+                                            <span class="rounded-lg bg-red-700 px-3 py-1">Rejected</span>
+                                        @endif
                                     @else
                                         <button wire:click="openModal({{ $play->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Process Request</button>
                                     @endif
@@ -109,13 +117,17 @@
                     <p>Available Balance at Submission: ${{ number_format((float) $selectedPlay->balance_at_submission, 2) }}</p>
                     <p>Current Brahma Balance: ${{ number_format((float) $selectedPlay->user?->fresh()?->brahma_balance, 2) }}</p>
                     <p>Game: {{ $selectedPlay->game?->name }}</p>
-                    <p>Points to Load: {{ number_format((float) $selectedPlay->points_to_load, 2) }}</p>
+                    <p>Points to Load: {{ number_format((float) $selectedPlay->points_to_load, 2) }} <span class="text-sm text-slate-400">(player requested)</span></p>
 
-                    <select wire:model.live="status" class="w-full rounded-xl bg-slate-800 p-2 text-white">
-                        <option value="pending">Pending</option>
-                        <option value="verified">Verified</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                    @if($selectedPlay->debited_at)
+                        <p>Status: <span class="font-semibold text-green-400">Verified (financially applied)</span></p>
+                    @else
+                        <select wire:model.live="status" class="w-full rounded-xl bg-slate-800 p-2 text-white">
+                            <option value="pending">Pending</option>
+                            <option value="verified">Verified</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    @endif
                     @error('status') <p class="text-sm text-red-400">{{ $message }}</p> @enderror
 
                     @if($status === 'verified')
@@ -142,10 +154,11 @@
                 </div>
 
                 <div class="flex justify-end gap-3 border-t border-slate-800 p-5">
+                    @php($playSaveMethod = auth()->user()?->hasRole('admin') ? 'adminProcessPlay' : 'processPlay')
                     <button wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
-                    <button wire:click="processPlay" wire:loading.attr="disabled" wire:target="processPlay" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
-                        <span wire:loading.remove wire:target="processPlay">Save</span>
-                        <span wire:loading wire:target="processPlay">Processing...</span>
+                    <button wire:click="{{ $playSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $playSaveMethod }}" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
+                        <span wire:loading.remove wire:target="{{ $playSaveMethod }}">Save</span>
+                        <span wire:loading wire:target="{{ $playSaveMethod }}">Processing...</span>
                     </button>
                 </div>
             </div>

@@ -131,15 +131,14 @@
                             </button>
 
 
-                        @elseif($notification->type === 'deposit_verified' || $notification->type === 'brahma_play_verified')
+                        @elseif(in_array($notification->type, ['deposit_verified', 'brahma_play_verified', 'brahma_balance_loaded', 'brahma_balance_adjusted', 'brahma_play_submitted']))
 
-                            <a
-                                href="{{ $notification->action_url }}" target="_blank"
-                                wire:click="markPlayRead({{ $notification->id }})"
-                                class="inline-block px-4 py-2 bg-purple-600 rounded-lg"
+                            <button
+                                wire:click="openNotification({{ $notification->id }})"
+                                class="px-4 py-2 bg-purple-600 rounded-lg"
                             >
-                                Play
-                            </a>
+                                {{ $notification->action_text ?: 'Play' }}
+                            </button>
 
                             {{-- GOT IT BUTTONS --}}
                         @elseif(
@@ -151,9 +150,7 @@
                                     'cashout_submitted',
                                     'cashout_rejected',
                                     'brahma_deposit_submitted',
-                                    'brahma_balance_loaded',
                                     'brahma_deposit_rejected',
-                                    'brahma_play_submitted',
                                     'brahma_play_rejected'
                                 ]
                             )
@@ -162,6 +159,7 @@
                             @if($notification->is_read)
 
                                 <button
+                                    wire:click="openNotification({{ $notification->id }})"
                                     class="px-3 py-1 bg-green-700 rounded-lg"
                                 >
                                     ✓ Got It
@@ -170,7 +168,7 @@
                             @else
 
                                 <button
-                                    wire:click="markAndRedirect({{ $notification->id }})"
+                                    wire:click="openNotification({{ $notification->id }})"
                                     class="px-3 py-1 bg-gray-600 rounded-lg"
                                 >
                                     Got It

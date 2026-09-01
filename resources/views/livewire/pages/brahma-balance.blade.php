@@ -1,8 +1,8 @@
-<div wire:poll.30s class="relative">
+<div wire:poll.10s.visible="refreshBalance" class="relative">
     <div class="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-2">
         <div class="leading-tight">
             <div class="text-[11px] uppercase text-slate-400">Brahma Balance</div>
-            <div class="text-sm font-bold text-white">${{ number_format((float) ($player?->brahma_balance ?? 0), 2) }}</div>
+            <div class="text-sm font-bold text-white">${{ number_format((float) $brahmaBalance, 2) }}</div>
         </div>
 
         <button
@@ -14,9 +14,12 @@
         </button>
     </div>
 
+    @teleport('body')
+    <div>
     @if($showModal)
-        <div class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-            <div class="w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-white">
+        <div class="fixed inset-0 z-[10000] overflow-y-auto bg-black/70 backdrop-blur-sm">
+            <div class="flex min-h-full items-center justify-center p-4">
+            <div class="w-full max-w-lg max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-white">
                 <div class="flex items-center justify-between border-b border-slate-800 p-5">
                     <h2 class="text-lg font-bold">Brahma Balance Deposit</h2>
                     <button wire:click="closeModal" class="text-xl text-slate-300">x</button>
@@ -113,11 +116,17 @@
                     </button>
                 </div>
             </div>
+            </div>
         </div>
     @endif
+    </div>
+    @endteleport
 
+    @teleport('body')
+    <div>
     @if($showWalletPreview && $this->selectedWalletModel)
-        <div class="fixed inset-0 z-[1001] flex items-center justify-center bg-black/80 p-4">
+        <div class="fixed inset-0 z-[10001] overflow-y-auto bg-black/80">
+            <div class="flex min-h-full items-center justify-center p-4">
             <div class="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 text-white">
                 <div class="mb-6 flex items-center justify-between">
                     <h3 class="text-xl font-bold">Wallet Details</h3>
@@ -136,6 +145,9 @@
                     @endif
                 </div>
             </div>
+            </div>
         </div>
     @endif
+    </div>
+    @endteleport
 </div>

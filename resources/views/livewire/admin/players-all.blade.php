@@ -39,6 +39,7 @@
                 <th class="text-left p-3">Email</th>
                 <th class="text-left p-3">Username</th>
                 <th class="text-left p-3">Phone</th>
+                <th class="text-left p-3">Brahma Balance</th>
                 <th class="text-left p-3">Referred By</th>
                 <th class="text-right p-3">Action</th>
             </tr>
@@ -57,6 +58,9 @@
                         {{ $player->username ?? '-' }}
                     </td>
                     <td class="p-2">{{ $player->phone }}</td>
+                    <td class="p-2 font-bold text-purple-300">
+                        ${{ number_format((float) $player->brahma_balance, 2) }}
+                    </td>
                     <td class="p-2">{{ $player->referrer?->name ?? '-' }}</td>
 
                     <td class="p-2 text-right">
@@ -120,6 +124,11 @@
                         {{ $player->email }}
                     </p>
 
+                    <div class="mt-4 inline-block rounded-2xl border border-purple-500/40 bg-purple-500/10 px-5 py-3">
+                        <p class="text-xs font-bold uppercase tracking-wider text-purple-300">Brahma Balance</p>
+                        <p class="mt-1 text-3xl font-black text-white">${{ number_format((float) $player->brahma_balance, 2) }}</p>
+                    </div>
+
                 </div>
 
                 {{-- BODY --}}
@@ -156,9 +165,9 @@
                     {{-- STATS --}}
                     <div class="grid grid-cols-2 gap-3">
 
-                        <div>Total Deposits: {{ $player->deposits->count() }}</div>
+                        <div>Total Deposits: {{ (int) $player->normal_deposits_count + (int) $player->brahma_deposits_count }}</div>
 
-                        <div>Total Deposit Amount: {{ $player->deposits->sum('amount') }}</div>
+                        <div>Total Deposit Amount: ${{ number_format((float) $player->normal_deposits_amount + (float) $player->brahma_deposits_amount, 2) }}</div>
 
                         <div>Total Withdrawals: {{ $player->cashouts->count() }}</div>
 

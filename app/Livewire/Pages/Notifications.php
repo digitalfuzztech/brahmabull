@@ -59,6 +59,7 @@ class Notifications extends Component
                     $q->whereIn('type', [
                         'brahma_deposit_submitted',
                         'brahma_balance_loaded',
+                        'brahma_balance_adjusted',
                         'brahma_deposit_rejected',
                         'brahma_play_submitted',
                         'brahma_play_verified',
@@ -106,51 +107,37 @@ class Notifications extends Component
 
     public function markAndRedirect($id)
     {
-        $notification = Notification::where(
-            'id',
-            $id
-        )
-            ->where(
-                'user_id',
-                auth()->id()
-            )
+        return $this->openNotification($id);
+    }
+
+    public function openNotification($id)
+    {
+        $notification = Notification::where('id', $id)
+            ->where('user_id', auth()->id())
             ->first();
 
         if (!$notification) {
             return;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PLAY BUTTONS NEVER TURN INTO READ
-        |--------------------------------------------------------------------------
-        */
-        if (
-            $notification->type === 'deposit_verified'
-            ||
-            $notification->type === 'cashout_paid'
-            ||
-            $notification->type === 'brahma_play_verified'
-        ) {
-            return redirect(
-                $notification->action_url
-            );
+        if (!$notification->is_read) {
+            $notification->update(['is_read' => true]);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | GOT IT BUTTONS
-        |--------------------------------------------------------------------------
-        */
-        $notification->update([
-            'is_read' => true,
-        ]);
 
         $this->dispatch('refreshBell');
 
-        return redirect(
-            $notification->action_url
-        );
+        $url = trim((string) $notification->action_url);
+
+        if ($url === '') {
+            return;
+        }
+
+        $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $targetHost = parse_url($url, PHP_URL_HOST);
+        $isInternal = (str_starts_with($url, '/') && !str_starts_with($url, '//'))
+            || ($targetHost !== null && $targetHost === $appHost);
+
+        $this->redirect($url, navigate: $isInternal);
     }
     public function markPlayRead($id)
     {

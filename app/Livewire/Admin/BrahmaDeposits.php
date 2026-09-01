@@ -4,12 +4,14 @@ namespace App\Livewire\Admin;
 
 use App\Models\BrahmaBalanceTransaction;
 use App\Models\BrahmaDeposit;
+use App\Models\BrahmaDepositAdjustment;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletType;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -94,6 +96,18 @@ class BrahmaDeposits extends Component
 
     public function processDeposit(): void
     {
+        $this->processDepositRequest(false);
+    }
+
+    public function adminProcessDeposit(): void
+    {
+        abort_unless(auth()->user()?->hasRole('admin'), 403);
+
+        $this->processDepositRequest(true);
+    }
+
+    private function processDepositRequest(bool $allowAdminEdits): void
+    {
         $this->validate([
             'status' => 'required|in:pending,verified,rejected',
             'admin_notes' => 'nullable|string',
@@ -105,10 +119,73 @@ class BrahmaDeposits extends Component
             ]);
         }
 
-        $result = DB::transaction(function () {
+        $result = DB::transaction(function () use ($allowAdminEdits) {
             $deposit = BrahmaDeposit::whereKey($this->selectedDeposit->id)->lockForUpdate()->firstOrFail();
 
+            if ($this->status === 'verified' && round((float) $this->load_balance, 2) < round((float) $deposit->amount, 2)) {
+                throw ValidationException::withMessages([
+                    'load_balance' => 'Load Balance cannot be less than the deposited amount.',
+                ]);
+            }
+
             if ($deposit->credited_at || BrahmaBalanceTransaction::where('source_type', BrahmaDeposit::class)->where('source_id', $deposit->id)->where('type', 'credit')->exists()) {
+                if ($allowAdminEdits) {
+                    if ($this->status !== $deposit->status) {
+                        throw ValidationException::withMessages([
+                            'status' => 'A credited deposit cannot change financial status.',
+                        ]);
+                    }
+
+                    $player = User::whereKey($deposit->user_id)->lockForUpdate()->firstOrFail();
+                    $oldLoadBalance = round((float) $deposit->load_balance, 2);
+                    $newLoadBalance = round((float) $this->load_balance, 2);
+                    $delta = round($newLoadBalance - $oldLoadBalance, 2);
+
+                    if ($delta === 0.0) {
+                        $deposit->update(['admin_notes' => $this->admin_notes]);
+
+                        return ['deposit' => $deposit->fresh(['user']), 'credited' => false, 'already_processed' => true, 'adjusted' => false];
+                    }
+
+                    $before = round((float) $player->brahma_balance, 2);
+                    $after = round($before + $delta, 2);
+
+                    if ($after < 0) {
+                        throw ValidationException::withMessages([
+                            'load_balance' => 'Unable to reduce the loaded balance because the player no longer has enough Brahma Balance for this correction.',
+                        ]);
+                    }
+
+                    $player->forceFill(['brahma_balance' => $after])->save();
+
+                    $adjustment = BrahmaDepositAdjustment::create([
+                        'brahma_deposit_id' => $deposit->id,
+                        'old_load_balance' => $oldLoadBalance,
+                        'new_load_balance' => $newLoadBalance,
+                        'delta' => $delta,
+                        'admin_id' => auth()->id(),
+                    ]);
+
+                    $deposit->update([
+                        'load_balance' => $newLoadBalance,
+                        'admin_notes' => $this->admin_notes,
+                    ]);
+
+                    BrahmaBalanceTransaction::create([
+                        'user_id' => $player->id,
+                        'type' => $delta > 0 ? 'credit' : 'debit',
+                        'amount' => abs($delta),
+                        'balance_before' => $before,
+                        'balance_after' => $after,
+                        'source_type' => BrahmaDepositAdjustment::class,
+                        'source_id' => $adjustment->id,
+                        'performed_by' => auth()->id(),
+                        'description' => 'Brahma Deposit load correction: ' . $deposit->reference . ' (' . number_format($oldLoadBalance, 2) . ' to ' . number_format($newLoadBalance, 2) . ')',
+                    ]);
+
+                    return ['deposit' => $deposit->fresh(['user']), 'credited' => false, 'already_processed' => true, 'adjusted' => true, 'delta' => $delta, 'balance_after' => $after];
+                }
+
                 return ['deposit' => $deposit->fresh(['user']), 'credited' => false, 'already_processed' => true];
             }
 
@@ -164,7 +241,26 @@ class BrahmaDeposits extends Component
         $deposit = $result['deposit'];
         $processor = auth()->user();
 
-        if ($result['already_processed']) {
+        if (($result['adjusted'] ?? false) === true) {
+            $delta = (float) $result['delta'];
+            $balanceAfter = (float) $result['balance_after'];
+
+            Notification::create([
+                'user_id' => $deposit->user_id,
+                'type' => 'brahma_balance_adjusted',
+                'title' => 'Brahma Balance Updated',
+                'message' => $delta > 0
+                    ? 'Your Brahma Balance has been loaded with an additional $' . number_format($delta, 2) . '. Your current Brahma Balance is $' . number_format($balanceAfter, 2) . '.'
+                    : 'Your Brahma Balance was adjusted by -$' . number_format(abs($delta), 2) . '. Your current Brahma Balance is $' . number_format($balanceAfter, 2) . '.',
+                'action_text' => 'Play Now',
+                'action_url' => route('games'),
+                'entity_type' => BrahmaDeposit::class,
+                'entity_id' => $deposit->id,
+                'created_by' => auth()->id(),
+            ]);
+
+            session()->flash('success', 'Load Balance corrected by ' . ($result['delta'] > 0 ? '+' : '') . number_format((float) $result['delta'], 2) . '.');
+        } elseif ($result['already_processed']) {
             session()->flash('success', 'This Brahma Deposit was already financially processed. No balance was changed.');
         } elseif ($this->status === 'verified') {
             Notification::create([
@@ -172,8 +268,8 @@ class BrahmaDeposits extends Component
                 'type' => 'brahma_balance_loaded',
                 'title' => 'Brahma Balance Loaded',
                 'message' => 'Your Brahma Balance has been loaded with $' . number_format((float) $deposit->load_balance, 2) . '. Your current Brahma Balance is $' . number_format((float) $deposit->balance_after_credit, 2) . '. Reference: ' . $deposit->reference . '.',
-                'action_text' => 'Got It',
-                'action_url' => route('player.notifications'),
+                'action_text' => 'Play Now',
+                'action_url' => route('games'),
                 'entity_type' => BrahmaDeposit::class,
                 'entity_id' => $deposit->id,
                 'created_by' => auth()->id(),

@@ -318,7 +318,11 @@
                 <div class="flex-1 overflow-y-auto p-5 space-y-3 min-h-0 custom-scrollbar">
 
                     <p class="text-white">
-                        Player: {{ $selectedDeposit->user->name }}
+                        Player Name: {{ $selectedDeposit->user->name }}
+                    </p>
+
+                    <p class="text-white">
+                        Player Username: {{ $selectedDeposit->user->username }}
                     </p>
 
                     <p class="text-white">

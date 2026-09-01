@@ -149,14 +149,23 @@ class BrahmaBalance extends Component
         $this->dispatch('refreshBell');
     }
 
+    public function refreshBalance(): void
+    {
+        // The render query refreshes only the authenticated player's balance.
+    }
+
     public function render()
     {
         return view('livewire.pages.brahma-balance', [
-            'player' => auth()->user()?->fresh(),
-            'walletTypes' => Wallet::where('is_active', true)
-                ->select('type')
-                ->distinct()
-                ->pluck('type'),
+            'brahmaBalance' => auth()->check()
+                ? User::whereKey(auth()->id())->value('brahma_balance')
+                : 0,
+            'walletTypes' => $this->showModal
+                ? Wallet::where('is_active', true)
+                    ->select('type')
+                    ->distinct()
+                    ->pluck('type')
+                : collect(),
         ]);
     }
 }
