@@ -45,6 +45,9 @@
 
     <x-footer />
 
+    @if(auth()->check() && auth()->user()->hasRole('player'))
+        <livewire:player.player-support-chat />
+    @endif
 
 
 @livewireScripts

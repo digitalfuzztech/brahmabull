@@ -73,6 +73,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         '/admin/notifications',
         \App\Livewire\Admin\Notifications::class
     )->name('admin.notifications');
+
+    Route::get('/admin/inbox', \App\Livewire\Admin\SupportInbox::class)
+        ->name('admin.inbox');
 });
 
 Route::middleware(['auth', 'role:agent'])->group(function () {
@@ -119,6 +122,9 @@ Route::middleware(['auth', 'role:agent'])->group(function () {
        '/agent/notifications',
         \App\Livewire\Admin\Notifications::class
     )->name('agent.notifications');
+
+    Route::get('/agent/inbox', \App\Livewire\Admin\SupportInbox::class)
+        ->name('agent.inbox');
 });
 
 

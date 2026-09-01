@@ -160,6 +160,14 @@ class Notifications extends Component
 
             return redirect($notification->action_url);
         }
+
+        if (in_array($notification->type, [
+            'chat_human_support_requested',
+            'chat_support_reminder',
+            'chat_conversation_assigned',
+        ], true) && $notification->action_url) {
+            return redirect($notification->action_url);
+        }
         // redirect based on type
       //  if ($notification->type === 'deposit_created') {
      //       return redirect()->route('admin.deposits');

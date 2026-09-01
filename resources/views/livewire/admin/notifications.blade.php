@@ -135,6 +135,14 @@
                                 View Brahma Plays
                             </button>
                         @endif
+                        @if(in_array($notification->type, ['chat_human_support_requested','chat_support_reminder','chat_conversation_assigned']))
+                            <button
+                                wire:click="markAndRedirect({{ $notification->id }})"
+                                class="px-3 py-1 bg-indigo-600 rounded-lg"
+                            >
+                                Open Inbox
+                            </button>
+                        @endif
                         {{-- WALLET --}}
                         @if($notification->type === 'wallet')
                             <button
@@ -168,7 +176,7 @@
                         @endif
 
                         {{-- 🔥 FALLBACK (IMPORTANT FIX) --}}
-                        @if(!in_array($notification->type, ['deposit_created','cashout_created','wallet','game','cashout_admin','brahma_deposit_created','brahma_deposit_verified','brahma_deposit_rejected_admin','brahma_play_created','brahma_play_verified_admin','brahma_play_rejected_admin']))
+                        @if(!in_array($notification->type, ['deposit_created','cashout_created','wallet','game','cashout_admin','brahma_deposit_created','brahma_deposit_verified','brahma_deposit_rejected_admin','brahma_play_created','brahma_play_verified_admin','brahma_play_rejected_admin','chat_human_support_requested','chat_support_reminder','chat_conversation_assigned']))
 
                             @if($notification->is_read)
 

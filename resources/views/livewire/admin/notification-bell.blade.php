@@ -135,7 +135,10 @@
             'game',
             'deposit_verified',
             'deposit_paid',
-            'cashout_paid'
+            'cashout_paid',
+            'chat_human_support_requested',
+            'chat_support_reminder',
+            'chat_conversation_assigned'
         ]
     )
 )

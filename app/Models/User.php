@@ -152,4 +152,39 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(\App\Models\BrahmaBalanceTransaction::class);
     }
+
+    public function chatConversationsAsPlayer()
+    {
+        return $this->hasMany(ChatConversation::class, 'player_id');
+    }
+
+    public function assignedChatConversations()
+    {
+        return $this->hasMany(ChatConversation::class, 'assigned_to');
+    }
+
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class, 'sender_id');
+    }
+
+    public function chatbotRulesCreated()
+    {
+        return $this->hasMany(ChatbotRule::class, 'created_by');
+    }
+
+    public function chatSupportEventsHandled()
+    {
+        return $this->hasMany(ChatSupportEvent::class, 'handled_by');
+    }
+
+    public function chatConversationParticipants()
+    {
+        return $this->hasMany(ChatConversationParticipant::class);
+    }
+
+    public function chatMessageReactions()
+    {
+        return $this->hasMany(ChatMessageReaction::class);
+    }
 }
