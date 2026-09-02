@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class Notifications extends Component
@@ -12,14 +12,16 @@ class Notifications extends Component
     use WithPagination;
 
     public $search = '';
+
     public $type = '';
+
     public $game_id = '';
+
     public $readStatus = '';
+
     protected $listeners = [
-        'refreshNotifications' => '$refresh'
+        'refreshNotifications' => '$refresh',
     ];
-
-
 
     public function getNotificationsProperty()
     {
@@ -28,7 +30,7 @@ class Notifications extends Component
             ->where('user_id', Auth::id())
 
             ->when($this->search, function ($q) {
-                $q->where('message', 'like', '%' . $this->search . '%');
+                $q->where('message', 'like', '%'.$this->search.'%');
             })
 
             ->when($this->type, function ($q) {
@@ -52,27 +54,33 @@ class Notifications extends Component
             'notifications' => $this->notifications,
         ])->layout('layouts.private');
     }
+
     public function toggleRead($id)
     {
         $notification = Notification::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$notification) return;
+        if (! $notification) {
+            return;
+        }
 
         $notification->update([
-            'is_read' => !$notification->is_read,
+            'is_read' => ! $notification->is_read,
             'read_at' => $notification->is_read ? null : now(),
         ]);
         $this->dispatch('refreshBell');
     }
+
     public function markAndRedirect($id)
     {
         $notification = Notification::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$notification) return;
+        if (! $notification) {
+            return;
+        }
 
         $notification->update([
             'is_read' => true,
@@ -165,17 +173,19 @@ class Notifications extends Component
             'chat_human_support_requested',
             'chat_support_reminder',
             'chat_conversation_assigned',
+            'chat_team_direct_message',
+            'chat_team_group_added',
         ], true) && $notification->action_url) {
             return redirect($notification->action_url);
         }
         // redirect based on type
-      //  if ($notification->type === 'deposit_created') {
-     //       return redirect()->route('admin.deposits');
-     //   }
+        //  if ($notification->type === 'deposit_created') {
+        //       return redirect()->route('admin.deposits');
+        //   }
 
-     //   if ($notification->type === 'cashout_created') {
-    //        return redirect()->route('admin.cashouts');
-     //   }
+        //   if ($notification->type === 'cashout_created') {
+        //        return redirect()->route('admin.cashouts');
+        //   }
 
         return redirect()->route('admin.notifications');
     }

@@ -33,7 +33,7 @@
                 </button>
             </header>
 
-            <div x-ref="messages" class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5">
+            <div x-ref="messages" class="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
                 @foreach($messages as $chatMessage)
                     <article
                         wire:key="support-message-{{ $chatMessage['id'] }}"
@@ -45,9 +45,7 @@
                             </div>
 
                             @if(filled($chatMessage['body']))
-                                <div class="whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed {{ $chatMessage['is_player'] ? 'rounded-br-md bg-indigo-600 text-white' : 'rounded-bl-md border border-slate-700 bg-slate-900 text-slate-100' }}">
-                                    {{ $chatMessage['body'] }}
-                                </div>
+                                <div class="whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-sm leading-normal {{ $chatMessage['is_player'] ? 'rounded-br-md bg-indigo-600 text-white' : 'rounded-bl-md border border-slate-700 bg-slate-900 text-slate-100' }}">{{ trim($chatMessage['body']) }}</div>
                             @endif
 
                             @if(!$chatMessage['is_player'] && !empty($chatMessage['metadata']['options']))

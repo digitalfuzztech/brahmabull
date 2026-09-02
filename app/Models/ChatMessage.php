@@ -18,6 +18,9 @@ class ChatMessage extends Model
         'metadata',
         'read_by_player_at',
         'read_by_staff_at',
+        'edited_at',
+        'deleted_at',
+        'deleted_by',
     ];
 
     protected function casts(): array
@@ -26,6 +29,8 @@ class ChatMessage extends Model
             'metadata' => 'array',
             'read_by_player_at' => 'datetime',
             'read_by_staff_at' => 'datetime',
+            'edited_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -57,6 +62,11 @@ class ChatMessage extends Model
     public function reactions()
     {
         return $this->hasMany(ChatMessageReaction::class, 'message_id');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function toPlayerSafeArray(): array
@@ -93,6 +103,8 @@ class ChatMessage extends Model
             'metadata' => $this->metadata,
             'reply_to_message_id' => $this->reply_to_message_id,
             'created_at' => $this->created_at?->toISOString(),
+            'edited_at' => $this->edited_at?->toISOString(),
+            'deleted_at' => $this->deleted_at?->toISOString(),
             'sender' => $sender ? [
                 'id' => $sender->id,
                 'name' => $sender->name,

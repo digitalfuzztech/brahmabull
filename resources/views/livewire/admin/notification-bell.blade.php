@@ -138,7 +138,9 @@
             'cashout_paid',
             'chat_human_support_requested',
             'chat_support_reminder',
-            'chat_conversation_assigned'
+            'chat_conversation_assigned',
+            'chat_team_direct_message',
+            'chat_team_group_added'
         ]
     )
 )

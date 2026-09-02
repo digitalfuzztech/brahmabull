@@ -99,7 +99,7 @@ class ConversationService
                 throw new AuthorizationException('Only support conversations can be taken.');
             }
 
-            if ($locked->status !== 'waiting' || $locked->assigned_to !== null) {
+            if (! in_array($locked->status, ['bot', 'waiting'], true) || $locked->assigned_to !== null) {
                 throw new ConversationAlreadyHandledException;
             }
 
@@ -125,7 +125,7 @@ class ConversationService
                 throw new AuthorizationException('Only support conversations can be assigned.');
             }
 
-            if ($locked->status !== 'waiting' || $locked->assigned_to !== null) {
+            if (! in_array($locked->status, ['bot', 'waiting'], true) || $locked->assigned_to !== null) {
                 throw new ConversationAlreadyHandledException;
             }
 
@@ -393,14 +393,20 @@ class ConversationService
     {
         $this->authorization->assertCanViewInternal($conversation, $participant);
 
-        $updated = $conversation->participants()
-            ->where('user_id', $participant->id)
-            ->whereNull('left_at')
-            ->update(['last_read_at' => now()]);
+        DB::transaction(function () use ($conversation, $participant): void {
+            $participantRow = ChatConversationParticipant::query()
+                ->where('conversation_id', $conversation->id)
+                ->where('user_id', $participant->id)
+                ->whereNull('left_at')
+                ->lockForUpdate()
+                ->first();
 
-        if ($updated !== 1) {
-            throw new AuthorizationException('Observers do not have participant read state.');
-        }
+            if (! $participantRow) {
+                throw new AuthorizationException('Observers do not have participant read state.');
+            }
+
+            $participantRow->update(['last_read_at' => now()]);
+        });
     }
 
     public function internalUnreadCount(ChatConversation $conversation, User $participant): int
@@ -420,6 +426,11 @@ class ConversationService
     public function internalGroupUnreadCount(User $participant): int
     {
         return $this->internalUnreadQuery($participant, 'internal_group')->count();
+    }
+
+    public function internalChannelUnreadCount(User $participant): int
+    {
+        return $this->internalUnreadQuery($participant, 'internal_channel')->count();
     }
 
     private function internalUnreadQuery(User $participant, string $conversationType)
@@ -452,7 +463,25 @@ class ConversationService
 
     private function restoreDirectParticipants(ChatConversation $conversation, array $userIds): void
     {
-        foreach ($userIds as $userId) {
+        $expectedUserIds = collect($userIds)->map(fn ($id) => (int) $id)->sort()->values();
+
+        if ($conversation->conversation_type !== 'internal_direct'
+            || $conversation->direct_key !== $expectedUserIds->implode(':')) {
+            throw new DomainException('The existing direct conversation does not match this staff pair.');
+        }
+
+        $activeUserIds = ChatConversationParticipant::query()
+            ->where('conversation_id', $conversation->id)
+            ->whereNull('left_at')
+            ->lockForUpdate()
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id);
+
+        if ($activeUserIds->diff($expectedUserIds)->isNotEmpty()) {
+            throw new DomainException('The existing direct conversation has unexpected participants.');
+        }
+
+        foreach ($expectedUserIds as $userId) {
             $participant = ChatConversationParticipant::where('conversation_id', $conversation->id)
                 ->where('user_id', $userId)
                 ->lockForUpdate()

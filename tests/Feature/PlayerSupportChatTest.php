@@ -117,8 +117,7 @@ class PlayerSupportChatTest extends TestCase
 
         $this->messages->sendPlayerMessage($conversation, $player, 'Player message');
         $this->messages->sendStaffMessage($conversation, $admin, 'Admin response');
-        $this->conversations->requestHumanSupport($conversation->fresh(), $player);
-        $this->conversations->assignConversation($conversation->fresh(), $admin, $agent);
+        $this->conversations->reassignConversation($conversation->fresh(), $admin, $agent);
         $this->messages->sendStaffMessage($conversation->fresh(), $agent, 'Agent response');
 
         $safe = $this->support->messagesForPlayer($conversation->fresh(), $player);

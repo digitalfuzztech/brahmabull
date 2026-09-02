@@ -17,10 +17,16 @@ use Livewire\Component;
 class SupportInbox extends Component
 {
     #[Url]
-    public string $filter = 'waiting';
+    public string $domain = 'support';
+
+    #[Url]
+    public string $filter = 'open';
 
     #[Url]
     public string $search = '';
+
+    #[Url(as: 'conversation')]
+    public ?int $deepLinkedConversationId = null;
 
     public ?int $selectedConversationId = null;
 
@@ -46,14 +52,38 @@ class SupportInbox extends Component
     {
         $staff = $this->staff();
 
-        if ($staff->hasRole('agent') && ! in_array($this->filter, ['waiting', 'mine', 'resolved'], true)) {
-            $this->filter = 'waiting';
+        if (! in_array($this->domain, ['support', 'team'], true)) {
+            $this->domain = 'support';
+        }
+
+        if ($staff->hasRole('agent') && ! in_array($this->filter, ['all', 'open', 'waiting', 'mine', 'resolved'], true)) {
+            $this->filter = 'open';
         }
 
         $this->agents = $staff->hasRole('admin')
             ? $inbox->activeAgents($staff)->map->only(['id', 'name', 'username'])->all()
             : [];
-        $this->refreshList($inbox);
+        if ($this->domain === 'support') {
+            $this->refreshList($inbox);
+            if ($this->deepLinkedConversationId) {
+                $this->selectConversation($this->deepLinkedConversationId, $inbox);
+            }
+        }
+    }
+
+    public function selectDomain(string $domain, SupportInboxService $inbox): void
+    {
+        if (! in_array($domain, ['support', 'team'], true)) {
+            throw new AuthorizationException('Unknown Inbox domain.');
+        }
+
+        $this->domain = $domain;
+        $this->deepLinkedConversationId = null;
+        $this->clearSelection();
+
+        if ($domain === 'support') {
+            $this->refreshList($inbox);
+        }
     }
 
     public function updatedFilter(SupportInboxService $inbox): void
@@ -72,6 +102,7 @@ class SupportInbox extends Component
     {
         $conversation = $inbox->selectConversation($conversationId, $this->staff());
         $this->selectedConversationId = $conversation->id;
+        $this->deepLinkedConversationId = $conversation->id;
         $this->selectedAgentId = $conversation->assigned_to;
         $this->showConversationOnMobile = true;
         $this->loadSelected($inbox, $conversation, true);
@@ -160,11 +191,17 @@ class SupportInbox extends Component
         ]);
 
         $conversation = $this->currentSupportConversation();
-        $messages->sendStaffMessage($conversation, $this->staff(), trim($validated['message']));
-        $this->message = '';
-        $this->loadSelected($inbox, $conversation->fresh(), true);
-        $this->refreshList($inbox);
-        $this->dispatch('support-inbox-scroll');
+
+        try {
+            $messages->sendStaffMessage($conversation, $this->staff(), trim($validated['message']));
+            $this->message = '';
+            $this->loadSelected($inbox, $conversation->fresh(), true);
+            $this->refreshList($inbox);
+            $this->dispatch('support-inbox-scroll');
+        } catch (ConversationAlreadyHandledException) {
+            $this->addError('conversation', 'This conversation is now being handled by another support member.');
+            $this->pollInbox($inbox);
+        }
     }
 
     public function resolveConversation(ConversationService $conversations, SupportInboxService $inbox): void

@@ -18,6 +18,7 @@ class ChatConversation extends Model
         'name',
         'created_by',
         'direct_key',
+        'channel_key',
         'is_archived',
         'assigned_to',
         'assigned_by',
@@ -68,10 +69,16 @@ class ChatConversation extends Model
                 throw new InvalidArgumentException('A group conversation requires a name and creator.');
             }
 
+            if ($conversation->conversation_type === 'internal_channel'
+                && (blank($conversation->name) || blank($conversation->channel_key) || $conversation->direct_key !== null)) {
+                throw new InvalidArgumentException('An internal channel requires a name and channel key.');
+            }
+
             if ($conversation->conversation_type === 'support') {
                 $conversation->status ??= 'bot';
                 $conversation->name = null;
                 $conversation->direct_key = null;
+                $conversation->channel_key = null;
             } else {
                 $conversation->status = null;
             }
@@ -111,6 +118,11 @@ class ChatConversation extends Model
     public function messages()
     {
         return $this->hasMany(ChatMessage::class, 'conversation_id');
+    }
+
+    public function latestMessage()
+    {
+        return $this->hasOne(ChatMessage::class, 'conversation_id')->latestOfMany();
     }
 
     public function supportEvents()

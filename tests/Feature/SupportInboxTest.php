@@ -109,8 +109,8 @@ class SupportInboxTest extends TestCase
         $this->assertNotNull($firstMessage->fresh()->read_by_staff_at);
         $this->assertNull($secondMessage->fresh()->read_by_staff_at);
 
-        $this->expectException(AuthorizationException::class);
         $this->inbox->selectConversation($first->id, $otherAgent);
+        $this->assertNotNull($firstMessage->fresh()->read_by_staff_at);
     }
 
     public function test_admin_and_agent_take_waiting_chat_and_stale_take_is_handled(): void
@@ -212,7 +212,7 @@ class SupportInboxTest extends TestCase
             ->set('selectedConversationId', $conversation->id)
             ->set('message', 'Forged response')
             ->call('sendReply')
-            ->assertForbidden();
+            ->assertHasErrors('conversation');
         $this->assertDatabaseMissing('chat_messages', ['body' => 'Forged response']);
     }
 

@@ -2,12 +2,17 @@
 
 namespace App\Services\Chat;
 
+use App\Exceptions\ConversationAlreadyHandledException;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatMessageReaction;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ChatMessageService
 {
@@ -88,9 +93,16 @@ class ChatMessageService
     ): ChatMessage {
         return DB::transaction(function () use ($conversation, $staff, $body, $messageType, $metadata): ChatMessage {
             $locked = ChatConversation::whereKey($conversation->id)->lockForUpdate()->firstOrFail();
+
+            if ($staff->hasRole('agent')
+                && $locked->status === 'active'
+                && $locked->assigned_to !== $staff->id) {
+                throw new ConversationAlreadyHandledException;
+            }
+
             $this->authorization->assertCanReply($locked, $staff);
 
-            if ($locked->status === 'waiting' && $locked->assigned_to === null) {
+            if (in_array($locked->status, ['bot', 'waiting'], true) && $locked->assigned_to === null) {
                 $locked->update([
                     'status' => 'active',
                     'assigned_to' => $staff->id,
@@ -132,16 +144,20 @@ class ChatMessageService
     public function sendInternalMessage(
         ChatConversation $conversation,
         User $sender,
-        string $body,
+        ?string $body,
         ?ChatMessage $replyTo = null,
+        array $metadata = [],
     ): ChatMessage {
-        return DB::transaction(function () use ($conversation, $sender, $body, $replyTo): ChatMessage {
+        return DB::transaction(function () use ($conversation, $sender, $body, $replyTo, $metadata): ChatMessage {
             $locked = ChatConversation::whereKey($conversation->id)->lockForUpdate()->firstOrFail();
             $this->authorization->assertCanSendInternal($locked, $sender);
+            if ($locked->conversation_type === 'internal_channel' && $replyTo !== null) {
+                throw new DomainException('Noticeboard replies are disabled.');
+            }
             $this->assertValidInternalReply($locked, $replyTo);
             $senderType = $sender->hasRole('admin') ? 'admin' : 'agent';
 
-            return $this->createMessage($locked, $senderType, $sender->id, $body, 'text', [], $replyTo?->id);
+            return $this->createMessage($locked, $senderType, $sender->id, $body, 'text', $metadata, $replyTo?->id);
         });
     }
 
@@ -162,6 +178,9 @@ class ChatMessageService
 
         return DB::transaction(function () use ($message, $user, $reaction): ChatMessageReaction {
             $lockedMessage = ChatMessage::whereKey($message->id)->lockForUpdate()->firstOrFail();
+            if ($lockedMessage->deleted_at !== null) {
+                throw new DomainException('Deleted messages cannot receive reactions.');
+            }
             $conversation = ChatConversation::whereKey($lockedMessage->conversation_id)->lockForUpdate()->firstOrFail();
             $this->authorization->assertCanReact($conversation, $user);
 
@@ -176,12 +195,61 @@ class ChatMessageService
     {
         DB::transaction(function () use ($message, $user): void {
             $lockedMessage = ChatMessage::whereKey($message->id)->lockForUpdate()->firstOrFail();
+            if ($lockedMessage->deleted_at !== null) {
+                throw new DomainException('Deleted messages cannot receive reactions.');
+            }
             $conversation = ChatConversation::whereKey($lockedMessage->conversation_id)->lockForUpdate()->firstOrFail();
             $this->authorization->assertCanReact($conversation, $user);
             ChatMessageReaction::where('message_id', $lockedMessage->id)
                 ->where('user_id', $user->id)
                 ->delete();
         });
+    }
+
+    public function editInternalMessage(ChatMessage $message, User $sender, ?string $body): ChatMessage
+    {
+        return DB::transaction(function () use ($message, $sender, $body): ChatMessage {
+            $locked = ChatMessage::whereKey($message->id)->lockForUpdate()->firstOrFail();
+            $this->authorization->assertCanEditInternalMessage($locked, $sender);
+            $validated = Validator::make(['body' => $body], ['body' => ['nullable', 'string', 'max:2000']])->validate();
+            $body = trim((string) $validated['body']);
+
+            if ($body === '' && ! $locked->attachments()->exists()) {
+                throw ValidationException::withMessages(['editingMessage' => 'A text-only message cannot be empty.']);
+            }
+
+            $locked->update(['body' => $body !== '' ? $body : null, 'edited_at' => now()]);
+
+            return $locked->fresh();
+        });
+    }
+
+    public function deleteInternalMessage(ChatMessage $message, User $sender): ChatMessage
+    {
+        $paths = [];
+        $deleted = DB::transaction(function () use ($message, $sender, &$paths): ChatMessage {
+            $locked = ChatMessage::whereKey($message->id)->lockForUpdate()->firstOrFail();
+            $this->authorization->assertCanDeleteInternalMessage($locked, $sender);
+            $paths = $locked->attachments()->pluck('file_path')->all();
+            $locked->reactions()->delete();
+            $locked->attachments()->delete();
+            $locked->update([
+                'body' => null,
+                'metadata' => null,
+                'deleted_at' => now(),
+                'deleted_by' => $sender->id,
+            ]);
+
+            return $locked->fresh();
+        });
+
+        foreach ($paths as $path) {
+            if (! Storage::disk('local')->delete($path)) {
+                Log::warning('Deleted Team message attachment file could not be removed.', ['message_id' => $deleted->id]);
+            }
+        }
+
+        return $deleted;
     }
 
     private function sendAutomatedMessage(

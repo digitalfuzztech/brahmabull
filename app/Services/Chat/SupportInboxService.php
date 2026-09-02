@@ -47,11 +47,9 @@ class SupportInboxService
             ]);
 
         if ($staff->hasRole('agent')) {
-            $query->where(function ($query) use ($staff): void {
-                $query->where(function ($query): void {
-                    $query->where('status', 'waiting')->whereNull('assigned_to');
-                })->orWhere('assigned_to', $staff->id);
-            });
+            $query->where(fn ($query) => $query
+                ->where('status', '!=', 'resolved')
+                ->orWhere('assigned_to', $staff->id));
         }
 
         $this->applyFilter($query, $staff, $filter);
@@ -279,8 +277,8 @@ class SupportInboxService
     private function normalizeFilter(User $staff, string $filter): string
     {
         $allowed = $staff->hasRole('admin')
-            ? ['all', 'waiting', 'unassigned', 'mine', 'assigned', 'resolved']
-            : ['waiting', 'mine', 'resolved'];
+            ? ['all', 'open', 'waiting', 'unassigned', 'mine', 'assigned', 'resolved']
+            : ['all', 'open', 'waiting', 'mine', 'resolved'];
 
         return in_array($filter, $allowed, true) ? $filter : 'waiting';
     }
@@ -288,6 +286,7 @@ class SupportInboxService
     private function applyFilter($query, User $staff, string $filter): void
     {
         match ($filter) {
+            'open' => $query->whereIn('status', ['bot', 'waiting'])->whereNull('assigned_to'),
             'waiting' => $query->where('status', 'waiting'),
             'unassigned' => $query->where('status', 'waiting')->whereNull('assigned_to'),
             'mine' => $query->where('assigned_to', $staff->id)->where('status', '!=', 'resolved'),

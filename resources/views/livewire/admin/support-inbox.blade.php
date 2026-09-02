@@ -1,12 +1,21 @@
+<div class="flex h-[calc(100dvh-9rem)] min-h-0 flex-col overflow-hidden">
+    <div class="mb-4 flex shrink-0 gap-2 rounded-xl border border-slate-800 bg-slate-900 p-1">
+        <button type="button" wire:click="selectDomain('support')" class="flex-1 rounded-lg px-4 py-2 text-sm font-bold {{ $domain === 'support' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Support</button>
+        <button type="button" wire:click="selectDomain('team')" class="flex-1 rounded-lg px-4 py-2 text-sm font-bold {{ $domain === 'team' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Team</button>
+    </div>
+
+    @if($domain === 'team')
+        <div class="min-h-0 flex-1"><livewire:admin.team-messenger :initial-conversation-id="$deepLinkedConversationId" /></div>
+    @else
 <div
     @if($selectedConversationId)
         wire:poll.3s.visible="pollInbox"
     @else
         wire:poll.5s.visible="pollInbox"
     @endif
-    class="min-h-[calc(100vh-9rem)]"
+    class="flex min-h-0 flex-1 flex-col overflow-hidden"
 >
-    <div class="mb-5 flex items-end justify-between gap-4">
+    <div class="mb-4 flex shrink-0 items-end justify-between gap-4">
         <div>
             <h1 class="text-2xl font-black text-white">Support Inbox</h1>
             <p class="mt-1 text-sm text-slate-400">Player conversations with the Brahmabull Support Team</p>
@@ -20,7 +29,7 @@
         <div class="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ $message }}</div>
     @enderror
 
-    <div class="grid min-h-[680px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl lg:grid-cols-[310px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)_320px]">
+    <div class="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl lg:grid-cols-[310px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)_320px]">
         <section class="{{ $showConversationOnMobile ? 'hidden lg:flex' : 'flex' }} min-h-0 flex-col border-r border-slate-800 bg-slate-900/70">
             <div class="border-b border-slate-800 p-4">
                 <label class="sr-only" for="support-search">Search support conversations</label>
@@ -34,8 +43,8 @@
 
                 <div class="mt-3 flex flex-wrap gap-2">
                     @foreach($isAdmin
-                        ? ['waiting' => 'Waiting', 'unassigned' => 'Unassigned', 'mine' => 'My Chats', 'assigned' => 'Assigned', 'resolved' => 'Resolved', 'all' => 'All']
-                        : ['waiting' => 'Waiting', 'mine' => 'My Chats', 'resolved' => 'Resolved'] as $value => $label)
+                        ? ['open' => 'Open', 'waiting' => 'Waiting', 'unassigned' => 'Unassigned', 'mine' => 'My Chats', 'assigned' => 'Assigned', 'resolved' => 'Resolved', 'all' => 'All']
+                        : ['open' => 'Open', 'waiting' => 'Waiting', 'mine' => 'My Chats', 'all' => 'All', 'resolved' => 'Resolved'] as $value => $label)
                         <button
                             type="button"
                             wire:click="$set('filter', '{{ $value }}')"
@@ -83,13 +92,13 @@
             </div>
         </section>
 
-        <section class="{{ ! $showConversationOnMobile && ! $selectedConversationId ? 'hidden lg:flex' : 'flex' }} min-w-0 flex-col bg-slate-950">
+        <section class="{{ ! $showConversationOnMobile && ! $selectedConversationId ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 flex-col overflow-hidden bg-slate-950">
             @if($selectedConversationId && $selectedConversation)
                 @php
-                    $isWaiting = ($selectedConversation['status'] ?? null) === 'waiting';
+                    $isClaimable = in_array(($selectedConversation['status'] ?? null), ['bot', 'waiting'], true) && empty($selectedConversation['assigned_to']);
                     $isResolved = ($selectedConversation['status'] ?? null) === 'resolved';
                     $isAssignedToMe = ($selectedConversation['assigned_to'] ?? null) === auth()->id();
-                    $canReply = ! $isResolved && ($isAdmin || $isAssignedToMe);
+                    $canReply = ! $isResolved && ($isAdmin || $isAssignedToMe || $isClaimable);
                 @endphp
 
                 <header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
@@ -102,7 +111,7 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">
-                        @if($isWaiting && empty($selectedConversation['assigned_to']))
+                        @if($isClaimable)
                             <button type="button" wire:click="takeConversation" wire:loading.attr="disabled" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50">Take Chat</button>
                         @endif
                         @if(! $isResolved && ($isAdmin || $isAssignedToMe))
@@ -118,7 +127,7 @@
                                     <option value="{{ $agent['id'] }}">{{ $agent['name'] }} ({{ '@'.$agent['username'] }})</option>
                                 @endforeach
                             </select>
-                            @if($isWaiting && empty($selectedConversation['assigned_to']))
+                            @if($isClaimable)
                                 <button type="button" wire:click="assignConversation" class="rounded-lg bg-purple-600 px-3 py-2 text-sm font-bold text-white">Assign</button>
                             @elseif(! empty($selectedConversation['assigned_to']))
                                 <button type="button" wire:click="reassignConversation" class="rounded-lg bg-purple-600 px-3 py-2 text-sm font-bold text-white">Reassign</button>
@@ -158,9 +167,9 @@
                 <div
                     x-data="{ scroll() { this.$nextTick(() => { this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight }) } }"
                     x-init="scroll(); window.addEventListener('support-inbox-scroll', () => scroll())"
-                    class="min-h-0 flex-1"
+                    class="flex min-h-0 flex-1 flex-col overflow-hidden"
                 >
-                    <div x-ref="messages" class="h-full max-h-[calc(100vh-24rem)] min-h-[360px] space-y-4 overflow-y-auto p-5 lg:max-h-[620px]">
+                    <div x-ref="messages" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
                         @foreach($timeline as $chatMessage)
                             <div wire:key="support-message-{{ $chatMessage['id'] }}" class="{{ $chatMessage['sender_type'] === 'player' ? 'flex justify-start' : 'flex justify-end' }}">
                                 <div class="max-w-[85%] rounded-2xl px-4 py-3 {{ $chatMessage['sender_type'] === 'player' ? 'bg-slate-800 text-white' : 'bg-purple-600/90 text-white' }}">
@@ -173,7 +182,7 @@
                     </div>
                 </div>
 
-                <footer class="border-t border-slate-800 p-4">
+                <footer class="shrink-0 border-t border-slate-800 p-4">
                     @if($canReply)
                         <form wire:submit="sendReply" class="flex items-end gap-3">
                             <div class="flex-1">
@@ -186,7 +195,7 @@
                     @elseif($isResolved)
                         <p class="text-center text-sm text-slate-400">This conversation is resolved and remains read-only.</p>
                     @else
-                        <p class="text-center text-sm text-slate-400">Take this conversation before replying.</p>
+                        <p class="text-center text-sm text-slate-400">This conversation is being handled by another support member.</p>
                     @endif
                 </footer>
             @else
@@ -199,7 +208,7 @@
             @endif
         </section>
 
-        <aside class="{{ $selectedConversationId && $selectedConversation ? 'hidden xl:block' : 'hidden' }} overflow-y-auto border-l border-slate-800 bg-slate-900/60 p-5">
+        <aside class="{{ $selectedConversationId && $selectedConversation ? 'hidden xl:block' : 'hidden' }} min-h-0 overflow-y-auto border-l border-slate-800 bg-slate-900/60 p-5">
             @if($selectedConversationId && $selectedConversation && isset($playerContext['player']))
                 <h3 class="font-bold text-white">Player Context</h3>
                 <dl class="mt-4 space-y-3 text-sm">
@@ -257,4 +266,6 @@
             @endif
         </aside>
     </div>
+</div>
+    @endif
 </div>

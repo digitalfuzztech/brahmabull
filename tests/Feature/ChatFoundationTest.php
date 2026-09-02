@@ -14,6 +14,7 @@ use App\Models\Deposit;
 use App\Models\Game;
 use App\Models\GameAccount;
 use App\Models\User;
+use App\Services\Chat\ChatAuthorizationService;
 use App\Services\Chat\ChatbotActionService;
 use App\Services\Chat\ChatbotRuleService;
 use App\Services\Chat\ChatMessageService;
@@ -130,8 +131,9 @@ class ChatFoundationTest extends TestCase
         $this->conversations->takeConversation($conversation, $agentOne);
         $this->assertTrue($this->conversations->viewConversation($conversation->fresh(), $agentOne)->is($conversation));
 
+        $this->assertTrue($this->conversations->viewConversation($conversation->fresh(), $agentTwo)->is($conversation));
         $this->expectException(AuthorizationException::class);
-        $this->conversations->viewConversation($conversation->fresh(), $agentTwo);
+        app(ChatAuthorizationService::class)->assertCanReply($conversation->fresh(), $agentTwo);
     }
 
     public function test_human_request_and_first_take_follow_lifecycle_and_second_take_is_rejected(): void

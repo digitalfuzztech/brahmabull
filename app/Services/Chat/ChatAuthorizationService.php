@@ -3,6 +3,7 @@
 namespace App\Services\Chat;
 
 use App\Models\ChatConversation;
+use App\Models\ChatMessage;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -37,10 +38,7 @@ class ChatAuthorizationService
         }
 
         if ($actor->hasRole('agent')) {
-            $isAvailable = $conversation->status === 'waiting' && $conversation->assigned_to === null;
-            $isAssigned = $conversation->assigned_to === $actor->id;
-
-            if ($isAvailable || $isAssigned) {
+            if ($conversation->status !== 'resolved' || $conversation->assigned_to === $actor->id) {
                 return;
             }
         }
@@ -80,6 +78,12 @@ class ChatAuthorizationService
         if ($staff->hasRole('agent')
             && $conversation->status === 'active'
             && $conversation->assigned_to === $staff->id) {
+            return;
+        }
+
+        if ($staff->hasRole('agent')
+            && in_array($conversation->status, ['bot', 'waiting'], true)
+            && $conversation->assigned_to === null) {
             return;
         }
 
@@ -127,6 +131,12 @@ class ChatAuthorizationService
             return;
         }
 
+        if ($conversation->conversation_type === 'internal_channel'
+            && $actor->hasAnyRole(['admin', 'agent'])
+            && $this->isActiveParticipant($conversation, $actor)) {
+            return;
+        }
+
         if ($this->canReadInternalGroupAsAdmin($conversation, $actor)) {
             return;
         }
@@ -153,6 +163,12 @@ class ChatAuthorizationService
             return;
         }
 
+        if ($conversation->conversation_type === 'internal_channel'
+            && $actor->hasRole('admin')
+            && $this->isActiveParticipant($conversation, $actor)) {
+            return;
+        }
+
         throw new AuthorizationException('You cannot send messages to this internal conversation.');
     }
 
@@ -171,12 +187,36 @@ class ChatAuthorizationService
 
     public function assertCanReact(ChatConversation $conversation, User $actor): void
     {
+        if ($conversation->conversation_type === 'internal_channel') {
+            throw new AuthorizationException('Noticeboard reactions are disabled.');
+        }
+
         $this->assertCanSendInternal($conversation, $actor);
     }
 
     public function assertCanCreateAttachment(ChatConversation $conversation, User $actor): void
     {
         $this->assertCanSendInternal($conversation, $actor);
+    }
+
+    public function assertCanEditInternalMessage(ChatMessage $message, User $actor): void
+    {
+        $conversation = $message->conversation()->firstOrFail();
+        $this->assertCanSendInternal($conversation, $actor);
+
+        if ($message->sender_id !== $actor->id || $message->deleted_at !== null || blank($message->body)) {
+            throw new AuthorizationException('Only the original sender may edit this internal message.');
+        }
+    }
+
+    public function assertCanDeleteInternalMessage(ChatMessage $message, User $actor): void
+    {
+        $conversation = $message->conversation()->firstOrFail();
+        $this->assertCanSendInternal($conversation, $actor);
+
+        if ($message->sender_id !== $actor->id || $message->deleted_at !== null) {
+            throw new AuthorizationException('Only the original sender may delete this internal message.');
+        }
     }
 
     public function canReadInternalGroupAsAdmin(ChatConversation $conversation, User $actor): bool
@@ -202,7 +242,7 @@ class ChatAuthorizationService
 
     private function assertInternalConversation(ChatConversation $conversation): void
     {
-        if (! in_array($conversation->conversation_type, ['internal_direct', 'internal_group'], true)) {
+        if (! in_array($conversation->conversation_type, ['internal_direct', 'internal_group', 'internal_channel'], true)) {
             throw new AuthorizationException('This operation is available only for internal conversations.');
         }
     }

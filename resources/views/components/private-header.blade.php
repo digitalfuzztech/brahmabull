@@ -21,6 +21,8 @@
 
             <div class="flex items-center gap-6">
 
+                <livewire:admin.messenger-bell />
+
                 <livewire:admin.notification-bell />
 
                 <div class="text-sm">
