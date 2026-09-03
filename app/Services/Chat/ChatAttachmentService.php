@@ -6,6 +6,7 @@ use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Models\ChatMessageAttachment;
 use App\Models\User;
+use DomainException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,10 @@ class ChatAttachmentService
     public const MEDIA_TYPES = ['image', 'video', 'document', 'audio'];
 
     public const MAX_KILOBYTES = 2048;
+
+    public const E2EE_PLAINTEXT_MAX_BYTES = 1792000;
+
+    public const E2EE_CIPHERTEXT_MAX_BYTES = 1792040;
 
     public const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm', 'mp3', 'm4a', 'wav', 'ogg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
 
@@ -38,7 +43,104 @@ class ChatAttachmentService
     public function __construct(
         private readonly ChatAuthorizationService $authorization,
         private readonly ChatMessageService $messages,
+        private readonly E2eeMessageService $encryptedMessages,
+        private readonly E2eeEnvelopeValidator $envelopes,
     ) {}
+
+    public function sendEncryptedUpload(
+        ChatConversation $conversation,
+        User $actor,
+        UploadedFile $ciphertext,
+        array $payload,
+    ): ChatMessageAttachment {
+        $this->encryptedMessages->assertActivatedDirect($conversation, $actor);
+
+        $validated = Validator::make($payload, [
+            'client_message_uuid' => ['required', 'uuid'],
+            'client_attachment_uuid' => ['required', 'uuid'],
+            'encrypted_payload' => ['required', 'string', 'max:262144'],
+            'encrypted_key' => ['required', 'string', 'max:4096'],
+            'encrypted_metadata' => ['required', 'string', 'max:16384'],
+            'encryption_version' => ['required', 'integer', 'in:1'],
+            'key_version' => ['required', 'integer', 'min:1'],
+            'reply_to_message_id' => ['nullable', 'integer'],
+        ])->validate();
+
+        $fileSize = (int) $ciphertext->getSize();
+        if (! $ciphertext->isValid() || $fileSize < 41 || $fileSize > self::E2EE_CIPHERTEXT_MAX_BYTES) {
+            throw ValidationException::withMessages([
+                'ciphertext' => 'The encrypted attachment exceeds the server-safe size limit or is invalid.',
+            ]);
+        }
+
+        $messageEnvelope = $this->envelopes->validate($validated['encrypted_payload']);
+        $keyEnvelope = $this->envelopes->validate($validated['encrypted_key']);
+        $metadataEnvelope = $this->envelopes->validate($validated['encrypted_metadata']);
+        $keyVersion = (int) $validated['key_version'];
+        $encryptionVersion = (int) $validated['encryption_version'];
+
+        foreach ([$messageEnvelope, $keyEnvelope, $metadataEnvelope] as $envelope) {
+            if ($envelope['v'] !== $encryptionVersion || $envelope['key_version'] !== $keyVersion) {
+                throw new DomainException('The encrypted attachment envelope versions do not match.');
+            }
+        }
+
+        if ($keyVersion !== (int) $conversation->current_key_version) {
+            throw new DomainException('The encrypted attachment key version is not current.');
+        }
+
+        $existing = ChatMessage::query()
+            ->where('client_message_uuid', $validated['client_message_uuid'])
+            ->where('conversation_id', $conversation->id)
+            ->where('sender_id', $actor->id)
+            ->first();
+        if ($existing) {
+            $attachment = $existing->attachments()
+                ->where('client_attachment_uuid', $validated['client_attachment_uuid'])
+                ->where('is_encrypted', true)
+                ->first();
+
+            return $attachment ?? throw new DomainException('The encrypted message UUID is already associated with different content.');
+        }
+
+        $path = 'chat/e2ee/'.$conversation->id.'/'.Str::uuid().'.bin';
+        if (! Storage::disk('local')->putFileAs(dirname($path), $ciphertext, basename($path))) {
+            throw ValidationException::withMessages(['ciphertext' => 'The encrypted attachment could not be stored.']);
+        }
+
+        try {
+            return DB::transaction(function () use ($conversation, $actor, $validated, $path, $fileSize): ChatMessageAttachment {
+                $message = $this->encryptedMessages->send(
+                    $conversation,
+                    $actor,
+                    $validated['client_message_uuid'],
+                    $validated['encrypted_payload'],
+                    (int) $validated['encryption_version'],
+                    (int) $validated['key_version'],
+                    $validated['reply_to_message_id'] ?? null,
+                );
+
+                return $message->attachments()->create([
+                    'client_attachment_uuid' => $validated['client_attachment_uuid'],
+                    'media_type' => 'document',
+                    'file_path' => $path,
+                    'original_name' => 'encrypted-attachment.bin',
+                    'mime_type' => 'application/octet-stream',
+                    'file_size' => $fileSize,
+                    'is_encrypted' => true,
+                    'encrypted_key' => $validated['encrypted_key'],
+                    'encrypted_metadata' => $validated['encrypted_metadata'],
+                    'encryption_version' => (int) $validated['encryption_version'],
+                    'key_version' => (int) $validated['key_version'],
+                    'ciphertext_size' => $fileSize,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            Storage::disk('local')->delete($path);
+
+            throw $exception;
+        }
+    }
 
     public function sendWithUpload(
         ChatConversation $conversation,

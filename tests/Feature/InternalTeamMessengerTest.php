@@ -421,8 +421,8 @@ class InternalTeamMessengerTest extends TestCase
 
         $view = file_get_contents(resource_path('views/livewire/admin/team-messenger.blade.php'));
         $supportView = file_get_contents(resource_path('views/livewire/admin/support-inbox.blade.php'));
-        $this->assertStringContainsString('wire:poll.3s.visible="pollTeam"', $view);
-        $this->assertStringContainsString('wire:poll.5s.visible="pollTeam"', $view);
+        $this->assertStringContainsString('wire:poll.2s="pollList"', $view);
+        $this->assertStringContainsString('wire:poll.3s.visible="pollSelected"', $view);
         $this->assertStringContainsString("@if(\$domain === 'team')", $supportView);
         $this->assertSame(1, substr_count($supportView, '<livewire:admin.team-messenger'));
     }

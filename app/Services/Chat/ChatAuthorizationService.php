@@ -191,11 +191,19 @@ class ChatAuthorizationService
             throw new AuthorizationException('Noticeboard reactions are disabled.');
         }
 
+        if ($conversation->conversation_type === 'internal_direct' && $conversation->encryption_mode === 'e2ee_v1') {
+            throw new AuthorizationException('Encrypted direct-message reactions must use the browser ciphertext path.');
+        }
+
         $this->assertCanSendInternal($conversation, $actor);
     }
 
     public function assertCanCreateAttachment(ChatConversation $conversation, User $actor): void
     {
+        if ($conversation->conversation_type === 'internal_direct' && $conversation->encryption_mode === 'e2ee_v1') {
+            throw new AuthorizationException('Encrypted direct-message attachments must use the browser ciphertext path.');
+        }
+
         $this->assertCanSendInternal($conversation, $actor);
     }
 
@@ -204,7 +212,9 @@ class ChatAuthorizationService
         $conversation = $message->conversation()->firstOrFail();
         $this->assertCanSendInternal($conversation, $actor);
 
-        if ($message->sender_id !== $actor->id || $message->deleted_at !== null || blank($message->body)) {
+        if ($message->sender_id !== $actor->id
+            || $message->deleted_at !== null
+            || (blank($message->body) && blank($message->encrypted_payload))) {
             throw new AuthorizationException('Only the original sender may edit this internal message.');
         }
     }

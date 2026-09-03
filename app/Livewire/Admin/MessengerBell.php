@@ -7,15 +7,16 @@ use App\Services\Chat\BrahmaNoticeboardService;
 use App\Services\Chat\ChatPresenceService;
 use App\Services\Chat\MessengerOverviewService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class MessengerBell extends Component
 {
-    public bool $open = false;
-
     public int $unreadCount = 0;
 
     public array $recent = [];
+
+    public int $pollTicks = 0;
 
     public function mount(
         ChatPresenceService $presence,
@@ -25,32 +26,45 @@ class MessengerBell extends Component
         $presence->heartbeat($this->staff());
         $noticeboard->ensureAndSyncParticipants();
         $this->unreadCount = $overview->unreadCount($this->staff());
+        $this->recent = $overview->recent($this->staff())->all();
+    }
+
+    public function pollUnread(ChatPresenceService $presence, MessengerOverviewService $overview): void
+    {
+        $this->pollTicks++;
+        if ($this->pollTicks % 4 === 0) {
+            $presence->heartbeat($this->staff());
+        }
+
+        $this->unreadCount = $overview->unreadCount($this->staff());
+        $this->recent = $overview->recent($this->staff())->all();
     }
 
     public function refreshMessenger(ChatPresenceService $presence, MessengerOverviewService $overview): void
     {
-        $presence->heartbeat($this->staff());
+        $this->pollUnread($presence, $overview);
+    }
+
+    #[On('messenger-unread-refresh')]
+    public function refreshUnread(MessengerOverviewService $overview): void
+    {
         $this->unreadCount = $overview->unreadCount($this->staff());
-
-        if ($this->open) {
-            $this->recent = $overview->recent($this->staff())->all();
-        }
+        $this->recent = $overview->recent($this->staff())->all();
     }
 
-    public function toggle(MessengerOverviewService $overview): void
-    {
-        $this->open = ! $this->open;
-        $this->recent = $this->open ? $overview->recent($this->staff())->all() : [];
+    #[On('team-message-arrived')]
+    public function handleTeamMessageArrived(
+        MessengerOverviewService $overview,
+        array $conversationIds = [],
+        array $messageIds = [],
+    ): void {
+        $this->refreshUnread($overview);
     }
 
-    public function openConversation(string $domain, int $conversationId): void
+    public function openConversation(int $conversationId): void
     {
-        if (! in_array($domain, ['support', 'team'], true)) {
-            throw new AuthorizationException('Unknown Messenger domain.');
-        }
-
         $route = $this->staff()->hasRole('admin') ? 'admin.inbox' : 'agent.inbox';
-        $this->redirect(route($route, ['domain' => $domain, 'conversation' => $conversationId]), navigate: true);
+        $this->redirect(route($route, ['domain' => 'team', 'conversation' => $conversationId]), navigate: true);
     }
 
     public function goToInbox(): void

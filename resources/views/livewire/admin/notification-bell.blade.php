@@ -1,11 +1,16 @@
 <div
     class="relative"
-    wire:poll.5s
+    x-data="{ dropdownOpen: false }"
+    x-on:brahma-header-dropdown-open.window="if ($event.detail.source !== 'notifications') { dropdownOpen = false }"
+    x-on:keydown.escape.window="dropdownOpen = false"
+    wire:poll.5s.visible
 >
 
     {{-- BELL --}}
     <button
-        wire:click="toggle"
+        type="button"
+        x-on:click="dropdownOpen = !dropdownOpen; if (dropdownOpen) { $dispatch('brahma-header-dropdown-open', { source: 'notifications' }) }"
+        x-bind:aria-expanded="dropdownOpen"
         class="relative text-white"
     >
 
@@ -49,9 +54,10 @@
 
     </button>
 
-    @if($open)
-
         <div
+            x-cloak
+            x-show="dropdownOpen"
+            x-on:click.outside="dropdownOpen = false"
             class="
         fixed md:absolute
         left-1/2 md:left-auto
@@ -81,7 +87,8 @@
 
 
                 <button
-                    wire:click="toggle"
+                    type="button"
+                    x-on:click="dropdownOpen = false"
                     class="
             text-slate-400
             hover:text-white
@@ -214,5 +221,4 @@
 
         </div>
 
-    @endif
 </div>

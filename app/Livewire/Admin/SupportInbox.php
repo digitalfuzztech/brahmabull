@@ -108,6 +108,7 @@ class SupportInbox extends Component
         $this->loadSelected($inbox, $conversation, true);
         $this->refreshList($inbox);
         $this->dispatch('support-inbox-scroll');
+        $this->dispatch('support-unread-refresh')->to(SupportMessengerBell::class);
     }
 
     public function showConversationList(): void
@@ -124,8 +125,14 @@ class SupportInbox extends Component
         }
 
         try {
+            $selectedHadUnread = (int) (collect($this->conversations)
+                ->firstWhere('id', $this->selectedConversationId)['unread_count'] ?? 0) > 0;
             $conversation = $inbox->selectConversation($this->selectedConversationId, $this->staff());
             $this->loadSelected($inbox, $conversation, false);
+            if ($selectedHadUnread) {
+                $this->refreshList($inbox);
+                $this->dispatch('support-unread-refresh')->to(SupportMessengerBell::class);
+            }
         } catch (AuthorizationException) {
             $this->clearSelection();
         }

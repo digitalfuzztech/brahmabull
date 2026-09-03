@@ -12,8 +12,11 @@ use App\Services\Chat\ChatAuthorizationService;
 use App\Services\Chat\ChatMessageService;
 use App\Services\Chat\ChatTeamNotificationService;
 use App\Services\Chat\ConversationService;
+use App\Services\Chat\E2eeAuthorizationService;
+use App\Services\Chat\E2eeDowngradeService;
 use App\Services\Chat\TeamInboxService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -67,6 +70,10 @@ class TeamMessenger extends Component
 
     public string $editingMessage = '';
 
+    public ?int $pendingDeleteMessageId = null;
+
+    public bool $showDisableE2eeModal = false;
+
     public function mount(
         TeamInboxService $team,
         BrahmaNoticeboardService $noticeboard,
@@ -82,6 +89,18 @@ class TeamMessenger extends Component
 
     public function updatedSection(TeamInboxService $team): void
     {
+        $this->clearSelection();
+        $this->refreshList($team);
+    }
+
+    #[On('team-section-selected')]
+    public function selectSection(string $section, TeamInboxService $team): void
+    {
+        $allowedSections = ['channels', 'direct', $this->staff()->hasRole('admin') ? 'oversight' : 'groups'];
+
+        abort_unless(in_array($section, $allowedSections, true), 404);
+
+        $this->section = $section;
         $this->clearSelection();
         $this->refreshList($team);
     }
@@ -111,6 +130,7 @@ class TeamMessenger extends Component
         $this->loadSelected($team, $conversation);
         $this->refreshList($team);
         $this->dispatch('team-messenger-scroll', force: true);
+        $this->dispatch('messenger-unread-refresh')->to(MessengerBell::class);
     }
 
     public function showConversationList(): void
@@ -118,24 +138,53 @@ class TeamMessenger extends Component
         $this->showConversationOnMobile = false;
     }
 
-    public function pollTeam(TeamInboxService $team): void
+    public function pollList(TeamInboxService $team): void
     {
         $this->refreshList($team);
+    }
 
+    #[On('team-message-arrived')]
+    public function handleTeamMessageArrived(
+        TeamInboxService $team,
+        array $conversationIds = [],
+        array $messageIds = [],
+    ): void {
+        $this->pollList($team);
+    }
+
+    public function pollSelected(TeamInboxService $team): void
+    {
         if (! $this->selectedConversationId) {
             return;
         }
 
         try {
+            $selectedHadUnread = (int) (collect($this->conversations)
+                ->firstWhere('id', $this->selectedConversationId)['unread_count'] ?? 0) > 0;
             $latestMessageId = collect($this->teamMessages)->last()['id'] ?? null;
             $conversation = $team->selectConversation($this->selectedConversationId, $this->staff());
             $this->loadSelected($team, $conversation);
+            if ($selectedHadUnread) {
+                $this->refreshList($team);
+                $this->dispatch('messenger-unread-refresh')->to(MessengerBell::class);
+            }
             if ($latestMessageId !== (collect($this->teamMessages)->last()['id'] ?? null)) {
                 $this->dispatch('team-messenger-scroll', force: false);
             }
         } catch (AuthorizationException) {
             $this->clearSelection();
         }
+    }
+
+    public function pollTeam(TeamInboxService $team): void
+    {
+        $this->pollList($team);
+        $this->pollSelected($team);
+    }
+
+    public function refreshTeam(TeamInboxService $team): void
+    {
+        $this->pollTeam($team);
     }
 
     public function openNewMessage(TeamInboxService $team): void
@@ -248,6 +297,9 @@ class TeamMessenger extends Component
     public function startEdit(int $messageId): void
     {
         $message = ChatMessage::where('conversation_id', $this->currentInternalConversation()->id)->findOrFail($messageId);
+        if ($message->encrypted_payload !== null) {
+            throw new AuthorizationException('Encrypted messages must be edited in the browser.');
+        }
         app(ChatAuthorizationService::class)->assertCanEditInternalMessage($message, $this->staff());
         $this->editingMessageId = $message->id;
         $this->editingMessage = (string) $message->body;
@@ -275,6 +327,68 @@ class TeamMessenger extends Component
             $this->cancelReply();
         }
         $this->loadSelected($team, $this->currentInternalConversation());
+        $this->refreshList($team);
+    }
+
+    public function openDeleteMessage(int $messageId): void
+    {
+        $message = ChatMessage::where('conversation_id', $this->currentInternalConversation()->id)->findOrFail($messageId);
+        app(ChatAuthorizationService::class)->assertCanDeleteInternalMessage($message, $this->staff());
+        $this->pendingDeleteMessageId = $message->id;
+    }
+
+    public function cancelDeleteMessage(): void
+    {
+        $this->pendingDeleteMessageId = null;
+    }
+
+    public function confirmDeleteMessage(ChatMessageService $messages, TeamInboxService $team): void
+    {
+        if (! $this->pendingDeleteMessageId) {
+            return;
+        }
+
+        $messageId = $this->pendingDeleteMessageId;
+        try {
+            $this->deleteMessage($messageId, $messages, $team);
+        } finally {
+            $this->cancelDeleteMessage();
+        }
+    }
+
+    public function openDisableE2ee(): void
+    {
+        $conversation = $this->currentInternalConversation();
+        app(E2eeAuthorizationService::class)->assertDirectParticipant($conversation, $this->staff());
+        if ($conversation->encryption_mode !== 'e2ee_v1') {
+            throw new AuthorizationException('This direct conversation is not E2EE-enabled.');
+        }
+
+        $this->showDisableE2eeModal = true;
+    }
+
+    public function cancelDisableE2ee(): void
+    {
+        $this->showDisableE2eeModal = false;
+    }
+
+    public function requestDisableE2ee(E2eeDowngradeService $downgrade, TeamInboxService $team): void
+    {
+        $conversation = $downgrade->requestDisable($this->currentInternalConversation(), $this->staff());
+        $this->showDisableE2eeModal = false;
+        $this->loadSelected($team, $conversation);
+    }
+
+    public function keepE2ee(E2eeDowngradeService $downgrade, TeamInboxService $team): void
+    {
+        $conversation = $downgrade->keepEncryption($this->currentInternalConversation(), $this->staff());
+        $this->loadSelected($team, $conversation);
+    }
+
+    public function approveDisableE2ee(E2eeDowngradeService $downgrade, TeamInboxService $team): void
+    {
+        $conversation = $downgrade->approveDisable($this->currentInternalConversation(), $this->staff());
+        $this->loadSelected($team, $conversation);
         $this->refreshList($team);
     }
 
@@ -383,6 +497,7 @@ class TeamMessenger extends Component
     {
         $this->details = $team->details($conversation, $this->staff());
         $this->teamMessages = $team->messages($conversation, $this->staff());
+        $this->dispatch('team-e2ee-sync', messages: $this->teamMessages, details: $this->details);
     }
 
     private function loadContacts(TeamInboxService $team): void
@@ -415,6 +530,8 @@ class TeamMessenger extends Component
         $this->replyToMessageId = null;
         $this->editingMessageId = null;
         $this->editingMessage = '';
+        $this->pendingDeleteMessageId = null;
+        $this->showDisableE2eeModal = false;
     }
 
     private function staff(): User

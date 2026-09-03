@@ -8,6 +8,7 @@ class ChatMessageAttachment extends Model
 {
     protected $fillable = [
         'message_id',
+        'client_attachment_uuid',
         'media_type',
         'file_path',
         'original_name',
@@ -16,6 +17,12 @@ class ChatMessageAttachment extends Model
         'width',
         'height',
         'duration',
+        'is_encrypted',
+        'encrypted_key',
+        'encrypted_metadata',
+        'encryption_version',
+        'key_version',
+        'ciphertext_size',
     ];
 
     protected function casts(): array
@@ -25,6 +32,10 @@ class ChatMessageAttachment extends Model
             'width' => 'integer',
             'height' => 'integer',
             'duration' => 'integer',
+            'is_encrypted' => 'boolean',
+            'encryption_version' => 'integer',
+            'key_version' => 'integer',
+            'ciphertext_size' => 'integer',
         ];
     }
 

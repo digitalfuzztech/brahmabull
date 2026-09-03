@@ -20,6 +20,13 @@ class ChatConversation extends Model
         'direct_key',
         'channel_key',
         'is_archived',
+        'encryption_mode',
+        'e2ee_enabled_at',
+        'current_key_version',
+        'e2ee_rotation_required_at',
+        'e2ee_disable_requested_by',
+        'e2ee_disable_requested_at',
+        'e2ee_disabled_at',
         'assigned_to',
         'assigned_by',
         'assigned_at',
@@ -43,6 +50,11 @@ class ChatConversation extends Model
             'last_staff_message_at' => 'datetime',
             'resolved_at' => 'datetime',
             'is_archived' => 'boolean',
+            'e2ee_enabled_at' => 'datetime',
+            'current_key_version' => 'integer',
+            'e2ee_rotation_required_at' => 'datetime',
+            'e2ee_disable_requested_at' => 'datetime',
+            'e2ee_disabled_at' => 'datetime',
         ];
     }
 
@@ -143,5 +155,20 @@ class ChatConversation extends Model
     public function activeParticipants()
     {
         return $this->participants()->whereNull('left_at');
+    }
+
+    public function e2eeConversationKeys()
+    {
+        return $this->hasMany(ChatE2eeConversationKey::class, 'conversation_id');
+    }
+
+    public function e2eeDisableRequester()
+    {
+        return $this->belongsTo(User::class, 'e2ee_disable_requested_by');
+    }
+
+    public function observerReads()
+    {
+        return $this->hasMany(ChatConversationObserverRead::class, 'conversation_id');
     }
 }

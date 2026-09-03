@@ -5,7 +5,7 @@
     </div>
 
     @if($domain === 'team')
-        <div class="min-h-0 flex-1"><livewire:admin.team-messenger :initial-conversation-id="$deepLinkedConversationId" /></div>
+        <div class="min-h-0 flex-1"><livewire:admin.team-messenger :initial-conversation-id="$deepLinkedConversationId" wire:key="inbox-team-messenger" /></div>
     @else
 <div
     @if($selectedConversationId)

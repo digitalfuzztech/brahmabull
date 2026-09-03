@@ -10,7 +10,18 @@ class ChatMessageReaction extends Model
         'message_id',
         'user_id',
         'reaction',
+        'encrypted_reaction',
+        'encryption_version',
+        'key_version',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'encryption_version' => 'integer',
+            'key_version' => 'integer',
+        ];
+    }
 
     public function message()
     {

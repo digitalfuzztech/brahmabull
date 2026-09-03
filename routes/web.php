@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\ChatE2eeAttachmentController;
+use App\Http\Controllers\ChatE2eeConversationController;
+use App\Http\Controllers\ChatE2eeDeviceController;
+use App\Http\Controllers\ChatE2eeMessageController;
+use App\Http\Controllers\ChatE2eeReactionController;
 use App\Http\Controllers\TeamChatAttachmentController;
 use App\Livewire\Admin\Agents;
 use App\Livewire\Admin\AgentShow;
@@ -160,6 +165,47 @@ Route::middleware('auth')->group(function () {
     Route::get('/team-chat/attachments/{attachment}/download', [TeamChatAttachmentController::class, 'download'])
         ->name('team.attachments.download');
 });
+
+Route::middleware(['auth', 'role:admin|agent', 'throttle:30,1'])
+    ->prefix('team-chat/e2ee')
+    ->name('team.e2ee.')
+    ->group(function (): void {
+        Route::get('/devices', [ChatE2eeDeviceController::class, 'index'])->name('devices.index');
+        Route::post('/devices', [ChatE2eeDeviceController::class, 'store'])->name('devices.store');
+        Route::get('/devices/{device}/approval-plan', [ChatE2eeDeviceController::class, 'approvalPlan'])
+            ->name('devices.approval-plan');
+        Route::post('/devices/{device}/approve', [ChatE2eeDeviceController::class, 'approve'])
+            ->name('devices.approve');
+        Route::delete('/devices/{device}', [ChatE2eeDeviceController::class, 'destroy'])->name('devices.destroy');
+        Route::get('/conversations/{conversation}/devices', [ChatE2eeConversationController::class, 'devices'])
+            ->name('conversations.devices');
+        Route::post('/conversations/{conversation}/activate', [ChatE2eeConversationController::class, 'activate'])
+            ->name('conversations.activate');
+        Route::post('/conversations/{conversation}/disable-request', [ChatE2eeConversationController::class, 'requestDisable'])
+            ->name('conversations.disable-request');
+        Route::delete('/conversations/{conversation}/disable-request', [ChatE2eeConversationController::class, 'keepEncryption'])
+            ->name('conversations.disable-request.destroy');
+        Route::post('/conversations/{conversation}/disable', [ChatE2eeConversationController::class, 'approveDisable'])
+            ->name('conversations.disable');
+        Route::post('/conversations/{conversation}/rotate', [ChatE2eeConversationController::class, 'rotate'])
+            ->name('conversations.rotate');
+        Route::get('/conversations/{conversation}/wrapped-key', [ChatE2eeConversationController::class, 'wrappedKey'])
+            ->name('conversations.wrapped-key');
+        Route::post('/conversations/{conversation}/messages', [ChatE2eeMessageController::class, 'store'])
+            ->name('conversations.messages.store');
+        Route::post('/conversations/{conversation}/attachments', [ChatE2eeAttachmentController::class, 'store'])
+            ->name('conversations.attachments.store');
+        Route::patch('/messages/{message}', [ChatE2eeMessageController::class, 'update'])
+            ->name('messages.update');
+        Route::put('/messages/{message}/reaction', [ChatE2eeReactionController::class, 'store'])
+            ->name('messages.reactions.store');
+        Route::delete('/messages/{message}/reaction', [ChatE2eeReactionController::class, 'destroy'])
+            ->name('messages.reactions.destroy');
+        Route::post('/conversations/{conversation}/keys', [ChatE2eeConversationController::class, 'storeKey'])
+            ->name('conversations.keys.store');
+        Route::get('/conversations/{conversation}/keys/next-version', [ChatE2eeConversationController::class, 'nextVersion'])
+            ->name('conversations.keys.next-version');
+    });
 Route::get(
     '/profile',
     ProfilePage::class

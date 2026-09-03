@@ -2,20 +2,15 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Notification;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class NotificationBell extends Component
 {
-    public bool $open = false;
     protected $listeners = [
-        'refreshBell' => '$refresh'
+        'refreshBell' => '$refresh',
     ];
-    public function toggle()
-    {
-        $this->open = !$this->open;
-    }
 
     public function getUnreadCountProperty()
     {
@@ -33,6 +28,7 @@ class NotificationBell extends Component
 
             ->count();
     }
+
     public function getUnreadNotificationsProperty()
     {
         return Notification::where(
@@ -47,16 +43,16 @@ class NotificationBell extends Component
             ->take(20)
             ->get();
     }
+
     public function openNotification($id)
     {
         $notification = Notification::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$notification) {
+        if (! $notification) {
             return;
         }
-
 
         if ($notification->action_url) {
 
@@ -68,9 +64,7 @@ class NotificationBell extends Component
             $this->dispatch('refreshBell');
         }
 
-
         $url = $notification->action_url;
-
 
         /*
         |--------------------------------------------------------------------------
@@ -92,7 +86,6 @@ class NotificationBell extends Component
 
         }
 
-
         if (
             auth()->user()->hasRole('agent')
             &&
@@ -107,8 +100,7 @@ class NotificationBell extends Component
 
         }
 
-
-        if (!$url) {
+        if (! $url) {
 
             $url = auth()->user()->hasRole('admin')
                 ? route('admin.notifications')
@@ -116,9 +108,9 @@ class NotificationBell extends Component
 
         }
 
-
         return redirect($url);
     }
+
     public function render()
     {
         return view(

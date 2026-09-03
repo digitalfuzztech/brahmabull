@@ -17,6 +17,15 @@ class TeamChatAttachmentController extends Controller
     ): BinaryFileResponse {
         $attachment = $attachments->authorizeRead($attachment, $this->staff());
 
+        if ($attachment->is_encrypted) {
+            return response()->file(Storage::disk('local')->path($attachment->file_path), [
+                'Content-Type' => 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="encrypted-attachment.bin"',
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store',
+            ]);
+        }
+
         return response()->file(Storage::disk('local')->path($attachment->file_path), [
             'Content-Type' => $attachment->mime_type,
             'Content-Disposition' => 'inline; filename="'.$this->safeName($attachment->original_name).'"',
@@ -30,6 +39,14 @@ class TeamChatAttachmentController extends Controller
         ChatAttachmentService $attachments,
     ): BinaryFileResponse {
         $attachment = $attachments->authorizeRead($attachment, $this->staff());
+
+        if ($attachment->is_encrypted) {
+            return response()->download(
+                Storage::disk('local')->path($attachment->file_path),
+                'encrypted-attachment.bin',
+                ['Content-Type' => 'application/octet-stream', 'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store'],
+            );
+        }
 
         return response()->download(
             Storage::disk('local')->path($attachment->file_path),

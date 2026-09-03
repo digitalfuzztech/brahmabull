@@ -16,41 +16,15 @@ class MessengerOverviewService
     {
         $this->assertStaff($staff);
 
-        $support = ChatMessage::query()
-            ->where('sender_type', 'player')
-            ->whereNull('read_by_staff_at')
-            ->whereHas('conversation', function ($query) use ($staff): void {
-                $query->where('conversation_type', 'support');
-                if ($staff->hasRole('agent')) {
-                    $query->where(fn ($query) => $query
-                        ->where('status', '!=', 'resolved')
-                        ->orWhere('assigned_to', $staff->id));
-                }
-            })->count();
-
-        return $support
-            + $this->conversations->internalDirectUnreadCount($staff)
-            + $this->conversations->internalGroupUnreadCount($staff)
-            + $this->conversations->internalChannelUnreadCount($staff);
+        return $this->conversations->internalParticipantUnreadCount($staff);
     }
 
     public function recent(User $staff, int $limit = 15): Collection
     {
         $this->assertStaff($staff);
-        $support = ChatConversation::query()
-            ->where('conversation_type', 'support')
-            ->with(['player:id,name,username', 'latestMessage.attachments:id,message_id,media_type'])
-            ->withCount(['messages as unread_count' => fn ($query) => $query
-                ->where('sender_type', 'player')->whereNull('read_by_staff_at')]);
-
-        if ($staff->hasRole('agent')) {
-            $support->where(fn ($query) => $query
-                ->where('status', '!=', 'resolved')
-                ->orWhere('assigned_to', $staff->id));
-        }
-
         $team = ChatConversation::query()
             ->whereIn('conversation_type', ['internal_direct', 'internal_group', 'internal_channel'])
+            ->where('is_archived', false)
             ->whereHas('activeParticipants', fn ($query) => $query->where('user_id', $staff->id))
             ->with(['activeParticipants.user:id,name,username', 'latestMessage.attachments:id,message_id,media_type'])
             ->addSelect([
@@ -69,17 +43,13 @@ class MessengerOverviewService
                     }),
             ]);
 
-        return $support->latest('last_message_at')->limit($limit)->get()
-            ->map(fn (ChatConversation $conversation) => $this->row($conversation, $staff, 'support', (int) $conversation->unread_count))
-            ->concat($team->latest('last_message_at')->limit($limit)->get()
-                ->map(fn (ChatConversation $conversation) => $this->row(
-                    $conversation,
-                    $staff,
-                    'team',
-                    (int) $conversation->unread_count,
-                )))
-            ->sortByDesc('sort_at')
-            ->take($limit)
+        return $team->latest('last_message_at')->limit($limit)->get()
+            ->map(fn (ChatConversation $conversation) => $this->row(
+                $conversation,
+                $staff,
+                'team',
+                (int) $conversation->unread_count,
+            ))
             ->values();
     }
 
@@ -98,8 +68,11 @@ class MessengerOverviewService
             'name' => $name,
             'preview' => $latest?->deleted_at
                 ? 'Message deleted'
-                : (filled($latest?->body) ? $latest->body : ($latest?->attachments->first() ? ucfirst($latest->attachments->first()->media_type) : 'No messages yet')),
+                : ($conversation->conversation_type === 'internal_direct' && $latest?->encrypted_payload
+                    ? ($unread > 0 ? 'New encrypted message' : 'Encrypted message')
+                    : (filled($latest?->body) ? $latest->body : ($latest?->attachments->first() ? ucfirst($latest->attachments->first()->media_type) : 'No messages yet'))),
             'unread_count' => $unread,
+            'is_observer' => false,
             'relative_time' => ($conversation->last_message_at ?? $conversation->created_at)?->diffForHumans(),
             'sort_at' => ($conversation->last_message_at ?? $conversation->created_at)?->timestamp ?? 0,
         ];

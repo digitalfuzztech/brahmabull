@@ -2,22 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\CustomResetPassword;
+use App\Notifications\CustomResetPasswordNotification;
+use App\Notifications\CustomVerifyEmailNotification;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Notifications\Messages\MailMessage;
-use App\Notifications\CustomResetPassword;
-use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasRoles, HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -59,6 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'brahma_balance' => 'decimal:2',
         ];
     }
+
     protected static function booted()
     {
         // VERIFY EMAIL
@@ -81,12 +83,12 @@ class User extends Authenticatable implements MustVerifyEmail
                 ->line('If this was not you, ignore this email.');
         });
 
-
     }
-   // public function sendPasswordResetNotification($token)
-   // {
-     //   $this->notify(new CustomResetPassword($token));
-   // }
+
+    // public function sendPasswordResetNotification($token)
+    // {
+    //   $this->notify(new CustomResetPassword($token));
+    // }
     public function sendPasswordResetNotification($token): void
     {
         $url = url(route('password.reset', [
@@ -94,40 +96,44 @@ class User extends Authenticatable implements MustVerifyEmail
             'email' => $this->email,
         ], false));
 
-        $this->notify(new \App\Notifications\CustomResetPasswordNotification($url));
+        $this->notify(new CustomResetPasswordNotification($url));
     }
+
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\CustomVerifyEmailNotification);
+        $this->notify(new CustomVerifyEmailNotification);
     }
+
     public function deposits()
     {
-        return $this->hasMany(\App\Models\Deposit::class);
+        return $this->hasMany(Deposit::class);
     }
+
     public function playerProfile()
     {
-        return $this->hasOne(\App\Models\PlayerProfile::class);
+        return $this->hasOne(PlayerProfile::class);
     }
 
     public function cashouts()
     {
-        return $this->hasMany(\App\Models\Cashout::class);
+        return $this->hasMany(Cashout::class);
     }
 
     public function gameAccounts()
     {
-        return $this->hasMany(\App\Models\GameAccount::class);
+        return $this->hasMany(GameAccount::class);
     }
+
     public function notifications()
     {
         return $this->hasMany(
-            \App\Models\Notification::class
+            Notification::class
         );
     }
 
     public function referrer()
     {
-        return $this->belongsTo(User::class,'referred_by');
+        return $this->belongsTo(User::class, 'referred_by');
     }
 
     public function referrals()
@@ -140,17 +146,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function brahmaDeposits()
     {
-        return $this->hasMany(\App\Models\BrahmaDeposit::class);
+        return $this->hasMany(BrahmaDeposit::class);
     }
 
     public function brahmaPlayRequests()
     {
-        return $this->hasMany(\App\Models\BrahmaPlayRequest::class);
+        return $this->hasMany(BrahmaPlayRequest::class);
     }
 
     public function brahmaBalanceTransactions()
     {
-        return $this->hasMany(\App\Models\BrahmaBalanceTransaction::class);
+        return $this->hasMany(BrahmaBalanceTransaction::class);
     }
 
     public function chatConversationsAsPlayer()
@@ -186,5 +192,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function chatMessageReactions()
     {
         return $this->hasMany(ChatMessageReaction::class);
+    }
+
+    public function chatE2eeDevices()
+    {
+        return $this->hasMany(ChatE2eeDevice::class);
     }
 }

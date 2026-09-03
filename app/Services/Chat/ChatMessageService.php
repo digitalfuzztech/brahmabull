@@ -151,6 +151,9 @@ class ChatMessageService
         return DB::transaction(function () use ($conversation, $sender, $body, $replyTo, $metadata): ChatMessage {
             $locked = ChatConversation::whereKey($conversation->id)->lockForUpdate()->firstOrFail();
             $this->authorization->assertCanSendInternal($locked, $sender);
+            if ($locked->conversation_type === 'internal_direct' && $locked->encryption_mode === 'e2ee_v1') {
+                throw new DomainException('Encrypted direct messages must use the browser ciphertext send path.');
+            }
             if ($locked->conversation_type === 'internal_channel' && $replyTo !== null) {
                 throw new DomainException('Noticeboard replies are disabled.');
             }
@@ -211,6 +214,9 @@ class ChatMessageService
         return DB::transaction(function () use ($message, $sender, $body): ChatMessage {
             $locked = ChatMessage::whereKey($message->id)->lockForUpdate()->firstOrFail();
             $this->authorization->assertCanEditInternalMessage($locked, $sender);
+            if ($locked->encrypted_payload !== null) {
+                throw new DomainException('Encrypted messages must use the browser ciphertext edit path.');
+            }
             $validated = Validator::make(['body' => $body], ['body' => ['nullable', 'string', 'max:2000']])->validate();
             $body = trim((string) $validated['body']);
 
@@ -235,6 +241,7 @@ class ChatMessageService
             $locked->attachments()->delete();
             $locked->update([
                 'body' => null,
+                'encrypted_payload' => null,
                 'metadata' => null,
                 'deleted_at' => now(),
                 'deleted_by' => $sender->id,

@@ -6,6 +6,7 @@ use App\Livewire\Admin\MessengerBell;
 use App\Livewire\Admin\SupportInbox;
 use App\Livewire\Admin\TeamMessenger;
 use App\Models\User;
+use App\Services\Chat\BrahmaNoticeboardService;
 use App\Services\Chat\ChatAttachmentService;
 use App\Services\Chat\ChatMessageService;
 use App\Services\Chat\ChatPresenceService;
@@ -40,6 +41,61 @@ class TeamMessengerUxTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_nested_team_state_remains_owned_by_the_real_team_messenger_boundary(): void
+    {
+        $admin = $this->user('admin');
+        $agentA = $this->user('agent');
+        $agentB = $this->user('agent');
+        $agentC = $this->user('agent');
+        $conversations = app(ConversationService::class);
+        $adminDirect = $conversations->getOrCreateDirectConversation($admin, $agentA);
+        $privateDirect = $conversations->getOrCreateDirectConversation($agentA, $agentB);
+        $group = $conversations->createGroupConversation($agentA, 'Boundary Group', [$agentB, $agentC]);
+        $noticeboard = app(BrahmaNoticeboardService::class)->ensureAndSyncParticipants();
+        $adminDirect->forceFill([
+            'encryption_mode' => 'e2ee_v1',
+            'e2ee_enabled_at' => now(),
+            'current_key_version' => 1,
+        ])->save();
+
+        $supportView = file_get_contents(resource_path('views/livewire/admin/support-inbox.blade.php'));
+        $teamView = file_get_contents(resource_path('views/livewire/admin/team-messenger.blade.php'));
+        $this->assertStringContainsString('<livewire:admin.team-messenger', $supportView);
+        $this->assertStringContainsString('wire:key="inbox-team-messenger"', $supportView);
+        $this->assertStringNotContainsString("@include('livewire.admin.team-messenger", $supportView);
+        $this->assertStringStartsWith('<div', ltrim($teamView));
+        $this->assertStringNotContainsString("@vite('resources/js/chat/e2ee/team-messenger.js')", $teamView);
+        $this->assertFalse(property_exists(SupportInbox::class, 'section'));
+        $this->assertTrue(property_exists(TeamMessenger::class, 'section'));
+        $this->assertStringNotContainsString('$set(\'section\'', $teamView);
+        $this->assertStringContainsString('$dispatchTo(\'admin.team-messenger\', \'team-section-selected\'', $teamView);
+
+        Livewire::actingAs($admin)->test(SupportInbox::class)
+            ->call('selectDomain', 'team')
+            ->assertSet('domain', 'team')
+            ->assertSeeLivewire('admin.team-messenger');
+        Livewire::actingAs($admin)->test(TeamMessenger::class)
+            ->dispatch('team-section-selected', section: 'direct')
+            ->assertSet('section', 'direct');
+        Livewire::actingAs($admin)->test(TeamMessenger::class, ['initialConversationId' => $adminDirect->id])
+            ->assertSet('section', 'direct')
+            ->assertSet('selectedConversationId', $adminDirect->id)
+            ->assertSet('details.is_e2ee', true);
+        Livewire::actingAs($agentB)->test(TeamMessenger::class, ['initialConversationId' => $privateDirect->id])
+            ->assertSet('section', 'direct')
+            ->assertSet('selectedConversationId', $privateDirect->id);
+        Livewire::actingAs($admin)->test(TeamMessenger::class, ['initialConversationId' => $privateDirect->id])->assertForbidden();
+        Livewire::actingAs($agentB)->test(TeamMessenger::class, ['initialConversationId' => $group->id])
+            ->assertSet('section', 'groups')
+            ->assertSet('selectedConversationId', $group->id);
+        Livewire::actingAs($admin)->test(TeamMessenger::class, ['initialConversationId' => $group->id])
+            ->assertSet('section', 'oversight')
+            ->assertSet('details.is_observer', true);
+        Livewire::actingAs($agentA)->test(TeamMessenger::class, ['initialConversationId' => $noticeboard->id])
+            ->assertSet('section', 'channels')
+            ->assertSet('selectedConversationId', $noticeboard->id);
+    }
+
     public function test_presence_heartbeat_expires_and_direct_details_show_only_other_staff_presence(): void
     {
         Carbon::setTestNow('2026-09-01 12:00:00');
@@ -70,7 +126,7 @@ class TeamMessengerUxTest extends TestCase
         $this->assertFalse($presence->isOnline($agent));
     }
 
-    public function test_messenger_badge_counts_messages_across_authorized_support_and_team_only(): void
+    public function test_team_messenger_badge_counts_participant_messages_and_excludes_admin_observer_state(): void
     {
         $admin = $this->user('admin');
         $agent = $this->user('agent');
@@ -90,11 +146,11 @@ class TeamMessengerUxTest extends TestCase
         $group = $conversations->createGroupConversation($agent, 'Observed', [$otherA, $otherB]);
         $messages->sendInternalMessage($group, $agent, 'Observer unread is not fabricated');
 
-        $this->assertSame(3, $overview->unreadCount($admin));
+        $this->assertSame(2, $overview->unreadCount($admin));
         $this->assertFalse($overview->recent($admin)->contains('id', $private->id));
         $this->assertFalse($overview->recent($admin)->contains('id', $group->id));
         $conversations->markInternalConversationRead($direct, $admin);
-        $this->assertSame(1, $overview->unreadCount($admin));
+        $this->assertSame(0, $overview->unreadCount($admin));
     }
 
     public function test_messenger_bell_is_staff_only_heartbeats_and_first_click_deep_links(): void
@@ -106,7 +162,7 @@ class TeamMessengerUxTest extends TestCase
 
         Livewire::actingAs($admin)->test(MessengerBell::class)
             ->assertSee('Messenger')
-            ->call('openConversation', 'team', $direct->id)
+            ->call('openConversation', $direct->id)
             ->assertRedirect(route('admin.inbox', ['domain' => 'team', 'conversation' => $direct->id]));
         $this->assertTrue(app(ChatPresenceService::class)->isOnline($admin));
         Livewire::actingAs($agent)->test(MessengerBell::class)->assertOk();
@@ -230,10 +286,12 @@ class TeamMessengerUxTest extends TestCase
         $this->assertStringContainsString('shrink-0 border-t', $view);
         $this->assertStringContainsString('setReply', $view);
         $this->assertStringContainsString('startEdit', $view);
-        $this->assertStringContainsString('deleteMessage', $view);
+        $this->assertStringContainsString('openDeleteMessage', $view);
+        $this->assertStringContainsString('wire:click="confirmDeleteMessage"', $view);
+        $this->assertStringNotContainsString('wire:confirm', $view);
         $this->assertStringContainsString('This message was deleted.', $view);
         $this->assertStringContainsString('bg-emerald-400', $view);
-        $this->assertStringContainsString('wire:poll.20s.visible', $bell);
+        $this->assertStringContainsString('wire:poll.2s="pollUnread"', $bell);
     }
 
     private function user(string $role): User

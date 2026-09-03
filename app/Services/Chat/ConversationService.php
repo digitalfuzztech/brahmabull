@@ -423,6 +423,15 @@ class ConversationService
         return $this->internalUnreadQuery($participant, 'internal_direct')->count();
     }
 
+    public function internalParticipantUnreadCount(User $participant): int
+    {
+        return $this->internalUnreadQuery($participant, [
+            'internal_direct',
+            'internal_group',
+            'internal_channel',
+        ])->count();
+    }
+
     public function internalGroupUnreadCount(User $participant): int
     {
         return $this->internalUnreadQuery($participant, 'internal_group')->count();
@@ -433,7 +442,7 @@ class ConversationService
         return $this->internalUnreadQuery($participant, 'internal_channel')->count();
     }
 
-    private function internalUnreadQuery(User $participant, string $conversationType)
+    private function internalUnreadQuery(User $participant, string|array $conversationType)
     {
         return DB::table('chat_messages')
             ->join('chat_conversations', 'chat_conversations.id', '=', 'chat_messages.conversation_id')
@@ -442,7 +451,13 @@ class ConversationService
                     ->where('chat_conversation_participants.user_id', '=', $participant->id)
                     ->whereNull('chat_conversation_participants.left_at');
             })
-            ->where('chat_conversations.conversation_type', $conversationType)
+            ->when(
+                is_array($conversationType),
+                fn ($query) => $query->whereIn('chat_conversations.conversation_type', $conversationType),
+                fn ($query) => $query->where('chat_conversations.conversation_type', $conversationType),
+            )
+            ->where('chat_conversations.is_archived', false)
+            ->whereNotNull('chat_messages.sender_id')
             ->where('chat_messages.sender_id', '!=', $participant->id)
             ->whereColumn('chat_messages.created_at', '>=', 'chat_conversation_participants.joined_at')
             ->where(function ($query): void {

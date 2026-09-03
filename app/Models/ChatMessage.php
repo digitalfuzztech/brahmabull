@@ -14,7 +14,11 @@ class ChatMessage extends Model
         'sender_type',
         'sender_id',
         'message_type',
+        'client_message_uuid',
         'body',
+        'encrypted_payload',
+        'encryption_version',
+        'key_version',
         'metadata',
         'read_by_player_at',
         'read_by_staff_at',
@@ -31,6 +35,8 @@ class ChatMessage extends Model
             'read_by_staff_at' => 'datetime',
             'edited_at' => 'datetime',
             'deleted_at' => 'datetime',
+            'encryption_version' => 'integer',
+            'key_version' => 'integer',
         ];
     }
 

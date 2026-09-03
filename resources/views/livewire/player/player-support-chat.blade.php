@@ -102,7 +102,7 @@
             </form>
         </section>
     @else
-        <div wire:poll.10s.visible="refreshUnread" class="fixed bottom-6 right-6 z-[9000]">
+        <div wire:poll.2s="refreshUnread" class="fixed bottom-6 right-6 z-[9000]">
             <button
                 type="button"
                 wire:click="openChat"
@@ -114,7 +114,7 @@
                 </svg>
 
                 @if($unreadCount > 0)
-                    <span class="absolute -right-1 -top-1 flex min-h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-black text-white ring-2 ring-slate-950">
+                    <span data-player-support-unread-badge class="absolute -right-1 -top-1 flex min-h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-black text-white ring-2 ring-slate-950">
                         {{ $unreadCount > 99 ? '99+' : $unreadCount }}
                     </span>
                 @endif

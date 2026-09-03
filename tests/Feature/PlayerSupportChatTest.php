@@ -432,7 +432,7 @@ class PlayerSupportChatTest extends TestCase
         $layout = file_get_contents(resource_path('views/layouts/public.blade.php'));
         $privateLayout = file_get_contents(resource_path('views/layouts/private.blade.php'));
 
-        $this->assertStringContainsString('wire:poll.10s.visible="refreshUnread"', $view);
+        $this->assertStringContainsString('wire:poll.2s="refreshUnread"', $view);
         $this->assertStringContainsString('wire:poll.3s.visible="pollOpen"', $view);
         $this->assertStringContainsString('z-[9000]', $view);
         $this->assertStringContainsString('z-[9997]', $view);

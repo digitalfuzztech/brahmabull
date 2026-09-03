@@ -21,7 +21,10 @@
 
             <div class="flex items-center gap-6">
 
-                <livewire:admin.messenger-bell />
+                @if(auth()->user()->hasAnyRole(['admin', 'agent']))
+                    <livewire:admin.messenger-bell />
+                    <livewire:admin.support-messenger-bell />
+                @endif
 
                 <livewire:admin.notification-bell />
 
@@ -122,4 +125,8 @@
         </div>
 
     </div>
+
+    @if(auth()->user()->hasAnyRole(['admin', 'agent']))
+        <livewire:admin.floating-alert-center />
+    @endif
 </div>

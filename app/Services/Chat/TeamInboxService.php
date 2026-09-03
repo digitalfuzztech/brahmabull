@@ -4,6 +4,7 @@ namespace App\Services\Chat;
 
 use App\Models\ChatConversation;
 use App\Models\ChatConversationParticipant;
+use App\Models\ChatE2eeDevice;
 use App\Models\ChatMessage;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -16,6 +17,7 @@ class TeamInboxService
         private readonly ChatAuthorizationService $authorization,
         private readonly ConversationService $conversations,
         private readonly ChatPresenceService $presence,
+        private readonly ChatObserverReadService $observerReads,
     ) {}
 
     public function conversations(User $staff, string $section, string $search = ''): Collection
@@ -27,25 +29,51 @@ class TeamInboxService
             ->with([
                 'latestMessage.attachments:id,message_id,media_type',
                 'activeParticipants.user.roles:id,name',
-            ])
-            ->addSelect([
-                'unread_count' => ChatMessage::query()
-                    ->selectRaw('COUNT(*)')
-                    ->whereColumn('chat_messages.conversation_id', 'chat_conversations.id')
-                    ->where('chat_messages.sender_id', '!=', $staff->id)
-                    ->whereExists(function ($query) use ($staff): void {
-                        $query->selectRaw('1')
-                            ->from('chat_conversation_participants')
-                            ->whereColumn('chat_conversation_participants.conversation_id', 'chat_messages.conversation_id')
-                            ->where('chat_conversation_participants.user_id', $staff->id)
-                            ->whereNull('chat_conversation_participants.left_at')
-                            ->whereColumn('chat_messages.created_at', '>=', 'chat_conversation_participants.joined_at')
-                            ->where(function ($query): void {
-                                $query->whereNull('chat_conversation_participants.last_read_at')
-                                    ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_participants.last_read_at');
-                            });
-                    }),
             ]);
+
+        $participantUnread = ChatMessage::query()
+            ->selectRaw('COUNT(*)')
+            ->whereColumn('chat_messages.conversation_id', 'chat_conversations.id')
+            ->whereNotNull('chat_messages.sender_id')
+            ->where('chat_messages.sender_id', '!=', $staff->id)
+            ->whereExists(function ($query) use ($staff): void {
+                $query->selectRaw('1')
+                    ->from('chat_conversation_participants')
+                    ->whereColumn('chat_conversation_participants.conversation_id', 'chat_messages.conversation_id')
+                    ->where('chat_conversation_participants.user_id', $staff->id)
+                    ->whereNull('chat_conversation_participants.left_at')
+                    ->whereColumn('chat_messages.created_at', '>=', 'chat_conversation_participants.joined_at')
+                    ->where(function ($query): void {
+                        $query->whereNull('chat_conversation_participants.last_read_at')
+                            ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_participants.last_read_at');
+                    });
+            });
+
+        $observerUnread = ChatMessage::query()
+            ->selectRaw('COUNT(*)')
+            ->whereColumn('chat_messages.conversation_id', 'chat_conversations.id')
+            ->whereNotNull('chat_messages.sender_id')
+            ->whereExists(function ($query): void {
+                $query->selectRaw('1')->from('chat_conversation_participants as observer_sender')
+                    ->whereColumn('observer_sender.conversation_id', 'chat_messages.conversation_id')
+                    ->whereColumn('observer_sender.user_id', 'chat_messages.sender_id');
+            })
+            ->where(function ($query) use ($staff): void {
+                $query->whereNotExists(function ($query) use ($staff): void {
+                    $query->selectRaw('1')->from('chat_conversation_observer_reads')
+                        ->whereColumn('chat_conversation_observer_reads.conversation_id', 'chat_messages.conversation_id')
+                        ->where('chat_conversation_observer_reads.user_id', $staff->id);
+                })->orWhereExists(function ($query) use ($staff): void {
+                    $query->selectRaw('1')->from('chat_conversation_observer_reads')
+                        ->whereColumn('chat_conversation_observer_reads.conversation_id', 'chat_messages.conversation_id')
+                        ->where('chat_conversation_observer_reads.user_id', $staff->id)
+                        ->where(fn ($query) => $query
+                            ->whereNull('chat_conversation_observer_reads.last_read_at')
+                            ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_observer_reads.last_read_at'));
+                });
+            });
+
+        $query->addSelect(['unread_count' => $section === 'oversight' ? $observerUnread : $participantUnread]);
 
         if ($section === 'channels') {
             $query->where('conversation_type', 'internal_channel')
@@ -95,12 +123,14 @@ class TeamInboxService
                     'name' => $this->displayName($conversation, $staff),
                     'preview' => $conversation->latestMessage?->deleted_at
                         ? 'Message deleted'
+                        : ($conversation->latestMessage?->encrypted_payload
+                            ? 'Encrypted message'
                         : (filled($conversation->latestMessage?->body)
                         ? $conversation->latestMessage->body
-                        : ($latestAttachment ? ucfirst($latestAttachment->media_type) : 'No messages yet')),
+                        : ($latestAttachment ? ucfirst($latestAttachment->media_type) : 'No messages yet'))),
                     'last_message_at' => ($conversation->last_message_at ?? $conversation->created_at)?->toISOString(),
                     'member_count' => $conversation->activeParticipants->count(),
-                    'unread_count' => $isParticipant ? (int) $conversation->unread_count : 0,
+                    'unread_count' => (int) $conversation->unread_count,
                     'is_observer' => ! $isParticipant,
                     'other_online' => $otherParticipant ? $this->presence->isOnline($otherParticipant) : null,
                 ];
@@ -117,6 +147,8 @@ class TeamInboxService
 
         if ($this->authorization->isActiveParticipant($conversation, $staff)) {
             $this->conversations->markInternalConversationRead($conversation, $staff);
+        } elseif ($this->authorization->canReadInternalGroupAsAdmin($conversation, $staff)) {
+            $this->observerReads->markRead($conversation, $staff);
         }
 
         return $conversation;
@@ -130,7 +162,8 @@ class TeamInboxService
             ->with([
                 'sender:id,name,username',
                 'replyTo.sender:id,name,username',
-                'attachments:id,message_id,media_type,original_name,mime_type,file_size,width,height,duration',
+                'replyTo.attachments:id,message_id,client_attachment_uuid,is_encrypted,encrypted_key,encrypted_metadata,encryption_version,key_version,ciphertext_size',
+                'attachments:id,message_id,client_attachment_uuid,media_type,original_name,mime_type,file_size,width,height,duration,is_encrypted,encrypted_key,encrypted_metadata,encryption_version,key_version,ciphertext_size',
                 'reactions.user:id,name',
             ])
             ->latest('id')
@@ -140,7 +173,14 @@ class TeamInboxService
             ->values()
             ->map(fn (ChatMessage $message) => [
                 'id' => $message->id,
-                'body' => $message->deleted_at ? null : $message->body,
+                'body' => $message->deleted_at || $message->encrypted_payload ? null : $message->body,
+                'client_message_uuid' => $message->client_message_uuid,
+                'encrypted_payload' => $message->deleted_at ? null : $message->encrypted_payload,
+                'encryption_version' => $message->encryption_version,
+                'key_version' => $message->key_version,
+                'is_encrypted' => $message->encrypted_payload !== null,
+                'is_e2ee_boundary' => (bool) data_get($message->metadata, 'e2ee_boundary', false),
+                'is_e2ee_disabled_boundary' => (bool) data_get($message->metadata, 'e2ee_disabled_boundary', false),
                 'deleted' => $message->deleted_at !== null,
                 'edited_at' => $message->edited_at?->toISOString(),
                 'sender_id' => $message->sender_id,
@@ -149,12 +189,41 @@ class TeamInboxService
                 'created_at' => $message->created_at?->toISOString(),
                 'reply' => $message->replyTo ? [
                     'id' => $message->replyTo->id,
+                    'sender_id' => $message->replyTo->sender_id,
                     'sender_name' => $message->replyTo->sender?->name ?? 'Former staff',
-                    'body' => $message->replyTo->deleted_at ? 'This message was deleted.' : ($message->replyTo->body ?: 'Attachment'),
+                    'body' => $message->replyTo->deleted_at
+                        ? 'This message was deleted.'
+                        : ($message->replyTo->encrypted_payload ? null : ($message->replyTo->body ?: 'Attachment')),
+                    'client_message_uuid' => $message->replyTo->client_message_uuid,
+                    'encrypted_payload' => $message->replyTo->deleted_at ? null : $message->replyTo->encrypted_payload,
+                    'encryption_version' => $message->replyTo->encryption_version,
+                    'key_version' => $message->replyTo->key_version,
+                    'edited_at' => $message->replyTo->edited_at?->toISOString(),
+                    'is_encrypted' => $message->replyTo->encrypted_payload !== null,
                     'deleted' => $message->replyTo->deleted_at !== null,
+                    'attachments' => $message->replyTo->deleted_at ? [] : $message->replyTo->attachments->map(fn ($attachment) => [
+                        'id' => $attachment->id,
+                        'is_encrypted' => (bool) $attachment->is_encrypted,
+                        'client_attachment_uuid' => $attachment->client_attachment_uuid,
+                        'encrypted_key' => $attachment->encrypted_key,
+                        'encrypted_metadata' => $attachment->encrypted_metadata,
+                        'encryption_version' => $attachment->encryption_version,
+                        'key_version' => $attachment->key_version,
+                    ])->all(),
                 ] : null,
-                'attachments' => $message->deleted_at ? [] : $message->attachments->map(fn ($attachment) => [
+                'attachments' => $message->deleted_at ? [] : $message->attachments->map(fn ($attachment) => $attachment->is_encrypted ? [
                     'id' => $attachment->id,
+                    'is_encrypted' => true,
+                    'client_attachment_uuid' => $attachment->client_attachment_uuid,
+                    'encrypted_key' => $attachment->encrypted_key,
+                    'encrypted_metadata' => $attachment->encrypted_metadata,
+                    'encryption_version' => $attachment->encryption_version,
+                    'key_version' => $attachment->key_version,
+                    'ciphertext_size' => $attachment->ciphertext_size,
+                    'view_url' => route('team.attachments.view', $attachment),
+                ] : [
+                    'id' => $attachment->id,
+                    'is_encrypted' => false,
                     'media_type' => $attachment->media_type,
                     'original_name' => $attachment->original_name,
                     'mime_type' => $attachment->mime_type,
@@ -162,14 +231,24 @@ class TeamInboxService
                     'view_url' => route('team.attachments.view', $attachment),
                     'download_url' => route('team.attachments.download', $attachment),
                 ])->all(),
-                'reactions' => $message->deleted_at ? [] : $message->reactions
-                    ->groupBy('reaction')
-                    ->map(fn ($reactions, $reaction) => [
-                        'reaction' => $reaction,
-                        'count' => $reactions->count(),
-                        'user_ids' => $reactions->pluck('user_id')->all(),
-                    ])->values()->all(),
-                'can_edit' => $message->deleted_at === null && filled($message->body) && $message->sender_id === $staff->id,
+                'reactions' => $message->deleted_at ? [] : ($message->encrypted_payload
+                    ? $message->reactions->map(fn ($reaction) => [
+                        'id' => $reaction->id,
+                        'user_id' => $reaction->user_id,
+                        'encrypted_reaction' => $reaction->encrypted_reaction,
+                        'encryption_version' => $reaction->encryption_version,
+                        'key_version' => $reaction->key_version,
+                    ])->all()
+                    : $message->reactions
+                        ->groupBy('reaction')
+                        ->map(fn ($reactions, $reaction) => [
+                            'reaction' => $reaction,
+                            'count' => $reactions->count(),
+                            'user_ids' => $reactions->pluck('user_id')->all(),
+                        ])->values()->all()),
+                'can_edit' => $message->deleted_at === null
+                    && (filled($message->body) || filled($message->encrypted_payload))
+                    && $message->sender_id === $staff->id,
                 'can_delete' => $message->deleted_at === null && $message->sender_id === $staff->id,
             ])->all();
     }
@@ -182,6 +261,16 @@ class TeamInboxService
         $otherParticipant = $conversation->conversation_type === 'internal_direct'
             ? $conversation->activeParticipants->firstWhere('user_id', '!=', $staff->id)?->user
             : null;
+        $trustedDeviceUserIds = $conversation->conversation_type === 'internal_direct'
+            ? ChatE2eeDevice::query()
+                ->whereIn('user_id', $conversation->activeParticipants->pluck('user_id'))
+                ->whereNotNull('trusted_at')
+                ->whereNull('revoked_at')
+                ->distinct()
+                ->pluck('user_id')
+            : collect();
+        $isE2ee = $conversation->conversation_type === 'internal_direct'
+            && $conversation->encryption_mode === 'e2ee_v1';
 
         return [
             'id' => $conversation->id,
@@ -193,6 +282,20 @@ class TeamInboxService
                 && ($conversation->conversation_type !== 'internal_channel' || $staff->hasRole('admin')),
             'can_reply' => $participant !== null && $conversation->conversation_type !== 'internal_channel',
             'can_react' => $participant !== null && $conversation->conversation_type !== 'internal_channel',
+            'can_attach' => $participant !== null && $conversation->conversation_type !== 'internal_channel',
+            'is_e2ee' => $isE2ee,
+            'e2ee_available' => $conversation->conversation_type === 'internal_direct'
+                && $trustedDeviceUserIds->unique()->count() === 2,
+            'e2ee_enabled_at' => $conversation->e2ee_enabled_at?->toISOString(),
+            'current_key_version' => $conversation->current_key_version,
+            'e2ee_rotation_required' => $conversation->e2ee_rotation_required_at !== null,
+            'e2ee_rotation_required_at' => $conversation->e2ee_rotation_required_at?->toISOString(),
+            'e2ee_disable_requested_by' => $conversation->e2ee_disable_requested_by,
+            'e2ee_disable_requested_at' => $conversation->e2ee_disable_requested_at?->toISOString(),
+            'e2ee_disable_requested_by_me' => (int) $conversation->e2ee_disable_requested_by === $staff->id,
+            'e2ee_disable_response_required' => $conversation->e2ee_disable_requested_by !== null
+                && (int) $conversation->e2ee_disable_requested_by !== $staff->id,
+            'e2ee_disabled_at' => $conversation->e2ee_disabled_at?->toISOString(),
             'is_owner' => $participant?->participant_role === 'owner',
             'other_online' => $otherParticipant ? $this->presence->isOnline($otherParticipant) : null,
             'members' => $conversation->activeParticipants->map(fn (ChatConversationParticipant $member) => [
