@@ -9,6 +9,7 @@ use App\Services\Chat\MessengerOverviewService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Illuminate\Support\Facades\Log;
 
 class MessengerBell extends Component
 {
@@ -58,7 +59,17 @@ class MessengerBell extends Component
         array $conversationIds = [],
         array $messageIds = [],
     ): void {
+        $before = $this->unreadCount;
+
         $this->refreshUnread($overview);
+
+        Log::debug('TEAM LIVE: MessengerBell refreshed', [
+            'staff_id' => auth()->id(),
+            'before' => $before,
+            'after' => $this->unreadCount,
+            'conversation_ids' => $conversationIds,
+            'message_ids' => $messageIds,
+        ]);
     }
 
     public function openConversation(int $conversationId): void

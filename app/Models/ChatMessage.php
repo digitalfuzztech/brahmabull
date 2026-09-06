@@ -8,6 +8,7 @@ use LogicException;
 
 class ChatMessage extends Model
 {
+    protected $dateFormat = 'Y-m-d H:i:s.u';
     protected $fillable = [
         'conversation_id',
         'reply_to_message_id',
@@ -119,3 +120,5 @@ class ChatMessage extends Model
         ];
     }
 }
+
+

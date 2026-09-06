@@ -40,7 +40,34 @@
                     @php
                         $rowUnread = (int) ($conversation['unread_count'] ?? 0);
                     @endphp
-                    <button type="button" wire:key="team-conversation-{{ $conversation['id'] }}" data-team-conversation-id="{{ $conversation['id'] }}" data-unread-count="{{ $rowUnread }}" data-unread="{{ $rowUnread > 0 ? 'true' : 'false' }}" wire:click="selectTeamConversation({{ $conversation['id'] }})" class="block w-full border-b border-slate-800 px-4 py-4 text-left transition-colors hover:bg-slate-800/80 {{ $selectedConversationId === $conversation['id'] ? 'bg-purple-500/10' : ($rowUnread > 0 ? 'bg-purple-500/10 ring-1 ring-inset ring-purple-400/20' : '') }}">
+                    <button
+                        type="button"
+
+                        wire:key="team-conversation-{{ $conversation['id'] }}"
+
+                        data-team-conversation-id="{{ $conversation['id'] }}"
+                        data-unread-count="{{ $rowUnread }}"
+                        data-unread="{{ $rowUnread > 0 ? 'true' : 'false' }}"
+
+                        wire:click="selectTeamConversation({{ $conversation['id'] }})"
+
+                        class="
+        block w-full
+        border-b border-slate-800
+        px-4 py-4
+        text-left
+        transition-colors
+        hover:bg-slate-800/80
+
+        {{ $selectedConversationId === $conversation['id']
+            ? 'bg-purple-500/5'
+            : '' }}
+
+        {{ $rowUnread > 0
+            ? 'bg-purple-500/10 ring-1 ring-inset ring-purple-400/20'
+            : '' }}
+    "
+                    >
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="truncate {{ $rowUnread > 0 ? 'font-black text-white' : 'font-bold text-slate-200' }}">{{ $conversation['name'] }}</p>
@@ -48,7 +75,14 @@
                             </div>
                             <span data-team-conversation-unread data-unread-count="{{ $rowUnread }}" class="rounded-full bg-purple-600 px-2 py-0.5 text-[10px] font-bold text-white {{ $rowUnread > 0 ? 'inline-flex items-center justify-center' : 'hidden' }}">{{ $rowUnread > 99 ? '99+' : $rowUnread }}</span>
                         </div>
-                        <p class="mt-2 truncate text-sm text-slate-300">{{ $conversation['preview'] }}</p>
+                        <p
+                            class="mt-2 truncate text-sm
+        {{ $rowUnread > 0
+            ? 'font-bold text-white'
+            : 'font-normal text-slate-300' }}"
+                        >
+                            {{ $conversation['preview'] }}
+                        </p>
                         <div class="mt-2 flex justify-between text-[11px] text-slate-500">
                             <span>{{ $conversation['is_observer'] ? 'Read-only oversight' : ($conversation['type'] === 'internal_channel' ? 'Noticeboard' : 'Team chat') }}</span>
                             <span>{{ $conversation['last_message_at'] ? \Illuminate\Support\Carbon::parse($conversation['last_message_at'])->diffForHumans(short: true) : '' }}</span>
@@ -106,6 +140,21 @@
                     x-on:team-e2ee-enable.window="enable"
                     x-on:team-e2ee-rotate.window="rotate"
                     x-on:e2ee-device-status-changed.window="deviceStatusChanged"
+                    x-on:team-message-arrived.window="
+    const ids = Array.isArray($event.detail?.conversationIds)
+        ? $event.detail.conversationIds.map(Number)
+        : [];
+
+    const composer = $refs.teamComposer;
+
+    if (
+        ids.includes(Number(@js($selectedConversationId)))
+        && composer
+        && document.activeElement === composer
+    ) {
+        $wire.markSelectedConversationRead();
+    }
+"
                     class="flex min-h-0 flex-1 flex-col overflow-hidden"
                 >
                     <p x-show="securityMessage" x-text="securityMessage" class="shrink-0 border-b border-slate-800 bg-slate-900 px-4 py-2 text-center text-xs text-amber-200"></p>
@@ -267,8 +316,26 @@
                                         <span aria-hidden="true">＋</span><span class="sr-only">Attach encrypted file</span>
                                         <input x-ref="encryptedAttachment" x-on:change="chooseAttachment($event)" type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mp3,.m4a,.wav,.ogg,.pdf,.doc,.docx,.xls,.xlsx,.txt">
                                     </label>
-                                    <textarea x-model="draft" x-on:keydown.enter="if (!$event.shiftKey && !$event.isComposing) { $event.preventDefault(); send() }" rows="2" maxlength="2000" placeholder="Encrypted message {{ $details['name'] }}..." class="m-0 block h-12 min-h-12 min-w-0 flex-1 resize-none box-border overflow-y-auto rounded-xl border border-emerald-500/40 bg-slate-900 px-3 py-2 text-sm leading-7 text-white outline-none focus:border-emerald-400"></textarea>
-                                    <button type="button" x-on:click="send" x-bind:disabled="busy || (!draft.trim() && !selectedFile)" class="m-0 flex h-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white disabled:opacity-50"><span x-text="busy ? 'Encrypting…' : 'Send'"></span></button>
+                                    <textarea
+                                        x-ref="teamComposer"
+
+                                        x-model="draft"
+
+                                        x-on:focus="$wire.markSelectedConversationRead()"
+
+                                        x-on:keydown.enter="
+        if (!$event.shiftKey && !$event.isComposing) {
+            $event.preventDefault();
+            send()
+        }
+    "
+
+                                        rows="2"
+                                        maxlength="2000"
+                                        placeholder="Encrypted message {{ $details['name'] }}..."
+                                        class="m-0 block h-12 min-h-12 min-w-0 flex-1 resize-none box-border overflow-y-auto rounded-xl border border-emerald-500/40 bg-slate-900 px-3 py-2 text-sm leading-7 text-white outline-none focus:border-emerald-400"
+                                    ></textarea>
+                                   <button type="button" x-on:click="send" x-bind:disabled="busy || (!draft.trim() && !selectedFile)" class="m-0 flex h-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white disabled:opacity-50"><span x-text="busy ? 'Encrypting…' : 'Send'"></span></button>
                                 </div>
                             </div>
                         @else
@@ -295,7 +362,24 @@
                                     <span aria-hidden="true">＋</span><span class="sr-only">Attach file</span>
                                     <input wire:model="attachment" type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mp3,.m4a,.wav,.ogg,.pdf,.doc,.docx,.xls,.xlsx,.txt">
                                 </label>
-                                <textarea wire:model="message" x-on:keydown.enter="if (!$event.shiftKey && !$event.isComposing) { $event.preventDefault(); $wire.sendTeamMessage() }" rows="2" maxlength="2000" placeholder="Message {{ $details['name'] }}..." class="m-0 block h-12 min-h-12 min-w-0 flex-1 resize-none box-border overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm leading-7 text-white outline-none focus:border-purple-500"></textarea>
+                                <textarea
+                                    x-ref="teamComposer"
+                                    wire:model="message"
+
+                                    x-on:focus="$wire.markSelectedConversationRead()"
+
+                                    x-on:keydown.enter="
+        if (!$event.shiftKey && !$event.isComposing) {
+            $event.preventDefault();
+            $wire.sendTeamMessage()
+        }
+    "
+
+                                    rows="2"
+                                    maxlength="2000"
+                                    placeholder="Message {{ $details['name'] }}..."
+                                    class="m-0 block h-12 min-h-12 min-w-0 flex-1 resize-none box-border overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm leading-7 text-white outline-none focus:border-purple-500"
+                                ></textarea>
                                 <button type="submit" wire:loading.attr="disabled" wire:target="sendTeamMessage,attachment" class="m-0 flex h-12 shrink-0 items-center justify-center rounded-xl bg-purple-600 px-5 text-sm font-bold text-white disabled:opacity-50"><span wire:loading.remove wire:target="sendTeamMessage">Send</span><span wire:loading wire:target="sendTeamMessage">Sending…</span></button>
                             </div>
                             @error('message') <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror

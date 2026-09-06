@@ -241,4 +241,194 @@ class PhaseTwoE5DRuntimeTest extends TestCase
 
         return $user;
     }
+    public function test_polling_an_already_open_conversation_does_not_auto_read_new_message(): void
+    {
+        $admin = $this->user('admin');
+        $sicario = $this->user('agent');
+
+        $conversation = app(ConversationService::class)
+            ->getOrCreateDirectConversation(
+                $admin,
+                $sicario
+            );
+
+        /*
+         * Admin explicitly opens the conversation.
+         * Existing unread state is therefore read.
+         */
+        $inbox = Livewire::actingAs($admin)
+            ->test(
+                TeamMessenger::class,
+                [
+                    'initialConversationId' =>
+                        $conversation->id,
+                ]
+            );
+
+        $this->assertSame(
+            0,
+            app(ConversationService::class)
+                ->internalUnreadCount(
+                    $conversation,
+                    $admin
+                )
+        );
+
+        /*
+         * Sicario now replies while Admin still has
+         * the conversation open.
+         */
+        app(ChatMessageService::class)
+            ->sendInternalMessage(
+                $conversation,
+                $sicario,
+                'hello'
+            );
+
+        /*
+         * Normal selected-chat polling must load the
+         * new message WITHOUT marking it read.
+         */
+        $inbox->call('pollSelected');
+        $inbox->call('pollList');
+
+        $this->assertSame(
+            1,
+            app(ConversationService::class)
+                ->internalUnreadCount(
+                    $conversation,
+                    $admin
+                )
+        );
+
+        $this->assertUnreadRow(
+            $inbox->html(),
+            $conversation->id,
+            1
+        );
+
+        /*
+         * Header must also retain unread count.
+         */
+        Livewire::actingAs($admin)
+            ->test(MessengerBell::class)
+            ->call('pollUnread')
+            ->assertSet('unreadCount', 1);
+
+        /*
+         * Explicit read action simulates focusing/opening
+         * the conversation.
+         */
+        $inbox->call(
+            'markSelectedConversationRead'
+        );
+
+        $this->assertSame(
+            0,
+            app(ConversationService::class)
+                ->internalUnreadCount(
+                    $conversation,
+                    $admin
+                )
+        );
+
+        $this->assertReadRow(
+            $inbox->html(),
+            $conversation->id
+        );
+    }
+    public function test_message_in_another_chat_stays_unread_and_highlighted_until_opened(): void
+    {
+        $admin = $this->user('admin');
+        $sicario = $this->user('agent');
+        $thirdPerson = $this->user('agent');
+
+        $sicarioChat = app(ConversationService::class)
+            ->getOrCreateDirectConversation(
+                $admin,
+                $sicario
+            );
+
+        $thirdChat = app(ConversationService::class)
+            ->getOrCreateDirectConversation(
+                $admin,
+                $thirdPerson
+            );
+
+        /*
+         * Admin currently has third person's conversation open.
+         */
+        $inbox = Livewire::actingAs($admin)
+            ->test(
+                TeamMessenger::class,
+                [
+                    'initialConversationId' =>
+                        $thirdChat->id,
+                ]
+            );
+
+        /*
+         * Sicario sends while Admin is looking elsewhere.
+         */
+        app(ChatMessageService::class)
+            ->sendInternalMessage(
+                $sicarioChat,
+                $sicario,
+                'new message from sicario'
+            );
+
+        $inbox->call('pollSelected');
+        $inbox->call('pollList');
+
+        /*
+         * Third person's selected conversation stays selected.
+         */
+        $inbox->assertSet(
+            'selectedConversationId',
+            $thirdChat->id
+        );
+
+        /*
+         * Sicario remains unread.
+         */
+        $this->assertSame(
+            1,
+            app(ConversationService::class)
+                ->internalUnreadCount(
+                    $sicarioChat,
+                    $admin
+                )
+        );
+
+        $this->assertUnreadRow(
+            $inbox->html(),
+            $sicarioChat->id,
+            1
+        );
+
+        /*
+         * Header must also show 1.
+         */
+        Livewire::actingAs($admin)
+            ->test(MessengerBell::class)
+            ->call('pollUnread')
+            ->assertSet('unreadCount', 1);
+
+        /*
+         * Now Admin explicitly opens Sicario.
+         */
+        $inbox->call(
+            'selectTeamConversation',
+            $sicarioChat->id
+        );
+
+        $this->assertSame(
+            0,
+            app(ConversationService::class)
+                ->internalUnreadCount(
+                    $sicarioChat,
+                    $admin
+                )
+        );
+    }
 }

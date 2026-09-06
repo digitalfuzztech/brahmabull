@@ -21,7 +21,46 @@
                 @forelse($recent as $conversation)
                     <button type="button" wire:key="team-bell-conversation-{{ $conversation['id'] }}" data-team-dropdown-conversation-id="{{ $conversation['id'] }}" wire:click="openConversation({{ $conversation['id'] }})" class="block w-full border-b border-slate-800 px-4 py-3 text-left hover:bg-slate-800 {{ $conversation['unread_count'] ? 'bg-purple-500/10' : '' }}">
                         <div class="flex justify-between gap-3"><p class="truncate text-sm {{ $conversation['unread_count'] ? 'font-black text-white' : 'font-bold text-slate-200' }}">{{ $conversation['name'] }}</p><span class="shrink-0 text-[10px] text-slate-500">{{ $conversation['relative_time'] }}</span></div>
-                        <div class="mt-1 flex items-center justify-between gap-3"><p class="truncate text-xs text-slate-400">{{ ucfirst($conversation['domain']) }} · {{ $conversation['preview'] }}</p>@if($conversation['unread_count'])<span class="rounded-full bg-purple-600 px-2 py-0.5 text-[10px] font-bold">{{ $conversation['unread_count'] > 99 ? '99+' : $conversation['unread_count'] }}</span>@endif</div>
+                        <div class="mt-1 flex items-center justify-between gap-3">
+
+                            <p
+                                class="
+            min-w-0 flex-1 truncate text-xs
+
+            {{ $conversation['unread_count'] > 0
+                ? 'font-bold text-white'
+                : 'font-normal text-slate-400' }}
+        "
+                            >
+                                {{ ucfirst($conversation['domain']) }}
+                                ·
+                                {{ $conversation['preview'] }}
+                            </p>
+
+                            <span
+                                data-team-dropdown-unread
+                                data-unread-count="{{ $conversation['unread_count'] }}"
+
+                                class="
+            shrink-0
+            rounded-full
+            bg-purple-600
+            px-2 py-0.5
+            text-[10px]
+            font-bold
+            text-white
+
+            {{ $conversation['unread_count'] > 0
+                ? 'inline-flex items-center justify-center'
+                : 'hidden' }}
+        "
+                            >
+        {{ $conversation['unread_count'] > 99
+            ? '99+'
+            : $conversation['unread_count'] }}
+    </span>
+
+                        </div>
                     </button>
                 @empty
                     <p class="px-4 py-8 text-center text-sm text-slate-400">No recent conversations.</p>

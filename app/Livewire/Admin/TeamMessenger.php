@@ -19,6 +19,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Log;
 
 class TeamMessenger extends Component
 {
@@ -149,28 +150,105 @@ class TeamMessenger extends Component
         array $conversationIds = [],
         array $messageIds = [],
     ): void {
-        $this->pollList($team);
+        /*
+         * Only refresh conversation-list metadata.
+         * Never mark anything read here.
+         */
+        $this->refreshList($team);
+
+        Log::debug('TEAM LIVE: TeamMessenger refreshed', [
+            'staff_id' => auth()->id(),
+            'section' => $this->section,
+            'selected_conversation_id' => $this->selectedConversationId,
+            'incoming_conversation_ids' => $conversationIds,
+            'incoming_message_ids' => $messageIds,
+
+            'rows' => collect($this->conversations)
+                ->map(fn (array $row) => [
+                    'id' => $row['id'],
+                    'name' => $row['name'] ?? null,
+                    'unread' => (int) ($row['unread_count'] ?? 0),
+                    'preview' => $row['preview'] ?? null,
+                ])
+                ->values()
+                ->all(),
+        ]);
     }
 
-    public function pollSelected(TeamInboxService $team): void
-    {
+    public function pollSelected(
+        TeamInboxService $team,
+    ): void {
         if (! $this->selectedConversationId) {
             return;
         }
 
         try {
-            $selectedHadUnread = (int) (collect($this->conversations)
-                ->firstWhere('id', $this->selectedConversationId)['unread_count'] ?? 0) > 0;
-            $latestMessageId = collect($this->teamMessages)->last()['id'] ?? null;
-            $conversation = $team->selectConversation($this->selectedConversationId, $this->staff());
-            $this->loadSelected($team, $conversation);
-            if ($selectedHadUnread) {
-                $this->refreshList($team);
-                $this->dispatch('messenger-unread-refresh')->to(MessengerBell::class);
+            $latestMessageId = collect($this->teamMessages)
+                ->last()['id'] ?? null;
+
+            /*
+             * IMPORTANT:
+             *
+             * Polling an already-open conversation must NEVER
+             * automatically mark incoming messages as read.
+             *
+             * Read state is changed only when:
+             * 1. user explicitly opens the conversation, or
+             * 2. the composer is actively focused.
+             */
+            $conversation = $team->conversationForView(
+                $this->selectedConversationId,
+                $this->staff()
+            );
+
+            $this->loadSelected(
+                $team,
+                $conversation
+            );
+
+            $newLatestMessageId = collect($this->teamMessages)
+                ->last()['id'] ?? null;
+
+            if ($latestMessageId !== $newLatestMessageId) {
+                $this->dispatch(
+                    'team-messenger-scroll',
+                    force: false
+                );
             }
-            if ($latestMessageId !== (collect($this->teamMessages)->last()['id'] ?? null)) {
-                $this->dispatch('team-messenger-scroll', force: false);
-            }
+        } catch (AuthorizationException) {
+            $this->clearSelection();
+        }
+    }
+
+    public function markSelectedConversationRead(
+        TeamInboxService $team,
+    ): void {
+        if (! $this->selectedConversationId) {
+            return;
+        }
+
+        try {
+            /*
+             * selectConversation() intentionally marks this
+             * exact conversation as read.
+             */
+            $team->selectConversation(
+                $this->selectedConversationId,
+                $this->staff()
+            );
+
+            /*
+             * Immediately update the left conversation list.
+             */
+            $this->refreshList($team);
+
+            /*
+             * Immediately update the top Messenger badge.
+             */
+            $this->dispatch(
+                'messenger-unread-refresh'
+            )->to(MessengerBell::class);
+
         } catch (AuthorizationException) {
             $this->clearSelection();
         }

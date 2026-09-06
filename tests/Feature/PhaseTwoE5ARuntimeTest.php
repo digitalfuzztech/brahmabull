@@ -125,7 +125,20 @@ class PhaseTwoE5ARuntimeTest extends TestCase
 
         $this->assertStringContainsString('wire:poll.2s="pollUnread"', $bell);
         $this->assertStringNotContainsString('wire:poll.2s.visible="pollUnread"', $bell);
-        $this->assertStringContainsString("unread_count'] > 99 ? '99+'", $bell);
+        $this->assertStringContainsString(
+            'data-team-unread-badge',
+            $bell
+        );
+
+        $this->assertStringContainsString(
+            'data-unread-count="{{ $unreadCount }}"',
+            $bell
+        );
+
+        $this->assertStringContainsString(
+            "wire:poll.2s=\"pollUnread\"",
+            $bell
+        );
         $this->assertStringContainsString('admin.messenger-bell', $header);
         $this->assertStringContainsString('admin.support-messenger-bell', $header);
         $this->assertStringContainsString('admin.notification-bell', $header);

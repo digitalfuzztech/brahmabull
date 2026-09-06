@@ -137,23 +137,60 @@ class TeamInboxService
             });
     }
 
-    public function selectConversation(int $conversationId, User $staff): ChatConversation
-    {
+    public function conversationForView(
+        int $conversationId,
+        User $staff,
+    ): ChatConversation {
         $conversation = ChatConversation::query()
-            ->whereIn('conversation_type', ['internal_direct', 'internal_group', 'internal_channel'])
+            ->whereIn('conversation_type', [
+                'internal_direct',
+                'internal_group',
+                'internal_channel',
+            ])
             ->where('is_archived', false)
             ->findOrFail($conversationId);
-        $this->authorization->assertCanViewInternal($conversation, $staff);
 
-        if ($this->authorization->isActiveParticipant($conversation, $staff)) {
-            $this->conversations->markInternalConversationRead($conversation, $staff);
-        } elseif ($this->authorization->canReadInternalGroupAsAdmin($conversation, $staff)) {
-            $this->observerReads->markRead($conversation, $staff);
-        }
+        $this->authorization->assertCanViewInternal(
+            $conversation,
+            $staff
+        );
 
         return $conversation;
     }
 
+    public function selectConversation(
+        int $conversationId,
+        User $staff,
+    ): ChatConversation {
+        $conversation = $this->conversationForView(
+            $conversationId,
+            $staff
+        );
+
+        if (
+            $this->authorization->isActiveParticipant(
+                $conversation,
+                $staff
+            )
+        ) {
+            $this->conversations->markInternalConversationRead(
+                $conversation,
+                $staff
+            );
+        } elseif (
+            $this->authorization->canReadInternalGroupAsAdmin(
+                $conversation,
+                $staff
+            )
+        ) {
+            $this->observerReads->markRead(
+                $conversation,
+                $staff
+            );
+        }
+
+        return $conversation;
+    }
     public function messages(ChatConversation $conversation, User $staff, int $limit = 100): array
     {
         $this->authorization->assertCanViewInternal($conversation, $staff);

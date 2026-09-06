@@ -6,6 +6,7 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Services\Chat\HeaderActivityService;
 use Livewire\Component;
+use Illuminate\Support\Facades\Log;
 
 class FloatingAlertCenter extends Component
 {
@@ -45,11 +46,38 @@ class FloatingAlertCenter extends Component
         $this->alerts = array_slice($this->alerts, -20);
 
         if ($teamMessageIds !== []) {
+            $conversationIds = array_values(
+                array_unique($teamConversationIds)
+            );
+
+            $messageIds = array_values(
+                array_unique($teamMessageIds)
+            );
+
+            Log::debug('TEAM LIVE: FloatingAlertCenter detected message', [
+                'staff_id' => $this->staff()->id,
+                'conversation_ids' => $conversationIds,
+                'message_ids' => $messageIds,
+            ]);
+
+            /*
+             * Explicitly target the already-mounted Team header bell.
+             */
             $this->dispatch(
                 'team-message-arrived',
-                conversationIds: array_values(array_unique($teamConversationIds)),
-                messageIds: array_values(array_unique($teamMessageIds)),
-            );
+                conversationIds: $conversationIds,
+                messageIds: $messageIds,
+            )->to(MessengerBell::class);
+
+            /*
+             * Explicitly target Team Messenger when the Team Inbox
+             * component is currently mounted.
+             */
+            $this->dispatch(
+                'team-message-arrived',
+                conversationIds: $conversationIds,
+                messageIds: $messageIds,
+            )->to(TeamMessenger::class);
         }
     }
 
@@ -105,4 +133,5 @@ class FloatingAlertCenter extends Component
 
         return $user;
     }
+
 }
