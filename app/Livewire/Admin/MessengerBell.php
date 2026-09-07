@@ -59,17 +59,21 @@ class MessengerBell extends Component
         array $conversationIds = [],
         array $messageIds = [],
     ): void {
-        $before = $this->unreadCount;
+        /*
+         * A new Team message has been detected by the working
+         * global activity poll.
+         *
+         * Re-query BOTH:
+         * - total Team unread
+         * - warm dropdown rows
+         */
+        $this->unreadCount = $overview->unreadCount(
+            $this->staff()
+        );
 
-        $this->refreshUnread($overview);
-
-        Log::debug('TEAM LIVE: MessengerBell refreshed', [
-            'staff_id' => auth()->id(),
-            'before' => $before,
-            'after' => $this->unreadCount,
-            'conversation_ids' => $conversationIds,
-            'message_ids' => $messageIds,
-        ]);
+        $this->recent = $overview->recent(
+            $this->staff()
+        )->all();
     }
 
     public function openConversation(int $conversationId): void

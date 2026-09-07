@@ -51,6 +51,69 @@
 
 </div>
 
+<script>
+    document.addEventListener('livewire:init', () => {
+
+        /*
+         * Install this listener exactly once.
+         *
+         * This survives normal Livewire navigation and prevents
+         * duplicate listeners from accumulating.
+         */
+        if (window.__brahmaTeamLiveBridgeInstalled) {
+            return;
+        }
+
+        window.__brahmaTeamLiveBridgeInstalled = true;
+
+        window.addEventListener('brahma-team-live-detected', (event) => {
+
+            const payload = event.detail ?? {};
+
+            console.debug(
+                '[BRAHMA TEAM LIVE] incoming message detected',
+                payload
+            );
+
+            /*
+             * Browser-only event used for "input currently focused"
+             * read semantics inside Team Messenger.
+             */
+            window.dispatchEvent(
+                new CustomEvent(
+                    'brahma-team-message-arrived',
+                    {
+                        detail: payload
+                    }
+                )
+            );
+
+            /*
+             * Explicitly tell the ALWAYS-MOUNTED header Team bell
+             * to re-query total unread + recent conversations.
+             */
+            window.Livewire.dispatchTo(
+                'admin.messenger-bell',
+                'team-message-arrived',
+                payload
+            );
+
+            /*
+             * Explicitly tell Team Messenger to refresh the
+             * conversation list IF Team Messenger is mounted.
+             *
+             * If the Team Inbox is not currently mounted,
+             * this simply has nothing to refresh.
+             */
+            window.Livewire.dispatchTo(
+                'admin.team-messenger',
+                'team-message-arrived',
+                payload
+            );
+        });
+    });
+</script>
+
 @livewireScripts
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>

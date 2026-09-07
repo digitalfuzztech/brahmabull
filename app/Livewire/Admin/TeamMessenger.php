@@ -151,28 +151,14 @@ class TeamMessenger extends Component
         array $messageIds = [],
     ): void {
         /*
-         * Only refresh conversation-list metadata.
-         * Never mark anything read here.
+         * Incoming message:
+         *
+         * refresh conversation metadata ONLY.
+         *
+         * Do NOT mark the conversation read.
+         * Do NOT change the selected conversation.
          */
         $this->refreshList($team);
-
-        Log::debug('TEAM LIVE: TeamMessenger refreshed', [
-            'staff_id' => auth()->id(),
-            'section' => $this->section,
-            'selected_conversation_id' => $this->selectedConversationId,
-            'incoming_conversation_ids' => $conversationIds,
-            'incoming_message_ids' => $messageIds,
-
-            'rows' => collect($this->conversations)
-                ->map(fn (array $row) => [
-                    'id' => $row['id'],
-                    'name' => $row['name'] ?? null,
-                    'unread' => (int) ($row['unread_count'] ?? 0),
-                    'preview' => $row['preview'] ?? null,
-                ])
-                ->values()
-                ->all(),
-        ]);
     }
 
     public function pollSelected(
@@ -229,8 +215,7 @@ class TeamMessenger extends Component
 
         try {
             /*
-             * selectConversation() intentionally marks this
-             * exact conversation as read.
+             * selectConversation() intentionally records read state.
              */
             $team->selectConversation(
                 $this->selectedConversationId,
@@ -238,12 +223,12 @@ class TeamMessenger extends Component
             );
 
             /*
-             * Immediately update the left conversation list.
+             * Immediately refresh left-side unread state.
              */
             $this->refreshList($team);
 
             /*
-             * Immediately update the top Messenger badge.
+             * Immediately refresh top Messenger badge/dropdown.
              */
             $this->dispatch(
                 'messenger-unread-refresh'

@@ -54,30 +54,19 @@ class FloatingAlertCenter extends Component
                 array_unique($teamMessageIds)
             );
 
-            Log::debug('TEAM LIVE: FloatingAlertCenter detected message', [
-                'staff_id' => $this->staff()->id,
-                'conversation_ids' => $conversationIds,
-                'message_ids' => $messageIds,
-            ]);
-
             /*
-             * Explicitly target the already-mounted Team header bell.
+             * FloatingAlertCenter is the one runtime component
+             * already proven to detect incoming Team messages.
+             *
+             * Emit ONE browser-level signal.
+             * The permanent private-layout bridge will explicitly
+             * refresh the mounted Team bell and Team Messenger.
              */
             $this->dispatch(
-                'team-message-arrived',
+                'brahma-team-live-detected',
                 conversationIds: $conversationIds,
                 messageIds: $messageIds,
-            )->to(MessengerBell::class);
-
-            /*
-             * Explicitly target Team Messenger when the Team Inbox
-             * component is currently mounted.
-             */
-            $this->dispatch(
-                'team-message-arrived',
-                conversationIds: $conversationIds,
-                messageIds: $messageIds,
-            )->to(TeamMessenger::class);
+            );
         }
     }
 

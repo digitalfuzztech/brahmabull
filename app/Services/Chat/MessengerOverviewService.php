@@ -41,9 +41,20 @@ class MessengerOverviewService
                             ->where(fn ($query) => $query->whereNull('chat_conversation_participants.last_read_at')
                                 ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_participants.last_read_at'));
                     }),
+                'latest_message_id' => ChatMessage::query()
+                    ->select('id')
+                    ->whereColumn(
+                        'chat_messages.conversation_id',
+                        'chat_conversations.id'
+                    )
+                    ->latest('id')
+                    ->limit(1),
             ]);
 
-        return $team->latest('last_message_at')->limit($limit)->get()
+        return $team
+            ->orderByDesc('latest_message_id')
+            ->orderByDesc('chat_conversations.id')
+            ->limit($limit)->get()
             ->map(fn (ChatConversation $conversation) => $this->row(
                 $conversation,
                 $staff,

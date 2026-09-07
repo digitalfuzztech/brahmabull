@@ -73,7 +73,20 @@ class TeamInboxService
                 });
             });
 
-        $query->addSelect(['unread_count' => $section === 'oversight' ? $observerUnread : $participantUnread]);
+        $query->addSelect([
+            'unread_count' => $section === 'oversight'
+                ? $observerUnread
+                : $participantUnread,
+
+            'latest_message_id' => ChatMessage::query()
+                ->select('id')
+                ->whereColumn(
+                    'chat_messages.conversation_id',
+                    'chat_conversations.id'
+                )
+                ->latest('id')
+                ->limit(1),
+        ]);
 
         if ($section === 'channels') {
             $query->where('conversation_type', 'internal_channel')
@@ -107,7 +120,9 @@ class TeamInboxService
             });
         }
 
-        return $query->orderByRaw('COALESCE(last_message_at, created_at) DESC')
+        return $query
+            ->orderByDesc('latest_message_id')
+            ->orderByDesc('chat_conversations.id')
             ->limit(75)
             ->get()
             ->map(function (ChatConversation $conversation) use ($staff): array {

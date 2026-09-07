@@ -140,7 +140,7 @@
                     x-on:team-e2ee-enable.window="enable"
                     x-on:team-e2ee-rotate.window="rotate"
                     x-on:e2ee-device-status-changed.window="deviceStatusChanged"
-                    x-on:team-message-arrived.window="
+                    x-on:brahma-team-message-arrived.window="
     const ids = Array.isArray($event.detail?.conversationIds)
         ? $event.detail.conversationIds.map(Number)
         : [];
