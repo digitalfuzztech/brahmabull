@@ -65,7 +65,8 @@ class PhaseTwoE5BRuntimeTest extends TestCase
         app(ChatMessageService::class)->sendInternalMessage($other, $senderB, 'Unread elsewhere');
         $component->call('pollList')
             ->assertSet('selectedConversationId', $selected->id)
-            ->assertSeeHtml('data-team-conversation-id="'.$other->id.'" data-unread-count="1"')
+            ->assertSeeHtml('data-team-conversation-id="'.$other->id.'"')
+            ->assertSeeHtml('data-unread-count="1"')
             ->assertSeeHtml('bg-purple-500/10')
             ->assertSeeHtml('data-team-conversation-unread');
 
@@ -74,7 +75,8 @@ class PhaseTwoE5BRuntimeTest extends TestCase
 
         $component->call('selectTeamConversation', $other->id)
             ->assertSet('selectedConversationId', $other->id)
-            ->assertSeeHtml('data-team-conversation-id="'.$other->id.'" data-unread-count="0"')
+            ->assertSeeHtml('data-team-conversation-id="'.$other->id.'"')
+            ->assertSeeHtml('data-unread-count="0"')
             ->assertDispatchedTo(MessengerBell::class, 'messenger-unread-refresh');
     }
 

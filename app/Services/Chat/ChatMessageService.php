@@ -320,7 +320,10 @@ class ChatMessageService
             $conversation->participants()
                 ->where('user_id', $senderId)
                 ->whereNull('left_at')
-                ->update(['last_read_at' => $now]);
+                ->update([
+                    'last_read_at' => $now,
+                    'last_read_message_id' => $message->id,
+                ]);
         }
 
         $conversation->update($conversationUpdates);

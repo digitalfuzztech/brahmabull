@@ -42,10 +42,40 @@ class TeamInboxService
                     ->whereColumn('chat_conversation_participants.conversation_id', 'chat_messages.conversation_id')
                     ->where('chat_conversation_participants.user_id', $staff->id)
                     ->whereNull('chat_conversation_participants.left_at')
-                    ->whereColumn('chat_messages.created_at', '>=', 'chat_conversation_participants.joined_at')
                     ->where(function ($query): void {
-                        $query->whereNull('chat_conversation_participants.last_read_at')
-                            ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_participants.last_read_at');
+                        $query->where(function ($query): void {
+                            $query
+                                ->whereNotNull(
+                                    'chat_conversation_participants.last_read_message_id'
+                                )
+                                ->whereColumn(
+                                    'chat_messages.id',
+                                    '>',
+                                    'chat_conversation_participants.last_read_message_id'
+                                );
+                        })
+                            ->orWhere(function ($query): void {
+                                $query
+                                    ->whereNull(
+                                        'chat_conversation_participants.last_read_message_id'
+                                    )
+                                    ->whereNotNull('chat_conversation_participants.last_read_at')
+                                    ->whereColumn(
+                                        'chat_messages.created_at',
+                                        '>',
+                                        'chat_conversation_participants.last_read_at'
+                                    );
+                            })
+                            ->orWhere(function ($query): void {
+                                $query
+                                    ->whereNull('chat_conversation_participants.last_read_message_id')
+                                    ->whereNull('chat_conversation_participants.last_read_at')
+                                    ->whereColumn(
+                                        'chat_messages.created_at',
+                                        '>=',
+                                        'chat_conversation_participants.joined_at'
+                                    );
+                            });
                     });
             });
 
@@ -67,9 +97,36 @@ class TeamInboxService
                     $query->selectRaw('1')->from('chat_conversation_observer_reads')
                         ->whereColumn('chat_conversation_observer_reads.conversation_id', 'chat_messages.conversation_id')
                         ->where('chat_conversation_observer_reads.user_id', $staff->id)
-                        ->where(fn ($query) => $query
-                            ->whereNull('chat_conversation_observer_reads.last_read_at')
-                            ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_observer_reads.last_read_at'));
+                        ->where(function ($query): void {
+                            $query->where(function ($query): void {
+                                $query
+                                    ->whereNotNull(
+                                        'chat_conversation_observer_reads.last_read_message_id'
+                                    )
+                                    ->whereColumn(
+                                        'chat_messages.id',
+                                        '>',
+                                        'chat_conversation_observer_reads.last_read_message_id'
+                                    );
+                            })
+                                ->orWhere(function ($query): void {
+                                    $query
+                                        ->whereNull(
+                                            'chat_conversation_observer_reads.last_read_message_id'
+                                        )
+                                        ->where(function ($query): void {
+                                            $query
+                                                ->whereNull(
+                                                    'chat_conversation_observer_reads.last_read_at'
+                                                )
+                                                ->orWhereColumn(
+                                                    'chat_messages.created_at',
+                                                    '>',
+                                                    'chat_conversation_observer_reads.last_read_at'
+                                                );
+                                        });
+                                });
+                        });
                 });
             });
 
@@ -206,6 +263,7 @@ class TeamInboxService
 
         return $conversation;
     }
+
     public function messages(ChatConversation $conversation, User $staff, int $limit = 100): array
     {
         $this->authorization->assertCanViewInternal($conversation, $staff);

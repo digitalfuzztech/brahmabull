@@ -29,7 +29,7 @@ class PhaseTwoE5DRuntimeTest extends TestCase
         }
     }
 
-    public function test_floating_activity_detection_emits_one_team_arrival_event_for_each_new_batch(): void
+    public function test_floating_activity_detection_keeps_one_alert_for_each_new_message(): void
     {
         $this->user('admin');
         $viewer = $this->user('agent');
@@ -38,22 +38,16 @@ class PhaseTwoE5DRuntimeTest extends TestCase
         $alerts = Livewire::actingAs($viewer)->test(FloatingAlertCenter::class)
             ->assertSet('alerts', []);
 
-        $message = app(ChatMessageService::class)->sendInternalMessage($direct, $sender, 'Detected once');
+        app(ChatMessageService::class)->sendInternalMessage($direct, $sender, 'Detected once');
         $alerts->call('pollAlerts')
             ->assertCount('alerts', 1)
-            ->assertSee('Detected once')
-            ->assertDispatched(
-                'team-message-arrived',
-                conversationIds: [$direct->id],
-                messageIds: [$message->id],
-            );
+            ->assertSee('Detected once');
 
         $alerts->call('pollAlerts')
-            ->assertCount('alerts', 1)
-            ->assertNotDispatched('team-message-arrived');
+            ->assertCount('alerts', 1);
     }
 
-    public function test_same_mounted_team_bell_receives_arrival_event_and_renders_zero_one_two(): void
+    public function test_same_mounted_team_bell_poll_renders_zero_one_two_and_warm_rows(): void
     {
         $this->user('admin');
         $viewer = $this->user('agent');
@@ -64,18 +58,23 @@ class PhaseTwoE5DRuntimeTest extends TestCase
 
         $this->assertHiddenBadge($bell->html(), 0);
 
-        $first = app(ChatMessageService::class)->sendInternalMessage($direct, $sender, 'First arrival');
-        $bell->dispatch('team-message-arrived', conversationIds: [$direct->id], messageIds: [$first->id])
+        app(ChatMessageService::class)->sendInternalMessage($direct, $sender, 'First arrival');
+        $bell->call('pollUnread')
             ->assertSet('unreadCount', 1);
         $this->assertVisibleBadge($bell->html(), 1);
+        $bell->assertSet('recent.0.id', $direct->id)
+            ->assertSet('recent.0.unread_count', 1)
+            ->assertSet('recent.0.preview', 'First arrival');
 
-        $second = app(ChatMessageService::class)->sendInternalMessage($direct, $sender, 'Second arrival');
-        $bell->dispatch('team-message-arrived', conversationIds: [$direct->id], messageIds: [$second->id])
+        app(ChatMessageService::class)->sendInternalMessage($direct, $sender, 'Second arrival');
+        $bell->call('pollUnread')
             ->assertSet('unreadCount', 2);
         $this->assertVisibleBadge($bell->html(), 2);
+        $bell->assertSet('recent.0.unread_count', 2)
+            ->assertSet('recent.0.preview', 'Second arrival');
     }
 
-    public function test_same_mounted_team_list_receives_arrival_event_and_renders_zero_one_two_then_read_zero(): void
+    public function test_same_mounted_team_list_poll_renders_zero_one_two_then_read_zero(): void
     {
         $this->user('admin');
         $viewer = $this->user('agent');
@@ -87,13 +86,13 @@ class PhaseTwoE5DRuntimeTest extends TestCase
 
         $this->assertReadRow($inbox->html(), $other->id);
 
-        $first = app(ChatMessageService::class)->sendInternalMessage($other, $otherSender, 'First elsewhere');
-        $inbox->dispatch('team-message-arrived', conversationIds: [$other->id], messageIds: [$first->id])
+        app(ChatMessageService::class)->sendInternalMessage($other, $otherSender, 'First elsewhere');
+        $inbox->call('pollList')
             ->assertSet('selectedConversationId', $selected->id);
         $this->assertUnreadRow($inbox->html(), $other->id, 1);
 
-        $second = app(ChatMessageService::class)->sendInternalMessage($other, $otherSender, 'Second elsewhere');
-        $inbox->dispatch('team-message-arrived', conversationIds: [$other->id], messageIds: [$second->id])
+        app(ChatMessageService::class)->sendInternalMessage($other, $otherSender, 'Second elsewhere');
+        $inbox->call('pollList')
             ->assertSet('selectedConversationId', $selected->id);
         $this->assertUnreadRow($inbox->html(), $other->id, 2);
 
@@ -103,7 +102,7 @@ class PhaseTwoE5DRuntimeTest extends TestCase
         $this->assertReadRow($inbox->html(), $other->id);
     }
 
-    public function test_support_activity_does_not_emit_a_team_arrival_event(): void
+    public function test_support_activity_stays_in_the_support_alert_domain(): void
     {
         $this->user('admin');
         $viewer = $this->user('agent');
@@ -114,11 +113,10 @@ class PhaseTwoE5DRuntimeTest extends TestCase
         app(ChatMessageService::class)->sendPlayerMessage($support, $player, 'Support only');
         $alerts->call('pollAlerts')
             ->assertCount('alerts', 1)
-            ->assertSet('alerts.0.kind', 'support')
-            ->assertNotDispatched('team-message-arrived');
+            ->assertSet('alerts.0.kind', 'support');
     }
 
-    public function test_activity_signal_covers_participant_team_types_and_excludes_own_and_oversight(): void
+    public function test_floating_alerts_cover_participant_team_types_and_exclude_own_and_oversight(): void
     {
         $admin = $this->user('admin');
         $viewer = $this->user('agent');
@@ -150,12 +148,9 @@ class PhaseTwoE5DRuntimeTest extends TestCase
             [$channel, $admin, 'Channel arrival'],
             [$noticeboard, $admin, 'Noticeboard arrival'],
         ] as [$conversation, $senderForMessage, $body]) {
-            $message = $messages->sendInternalMessage($conversation, $senderForMessage, $body);
-            $alerts->call('pollAlerts')->assertDispatched(
-                'team-message-arrived',
-                conversationIds: [$conversation->id],
-                messageIds: [$message->id],
-            );
+            $messages->sendInternalMessage($conversation, $senderForMessage, $body);
+            $alerts->call('pollAlerts');
+            $this->assertSame($conversation->id, collect($alerts->get('alerts'))->last()['conversation_id']);
         }
 
         $encrypted = $direct->messages()->create([
@@ -166,22 +161,56 @@ class PhaseTwoE5DRuntimeTest extends TestCase
             'encrypted_payload' => '{"ciphertext":"opaque"}',
         ]);
         $direct->update(['last_message_at' => now()]);
-        $alerts->call('pollAlerts')->assertDispatched(
-            'team-message-arrived',
-            conversationIds: [$direct->id],
-            messageIds: [$encrypted->id],
-        );
+        $alerts->call('pollAlerts');
+        $this->assertSame($encrypted->id, (int) str($alerts->get('alerts')[3]['key'])->afterLast(':')->value());
 
         $messages->sendInternalMessage($direct, $viewer, 'Own message');
-        $alerts->call('pollAlerts')->assertNotDispatched('team-message-arrived');
+        $alerts->call('pollAlerts')->assertCount('alerts', 4);
         $this->assertSame(0, Notification::count());
 
         $oversight = $conversations->createGroupConversation($sender, 'Oversight only', [$viewer, $third]);
         $adminAlerts = Livewire::actingAs($admin)->test(FloatingAlertCenter::class);
         $messages->sendInternalMessage($oversight, $sender, 'Observer chatter');
         $adminAlerts->call('pollAlerts')
-            ->assertSet('alerts', [])
-            ->assertNotDispatched('team-message-arrived');
+            ->assertSet('alerts', []);
+    }
+
+    public function test_unread_queries_use_read_cursors_before_a_corrupted_joined_timestamp(): void
+    {
+        $viewer = $this->user('admin');
+        $sender = $this->user('agent');
+        $legacySender = $this->user('agent');
+        $conversations = app(ConversationService::class);
+        $messages = app(ChatMessageService::class);
+
+        $idCursorConversation = $conversations->getOrCreateDirectConversation($viewer, $sender);
+        $messages->sendInternalMessage($idCursorConversation, $sender, 'ID cursor baseline');
+        $conversations->markInternalConversationRead($idCursorConversation, $viewer);
+        $idCursorConversation->participants()->where('user_id', $viewer->id)->update([
+            'joined_at' => now()->addHours(6),
+        ]);
+
+        $legacyConversation = $conversations->getOrCreateDirectConversation($viewer, $legacySender);
+        $messages->sendInternalMessage($legacyConversation, $legacySender, 'Timestamp baseline');
+        $conversations->markInternalConversationRead($legacyConversation, $viewer);
+        $legacyConversation->participants()->where('user_id', $viewer->id)->update([
+            'joined_at' => now()->addHours(6),
+            'last_read_message_id' => null,
+        ]);
+
+        $this->travel(1)->seconds();
+        $messages->sendInternalMessage($idCursorConversation, $sender, 'ID cursor incoming');
+        $messages->sendInternalMessage($legacyConversation, $legacySender, 'Timestamp incoming');
+
+        $bell = Livewire::actingAs($viewer)->test(MessengerBell::class)
+            ->assertSet('unreadCount', 2);
+        $this->assertSame(1, collect($bell->get('recent'))->firstWhere('id', $idCursorConversation->id)['unread_count']);
+        $this->assertSame(1, collect($bell->get('recent'))->firstWhere('id', $legacyConversation->id)['unread_count']);
+
+        $inbox = Livewire::actingAs($viewer)->test(TeamMessenger::class);
+        $inbox->call('selectSection', 'direct');
+        $this->assertUnreadRow($inbox->html(), $idCursorConversation->id, 1);
+        $this->assertUnreadRow($inbox->html(), $legacyConversation->id, 1);
     }
 
     private function assertHiddenBadge(string $html, int $count): void
@@ -241,6 +270,7 @@ class PhaseTwoE5DRuntimeTest extends TestCase
 
         return $user;
     }
+
     public function test_polling_an_already_open_conversation_does_not_auto_read_new_message(): void
     {
         $admin = $this->user('admin');
@@ -260,8 +290,7 @@ class PhaseTwoE5DRuntimeTest extends TestCase
             ->test(
                 TeamMessenger::class,
                 [
-                    'initialConversationId' =>
-                        $conversation->id,
+                    'initialConversationId' => $conversation->id,
                 ]
             );
 
@@ -337,6 +366,7 @@ class PhaseTwoE5DRuntimeTest extends TestCase
             $conversation->id
         );
     }
+
     public function test_message_in_another_chat_stays_unread_and_highlighted_until_opened(): void
     {
         $admin = $this->user('admin');
@@ -362,8 +392,7 @@ class PhaseTwoE5DRuntimeTest extends TestCase
             ->test(
                 TeamMessenger::class,
                 [
-                    'initialConversationId' =>
-                        $thirdChat->id,
+                    'initialConversationId' => $thirdChat->id,
                 ]
             );
 
@@ -430,5 +459,63 @@ class PhaseTwoE5DRuntimeTest extends TestCase
                     $admin
                 )
         );
+    }
+
+    public function test_runtime_does_not_auto_read_from_retained_composer_focus_or_custom_bridge(): void
+    {
+        $teamView = file_get_contents(
+            resource_path(
+                'views/livewire/admin/team-messenger.blade.php'
+            )
+        );
+
+        $privateLayout = file_get_contents(
+            resource_path(
+                'views/layouts/private.blade.php'
+            )
+        );
+
+        /*
+         * No global custom bridge.
+         */
+        $this->assertStringNotContainsString(
+            '__brahmaTeamLiveBridgeInstalled',
+            $privateLayout
+        );
+
+        $this->assertStringNotContainsString(
+            'brahma-team-live-detected',
+            $privateLayout
+        );
+
+        /*
+         * Incoming message itself must never mark a chat read.
+         */
+        $this->assertStringNotContainsString(
+            'brahma-team-message-arrived',
+            $teamView
+        );
+
+        /*
+         * Merely retaining browser focus is not enough.
+         */
+        $this->assertStringNotContainsString(
+            'x-on:focus="$wire.markSelectedConversationRead()"',
+            $teamView
+        );
+
+        /*
+         * Actual user interaction does mark it read.
+         */
+        $this->assertStringContainsString(
+            'x-on:pointerdown="$wire.markSelectedConversationRead()"',
+            $teamView
+        );
+
+        $this->assertStringContainsString(
+            'x-on:input.debounce.500ms="$wire.markSelectedConversationRead()"',
+            $teamView
+        );
+
     }
 }

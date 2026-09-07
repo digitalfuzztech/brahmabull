@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ChatConversationParticipant extends Model
 {
     protected $dateFormat = 'Y-m-d H:i:s.u';
+
     protected $fillable = [
         'conversation_id',
         'user_id',
@@ -14,6 +15,7 @@ class ChatConversationParticipant extends Model
         'joined_at',
         'left_at',
         'last_read_at',
+        'last_read_message_id',
     ];
 
     protected function casts(): array
@@ -22,6 +24,7 @@ class ChatConversationParticipant extends Model
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
             'last_read_at' => 'datetime',
+            'last_read_message_id' => 'integer',
         ];
     }
 

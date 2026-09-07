@@ -14,16 +14,39 @@ class ChatObserverReadService
 {
     public function __construct(private readonly ChatAuthorizationService $authorization) {}
 
-    public function markRead(ChatConversation $conversation, User $observer): void
-    {
-        if (! $this->authorization->canReadInternalGroupAsAdmin($conversation, $observer)) {
-            throw new AuthorizationException('This group is not available for Admin oversight.');
+    public function markRead(
+        ChatConversation $conversation,
+        User $observer
+    ): void {
+        if (
+            ! $this->authorization
+                ->canReadInternalGroupAsAdmin(
+                    $conversation,
+                    $observer
+                )
+        ) {
+            throw new AuthorizationException(
+                'This group is not available for Admin oversight.'
+            );
         }
 
-        ChatConversationObserverRead::query()->updateOrCreate(
-            ['conversation_id' => $conversation->id, 'user_id' => $observer->id],
-            ['last_read_at' => now()],
-        );
+        $lastMessageId = ChatMessage::query()
+            ->where('conversation_id', $conversation->id)
+            ->max('id');
+
+        ChatConversationObserverRead::query()
+            ->updateOrCreate(
+                [
+                    'conversation_id' => $conversation->id,
+                    'user_id' => $observer->id,
+                ],
+                [
+                    'last_read_at' => now(),
+                    'last_read_message_id' => $lastMessageId
+                        ? (int) $lastMessageId
+                        : null,
+                ],
+            );
     }
 
     public function unreadCount(User $observer): int
@@ -82,8 +105,34 @@ class ChatObserverReadService
                         ->whereColumn('chat_conversation_observer_reads.conversation_id', 'chat_messages.conversation_id')
                         ->where('chat_conversation_observer_reads.user_id', $observer->id)
                         ->where(function ($query): void {
-                            $query->whereNull('chat_conversation_observer_reads.last_read_at')
-                                ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_observer_reads.last_read_at');
+                            $query->where(function ($query): void {
+                                $query
+                                    ->whereNotNull(
+                                        'chat_conversation_observer_reads.last_read_message_id'
+                                    )
+                                    ->whereColumn(
+                                        'chat_messages.id',
+                                        '>',
+                                        'chat_conversation_observer_reads.last_read_message_id'
+                                    );
+                            })
+                                ->orWhere(function ($query): void {
+                                    $query
+                                        ->whereNull(
+                                            'chat_conversation_observer_reads.last_read_message_id'
+                                        )
+                                        ->where(function ($query): void {
+                                            $query
+                                                ->whereNull(
+                                                    'chat_conversation_observer_reads.last_read_at'
+                                                )
+                                                ->orWhereColumn(
+                                                    'chat_messages.created_at',
+                                                    '>',
+                                                    'chat_conversation_observer_reads.last_read_at'
+                                                );
+                                        });
+                                });
                         });
                 });
             });

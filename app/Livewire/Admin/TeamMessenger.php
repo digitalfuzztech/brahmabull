@@ -19,7 +19,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Log;
 
 class TeamMessenger extends Component
 {
@@ -141,23 +140,6 @@ class TeamMessenger extends Component
 
     public function pollList(TeamInboxService $team): void
     {
-        $this->refreshList($team);
-    }
-
-    #[On('team-message-arrived')]
-    public function handleTeamMessageArrived(
-        TeamInboxService $team,
-        array $conversationIds = [],
-        array $messageIds = [],
-    ): void {
-        /*
-         * Incoming message:
-         *
-         * refresh conversation metadata ONLY.
-         *
-         * Do NOT mark the conversation read.
-         * Do NOT change the selected conversation.
-         */
         $this->refreshList($team);
     }
 

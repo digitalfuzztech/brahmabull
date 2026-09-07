@@ -7,15 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class ChatConversationObserverRead extends Model
 {
     protected $dateFormat = 'Y-m-d H:i:s.u';
+
     protected $fillable = [
         'conversation_id',
         'user_id',
         'last_read_at',
+        'last_read_message_id',
     ];
 
     protected function casts(): array
     {
-        return ['last_read_at' => 'datetime'];
+        return [
+            'last_read_at' => 'datetime',
+            'last_read_message_id' => 'integer',
+        ];
     }
 
     public function conversation()

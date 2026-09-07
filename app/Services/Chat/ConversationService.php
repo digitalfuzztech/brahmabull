@@ -5,6 +5,7 @@ namespace App\Services\Chat;
 use App\Exceptions\ConversationAlreadyHandledException;
 use App\Models\ChatConversation;
 use App\Models\ChatConversationParticipant;
+use App\Models\ChatMessage;
 use App\Models\ChatSupportEvent;
 use App\Models\User;
 use DomainException;
@@ -307,6 +308,7 @@ class ConversationService
                     'joined_at' => now(),
                     'left_at' => null,
                     'last_read_at' => null,
+                    'last_read_message_id' => null,
                 ]);
 
                 return $participant->fresh();
@@ -389,9 +391,14 @@ class ConversationService
         });
     }
 
-    public function markInternalConversationRead(ChatConversation $conversation, User $participant): void
-    {
-        $this->authorization->assertCanViewInternal($conversation, $participant);
+    public function markInternalConversationRead(
+        ChatConversation $conversation,
+        User $participant
+    ): void {
+        $this->authorization->assertCanViewInternal(
+            $conversation,
+            $participant
+        );
 
         DB::transaction(function () use ($conversation, $participant): void {
             $participantRow = ChatConversationParticipant::query()
@@ -402,10 +409,21 @@ class ConversationService
                 ->first();
 
             if (! $participantRow) {
-                throw new AuthorizationException('Observers do not have participant read state.');
+                throw new AuthorizationException(
+                    'Observers do not have participant read state.'
+                );
             }
 
-            $participantRow->update(['last_read_at' => now()]);
+            $lastMessageId = ChatMessage::query()
+                ->where('conversation_id', $conversation->id)
+                ->max('id');
+
+            $participantRow->update([
+                'last_read_at' => now(),
+                'last_read_message_id' => $lastMessageId
+                    ? (int) $lastMessageId
+                    : null,
+            ]);
         });
     }
 
@@ -459,10 +477,40 @@ class ConversationService
             ->where('chat_conversations.is_archived', false)
             ->whereNotNull('chat_messages.sender_id')
             ->where('chat_messages.sender_id', '!=', $participant->id)
-            ->whereColumn('chat_messages.created_at', '>=', 'chat_conversation_participants.joined_at')
             ->where(function ($query): void {
-                $query->whereNull('chat_conversation_participants.last_read_at')
-                    ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversation_participants.last_read_at');
+                $query->where(function ($query): void {
+                    $query
+                        ->whereNotNull(
+                            'chat_conversation_participants.last_read_message_id'
+                        )
+                        ->whereColumn(
+                            'chat_messages.id',
+                            '>',
+                            'chat_conversation_participants.last_read_message_id'
+                        );
+                })
+                    ->orWhere(function ($query): void {
+                        $query
+                            ->whereNull(
+                                'chat_conversation_participants.last_read_message_id'
+                            )
+                            ->whereNotNull('chat_conversation_participants.last_read_at')
+                            ->whereColumn(
+                                'chat_messages.created_at',
+                                '>',
+                                'chat_conversation_participants.last_read_at'
+                            );
+                    })
+                    ->orWhere(function ($query): void {
+                        $query
+                            ->whereNull('chat_conversation_participants.last_read_message_id')
+                            ->whereNull('chat_conversation_participants.last_read_at')
+                            ->whereColumn(
+                                'chat_messages.created_at',
+                                '>=',
+                                'chat_conversation_participants.joined_at'
+                            );
+                    });
             });
     }
 
@@ -512,6 +560,7 @@ class ConversationService
                     'joined_at' => now(),
                     'left_at' => null,
                     'last_read_at' => null,
+                    'last_read_message_id' => null,
                 ]);
             } else {
                 ChatConversationParticipant::create([

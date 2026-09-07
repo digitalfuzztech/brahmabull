@@ -56,7 +56,14 @@ class E2eeMessageService
                 'key_version' => $keyVersion,
             ]);
 
-            $locked->participants()->where('user_id', $sender->id)->whereNull('left_at')->update(['last_read_at' => $now]);
+            $locked->participants()
+                ->where('user_id', $sender->id)
+                ->whereNull('left_at')
+                ->update([
+                    'last_read_at' => $now,
+                    'last_read_message_id' => $message->id,
+                ]);
+
             $locked->update(['last_message_at' => $now]);
 
             return $message;

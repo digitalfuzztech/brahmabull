@@ -18,6 +18,7 @@ import {
     groupDecryptedReactions,
     initializeCrypto,
     registrationPayload,
+    selectDeviceIdentity,
     signDeviceProof,
     unwrapConversationKey,
     wrapConversationKeyForDevice,
@@ -40,6 +41,28 @@ test('device registration payload contains only public material', async () => {
     assert.equal(Object.hasOwn(payload, 'private_signing_key'), false);
     assert.equal(JSON.stringify(payload).includes(identity.privateEncryptionKey), false);
     assert.equal(JSON.stringify(payload).includes(identity.privateSigningKey), false);
+});
+
+test('browser device identities stay scoped to the authenticated staff account', () => {
+    const legacy = {
+        deviceUuid: 'legacy-device',
+        keyFingerprint: 'legacy-fingerprint',
+    };
+    const otherAccount = {
+        ...legacy,
+        ownerUserId: 7,
+    };
+
+    assert.equal(selectDeviceIdentity([otherAccount], 9, []), null);
+    assert.equal(selectDeviceIdentity([otherAccount], 7, []), otherAccount);
+
+    const adopted = selectDeviceIdentity([legacy], 9, [{
+        device_uuid: 'legacy-device',
+        key_fingerprint: 'legacy-fingerprint',
+    }]);
+
+    assert.equal(adopted.ownerUserId, 9);
+    assert.equal(adopted.deviceUuid, 'legacy-device');
 });
 
 test('Laravel-facing encrypted message payload contains ciphertext metadata only', async () => {
@@ -394,6 +417,50 @@ test('Secure Devices control opens, requests the own-device list, and exposes lo
 
     assert.equal(manager.loading, false);
     assert.equal(manager.error, 'Device directory unavailable.');
+});
+
+test('Secure Devices allows only a trusted current device to approve another active device', async () => {
+    const trusted = {
+        id: 1,
+        device_uuid: 'trusted-browser',
+        trusted_at: '2026-09-03T00:00:00Z',
+        revoked_at: null,
+    };
+    const awaiting = {
+        id: 2,
+        device_uuid: 'awaiting-browser',
+        trusted_at: null,
+        revoked_at: null,
+    };
+    globalThis.fetch = async () => ({
+        ok: true,
+        json: async () => ({ devices: [trusted, awaiting] }),
+    });
+
+    const untrustedManager = createE2eeDeviceManager({
+        registerDeviceUrl: '/team-chat/e2ee/devices',
+        devicesIndexUrl: '/team-chat/e2ee/devices',
+    }, {
+        registerCurrentDevice: async () => ({ ...awaiting, deviceUuid: awaiting.device_uuid }),
+    });
+    await untrustedManager.show();
+
+    assert.equal(untrustedManager.currentDeviceAwaitingApproval(), true);
+    assert.equal(untrustedManager.hasTrustedApprover(), true);
+    assert.equal(untrustedManager.canApprove(awaiting), false);
+    assert.equal(untrustedManager.canApprove(trusted), false);
+
+    const trustedManager = createE2eeDeviceManager({
+        registerDeviceUrl: '/team-chat/e2ee/devices',
+        devicesIndexUrl: '/team-chat/e2ee/devices',
+    }, {
+        registerCurrentDevice: async () => ({ ...trusted, deviceUuid: trusted.device_uuid }),
+    });
+    await trustedManager.show();
+
+    assert.equal(trustedManager.currentDeviceAwaitingApproval(), false);
+    assert.equal(trustedManager.canApprove(awaiting), true);
+    assert.equal(trustedManager.canApprove(trusted), false);
 });
 
 test('E2EE runtime exports both Alpine control handlers without starting a second Alpine instance', () => {

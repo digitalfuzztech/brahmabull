@@ -1,5 +1,11 @@
 export { initializeCrypto } from './sodium.js';
-export { createDeviceIdentity, ensureDeviceIdentity, loadDeviceKeyMaterial, registrationPayload } from './device-keystore.js';
+export {
+    createDeviceIdentity,
+    ensureDeviceIdentity,
+    loadDeviceKeyMaterial,
+    registrationPayload,
+    selectDeviceIdentity,
+} from './device-keystore.js';
 export {
     associatedData,
     decryptPayload,

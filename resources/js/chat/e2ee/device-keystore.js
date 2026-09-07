@@ -4,7 +4,7 @@ import { initializeCrypto } from './sodium.js';
 const DATABASE_NAME = 'brahmabull-e2ee-v1';
 const STORE_NAME = 'device-identities';
 
-export async function createDeviceIdentity(deviceName = null) {
+export async function createDeviceIdentity(deviceName = null, ownerUserId = null) {
     const sodium = await initializeCrypto();
     const encryption = sodium.crypto_box_keypair();
     const signing = sodium.crypto_sign_keypair();
@@ -15,6 +15,7 @@ export async function createDeviceIdentity(deviceName = null) {
 
     return {
         formatVersion: 1,
+        ownerUserId: ownerUserId === null ? null : Number(ownerUserId),
         deviceUuid: toBase64Url(sodium, sodium.randombytes_buf(16)),
         deviceName,
         publicEncryptionKey: toBase64Url(sodium, encryption.publicKey),
@@ -35,15 +36,42 @@ export function registrationPayload(identity) {
     };
 }
 
-export async function ensureDeviceIdentity(deviceName = null) {
+export function selectDeviceIdentity(identities, userId, registeredDevices = []) {
+    const ownerUserId = Number(userId);
+    const owned = identities.find(identity => Number(identity.ownerUserId) === ownerUserId);
+
+    if (owned) {
+        return owned;
+    }
+
+    const registered = new Map(
+        registeredDevices.map(device => [device.device_uuid, device]),
+    );
+    const legacy = identities.find(identity => {
+        if (identity.ownerUserId !== undefined && identity.ownerUserId !== null) return false;
+
+        const device = registered.get(identity.deviceUuid);
+
+        return device?.key_fingerprint === identity.keyFingerprint;
+    });
+
+    return legacy ? { ...legacy, ownerUserId } : null;
+}
+
+export async function ensureDeviceIdentity(userId, registeredDevices = [], deviceName = null) {
     const database = await openDatabase();
-    const existing = await readFirst(database);
+    const identities = await readAll(database);
+    const existing = selectDeviceIdentity(identities, userId, registeredDevices);
 
     if (existing) {
+        if (existing.ownerUserId !== undefined && existing.ownerUserId !== null) {
+            await writeIdentity(database, existing);
+        }
+
         return registrationPayload(existing);
     }
 
-    const identity = await createDeviceIdentity(deviceName);
+    const identity = await createDeviceIdentity(deviceName, userId);
     await writeIdentity(database, identity);
 
     return registrationPayload(identity);
@@ -84,10 +112,10 @@ function openDatabase() {
     });
 }
 
-function readFirst(database) {
+function readAll(database) {
     return new Promise((resolve, reject) => {
         const request = database.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();
-        request.onsuccess = () => resolve(request.result[0] ?? null);
+        request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(new Error('Unable to read the local E2EE device store.'));
     });
 }
@@ -103,7 +131,7 @@ function readIdentity(database, deviceUuid) {
 function writeIdentity(database, identity) {
     return new Promise((resolve, reject) => {
         const transaction = database.transaction(STORE_NAME, 'readwrite');
-        transaction.objectStore(STORE_NAME).add(identity);
+        transaction.objectStore(STORE_NAME).put(identity);
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(new Error('Unable to persist the local E2EE device identity.'));
     });

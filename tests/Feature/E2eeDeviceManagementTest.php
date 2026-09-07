@@ -60,6 +60,8 @@ class E2eeDeviceManagementTest extends TestCase
         $view = file_get_contents(resource_path('views/livewire/admin/team-messenger.blade.php'));
         $this->assertStringContainsString('Secure Chat Devices', $view);
         $this->assertStringContainsString('This device', $view);
+        $this->assertStringContainsString('This device is awaiting approval.', $view);
+        $this->assertStringContainsString('Open Secure Devices from one of your trusted devices to approve this browser.', $view);
         $this->assertStringContainsString('Approval required', file_get_contents(resource_path('js/chat/e2ee/team-messenger.js')));
         $this->assertTrue(Schema::hasColumn('chat_conversations', 'e2ee_rotation_required_at'));
     }

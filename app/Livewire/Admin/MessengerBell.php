@@ -9,7 +9,6 @@ use App\Services\Chat\MessengerOverviewService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use Illuminate\Support\Facades\Log;
 
 class MessengerBell extends Component
 {
@@ -51,29 +50,6 @@ class MessengerBell extends Component
     {
         $this->unreadCount = $overview->unreadCount($this->staff());
         $this->recent = $overview->recent($this->staff())->all();
-    }
-
-    #[On('team-message-arrived')]
-    public function handleTeamMessageArrived(
-        MessengerOverviewService $overview,
-        array $conversationIds = [],
-        array $messageIds = [],
-    ): void {
-        /*
-         * A new Team message has been detected by the working
-         * global activity poll.
-         *
-         * Re-query BOTH:
-         * - total Team unread
-         * - warm dropdown rows
-         */
-        $this->unreadCount = $overview->unreadCount(
-            $this->staff()
-        );
-
-        $this->recent = $overview->recent(
-            $this->staff()
-        )->all();
     }
 
     public function openConversation(int $conversationId): void

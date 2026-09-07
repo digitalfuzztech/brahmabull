@@ -49,12 +49,18 @@ async function request(url, options = {}) {
 
 const deviceRegistrations = new Map();
 
-async function registerCurrentDevice(registerDeviceUrl) {
-    if (!deviceRegistrations.has(registerDeviceUrl)) {
+async function registerCurrentDevice(registerDeviceUrl, currentUserId, devicesIndexUrl) {
+    const registrationKey = `${registerDeviceUrl}:${currentUserId}`;
+
+    if (!deviceRegistrations.has(registrationKey)) {
         const registration = (async () => {
             let publicBundle;
             try {
-                publicBundle = await ensureDeviceIdentity();
+                const directory = await request(devicesIndexUrl);
+                publicBundle = await ensureDeviceIdentity(
+                    currentUserId,
+                    directory.devices || [],
+                );
             } catch {
                 throw new Error('Unable to initialize secure messaging on this browser.');
             }
@@ -65,19 +71,19 @@ async function registerCurrentDevice(registerDeviceUrl) {
 
             return { ...response.device, deviceUuid: publicBundle.device_uuid };
         })().catch(error => {
-            deviceRegistrations.delete(registerDeviceUrl);
+            deviceRegistrations.delete(registrationKey);
             throw error;
         });
 
-        deviceRegistrations.set(registerDeviceUrl, registration);
+        deviceRegistrations.set(registrationKey, registration);
     }
 
-    return deviceRegistrations.get(registerDeviceUrl);
+    return deviceRegistrations.get(registrationKey);
 }
 
-function rememberCurrentDevice(registerDeviceUrl, device, deviceUuid) {
+function rememberCurrentDevice(registerDeviceUrl, currentUserId, device, deviceUuid) {
     const registration = { ...device, deviceUuid };
-    deviceRegistrations.set(registerDeviceUrl, Promise.resolve(registration));
+    deviceRegistrations.set(`${registerDeviceUrl}:${currentUserId}`, Promise.resolve(registration));
 
     return registration;
 }
@@ -174,7 +180,11 @@ export function createTeamE2eeMessenger(config) {
 
         async ensureRegisteredDevice() {
             if (deviceRegistration) return deviceRegistration;
-            deviceRegistration = await registerCurrentDevice(config.registerDeviceUrl);
+            deviceRegistration = await registerCurrentDevice(
+                config.registerDeviceUrl,
+                config.currentUserId,
+                config.devicesIndexUrl,
+            );
             return deviceRegistration;
         },
 
@@ -626,7 +636,11 @@ export function createE2eeDeviceManager(config, dependencies = {}) {
         async init() {
             this.error = '';
             try {
-                currentRegistration = await registerDevice(config.registerDeviceUrl);
+                currentRegistration = await registerDevice(
+                    config.registerDeviceUrl,
+                    config.currentUserId,
+                    config.devicesIndexUrl,
+                );
                 this.currentDeviceUuid = currentRegistration.deviceUuid;
             } catch (error) {
                 this.error = error.message || 'Unable to initialize secure messaging on this browser.';
@@ -652,6 +666,7 @@ export function createE2eeDeviceManager(config, dependencies = {}) {
                 if (refreshedCurrent && currentRegistration) {
                     currentRegistration = rememberCurrentDevice(
                         config.registerDeviceUrl,
+                        config.currentUserId,
                         refreshedCurrent,
                         this.currentDeviceUuid,
                     );
@@ -667,15 +682,30 @@ export function createE2eeDeviceManager(config, dependencies = {}) {
             return device.device_uuid === this.currentDeviceUuid;
         },
 
+        currentDevice() {
+            return this.devices.find(device => this.isCurrent(device)) || null;
+        },
+
+        currentDeviceAwaitingApproval() {
+            const device = this.currentDevice();
+
+            return Boolean(device && !device.trusted_at && !device.revoked_at);
+        },
+
+        hasTrustedApprover() {
+            return this.devices.some(device => !this.isCurrent(device)
+                && device.trusted_at && !device.revoked_at);
+        },
+
         status(device) {
             if (device.revoked_at) return 'Revoked';
             return device.trusted_at ? 'Trusted' : 'Approval required';
         },
 
         canApprove(device) {
-            return !device.trusted_at && !device.revoked_at
+            return Boolean(!device.trusted_at && !device.revoked_at
                 && currentRegistration?.trusted_at && !currentRegistration?.revoked_at
-                && !this.isCurrent(device);
+                && !this.isCurrent(device));
         },
 
         fingerprint(value) {
