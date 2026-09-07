@@ -59,6 +59,24 @@ class ChatbotRuleService
         return $rule->fresh();
     }
 
+    public function deleteRule(ChatbotRule $rule, User $admin): void
+    {
+        $this->authorization->assertCanManageRules($admin);
+        $rule->delete();
+    }
+
+    public function preview(User $admin, string $input): array
+    {
+        $this->authorization->assertCanManageRules($admin);
+        $rule = $this->matchWithoutFallback($input) ?? $this->fallback();
+
+        return $rule ? [
+            'matched' => true, 'rule_id' => $rule->id, 'name' => $rule->name,
+            'trigger_type' => $rule->trigger_type, 'response_text' => $rule->response_text,
+            'action_type' => $rule->action_type ?? 'none',
+        ] : ['matched' => false];
+    }
+
     private function matches(ChatbotRule $rule, string $normalized): bool
     {
         $values = $this->triggerValues($rule);

@@ -30,6 +30,7 @@ class PlayerSupportChatService
         private readonly DefaultChatbotIntentService $defaultIntents,
         private readonly ChatAuthorizationService $authorization,
         private readonly ChatSupportNotificationService $notifications,
+        private readonly ChatbotMenuService $menu,
     ) {}
 
     public function initialize(User $player): ChatConversation
@@ -40,7 +41,7 @@ class PlayerSupportChatService
             $conversation,
             'Hi! How can we help you today?',
             'options',
-            ['options' => self::MAIN_MENU_OPTIONS],
+            ['options' => $this->mainMenuOptions()],
         );
 
         return $conversation->fresh();
@@ -138,6 +139,22 @@ class PlayerSupportChatService
 
         if (isset($selection['intent'])) {
             $this->runIntent($conversation, $player, $selection['intent']);
+
+            return null;
+        }
+
+        if (isset($selection['action'])) {
+            if (filled($selection['response_text'] ?? null)) {
+                $this->messages->sendBotMessage($conversation, $selection['response_text']);
+            }
+            if ($selection['action'] === 'none') {
+                $this->showOtherPrompt($conversation);
+            } elseif ($selection['action'] === 'show_pending_deposits') {
+                // The established Main Menu deposit entry intentionally combines normal and Brahma deposits.
+                $this->runIntent($conversation, $player, 'deposit');
+            } else {
+                $this->runApplicationAction($conversation, $player, $selection['action'], []);
+            }
 
             return null;
         }
@@ -366,7 +383,7 @@ class PlayerSupportChatService
             $conversation,
             'How can we help?',
             'options',
-            ['options' => self::MAIN_MENU_OPTIONS],
+            ['options' => $this->mainMenuOptions()],
         );
     }
 
@@ -452,6 +469,9 @@ class PlayerSupportChatService
 
     private function resolveOption(User $player, string $value): array
     {
+        if ($managed = $this->menu->resolve($value)) {
+            return $managed;
+        }
         $core = [
             'intent:play' => ['label' => 'My Play Request', 'intent' => 'play'],
             'intent:deposit' => ['label' => 'My Deposit', 'intent' => 'deposit'],
@@ -472,6 +492,13 @@ class PlayerSupportChatService
         }
 
         return $this->resolveReminderSelection($player, $matches[1], $matches[2], (int) $matches[3]);
+    }
+
+    private function mainMenuOptions(): array
+    {
+        $options = $this->menu->activeOptions();
+
+        return $options === [] ? self::MAIN_MENU_OPTIONS : $options;
     }
 
     private function resolveReminderSelection(User $player, string $kind, string $relatedType, int $relatedId): array

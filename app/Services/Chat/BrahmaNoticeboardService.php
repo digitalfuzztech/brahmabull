@@ -25,6 +25,10 @@ class BrahmaNoticeboardService
                     ->first();
 
                 if ($existing) {
+                    if ($existing->channel_mode !== 'read_only') {
+                        $existing->update(['channel_mode' => 'read_only']);
+                    }
+
                     return $existing;
                 }
 
@@ -38,6 +42,7 @@ class BrahmaNoticeboardService
                     'conversation_type' => 'internal_channel',
                     'channel_key' => self::CHANNEL_KEY,
                     'name' => self::CHANNEL_NAME,
+                    'channel_mode' => 'read_only',
                     'created_by' => $admin->id,
                 ]);
             });

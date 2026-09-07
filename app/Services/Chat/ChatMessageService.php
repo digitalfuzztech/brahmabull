@@ -154,7 +154,8 @@ class ChatMessageService
             if ($locked->conversation_type === 'internal_direct' && $locked->encryption_mode === 'e2ee_v1') {
                 throw new DomainException('Encrypted direct messages must use the browser ciphertext send path.');
             }
-            if ($locked->conversation_type === 'internal_channel' && $replyTo !== null) {
+            if ($locked->conversation_type === 'internal_channel'
+                && $locked->channel_key === BrahmaNoticeboardService::CHANNEL_KEY && $replyTo !== null) {
                 throw new DomainException('Noticeboard replies are disabled.');
             }
             $this->assertValidInternalReply($locked, $replyTo);

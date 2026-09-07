@@ -4,6 +4,8 @@
         'registerDeviceUrl' => route('team.e2ee.devices.store'),
         'devicesIndexUrl' => route('team.e2ee.devices.index'),
         'approvalPlanUrl' => route('team.e2ee.devices.approval-plan', '__DEVICE__'),
+        'restorationPlanUrl' => route('team.e2ee.devices.restoration-plan', '__DEVICE__'),
+        'restoreUrl' => route('team.e2ee.devices.restore', '__DEVICE__'),
         'approveUrl' => route('team.e2ee.devices.approve', '__DEVICE__'),
         'revokeUrl' => route('team.e2ee.devices.destroy', '__DEVICE__'),
     ]))"
@@ -378,7 +380,7 @@
                         @endif
                         @endif
                     @else
-                        <p class="text-center text-sm text-slate-400">{{ $details['type'] === 'internal_channel' ? 'This channel is read-only for Agents.' : 'Read-only group oversight. Admin is not a participant.' }}</p>
+                        <p class="text-center text-sm text-slate-400">{{ $details['channel_readonly_message'] ?? 'Read-only group oversight. Admin is not a participant.' }}</p>
                     @endif
                 </footer>
                 </div>
@@ -457,6 +459,10 @@
                     <p x-show="hasTrustedApprover()" class="mt-1 text-xs text-amber-200/80">Open Secure Devices from one of your trusted devices to approve this browser.</p>
                     <p x-show="!hasTrustedApprover()" class="mt-1 text-xs text-amber-200/80">No active trusted device is listed. This browser cannot approve itself; contact the account owner before changing secure-device state.</p>
                 </div>
+                <div x-show="!loading && currentDeviceRevoked()" class="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+                    <p class="font-bold">This device has been revoked.</p>
+                    <p class="mt-1 text-xs text-red-200">To use encrypted chats again, restore this device from another trusted device. A revoked device cannot restore itself.</p>
+                </div>
                 <template x-for="device in devices" x-bind:key="device.id">
                     <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
                         <div class="flex flex-wrap items-start justify-between gap-3">
@@ -467,9 +473,10 @@
                             </div>
                             <span class="rounded-full px-2 py-1 text-xs font-bold" x-bind:class="device.revoked_at ? 'bg-red-500/15 text-red-300' : (device.trusted_at ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-200')" x-text="status(device)"></span>
                         </div>
-                        <div x-show="!device.revoked_at" class="mt-3 flex justify-end gap-2">
+                        <div class="mt-3 flex justify-end gap-2">
                             <button x-show="canApprove(device)" type="button" x-on:click="approve(device)" x-bind:disabled="busy" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold disabled:opacity-50">Approve Device</button>
-                            <button type="button" x-on:click="revoke(device)" x-bind:disabled="busy" class="rounded-lg border border-red-500/40 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-50">Revoke</button>
+                            <button x-show="canRestore(device)" type="button" x-on:click="restore(device)" x-bind:disabled="busy" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold disabled:opacity-50">Restore Device</button>
+                            <button x-show="!device.revoked_at" type="button" x-on:click="revoke(device)" x-bind:disabled="busy" class="rounded-lg border border-red-500/40 px-3 py-2 text-xs font-bold text-red-200 disabled:opacity-50">Revoke</button>
                         </div>
                     </div>
                 </template>

@@ -9,6 +9,7 @@ import {
     decryptPayload,
     decryptReaction,
     deviceApprovalCanonical,
+    deviceRestorationCanonical,
     encryptAttachment,
     encryptReaction,
     encryptedMessageRequest,
@@ -331,6 +332,14 @@ test('trusted-device approval and rotation payloads contain only wrapped keys an
         provisioning: approvalProvisioning,
     });
     const approvalSignature = await signDeviceProof(approvalCanonical, deviceA.privateSigningKey);
+    const restorationCanonical = deviceRestorationCanonical({
+        userId: 7,
+        approverDeviceId: 1,
+        targetDeviceId: 2,
+        challenge: 'restore-server-challenge',
+        provisioning: approvalProvisioning,
+    });
+    const restorationSignature = await signDeviceProof(restorationCanonical, deviceA.privateSigningKey);
 
     assert.equal(approvalCanonical.includes(Buffer.from(currentKey).toString('base64')), false);
     assert.equal(approvalCanonical.includes(deviceA.privateEncryptionKey), false);
@@ -345,6 +354,12 @@ test('trusted-device approval and rotation payloads contain only wrapped keys an
         deviceB.publicEncryptionKey,
         deviceB.privateEncryptionKey,
     ), currentKey);
+    assert.match(restorationCanonical, /"purpose":"device_restoration"/);
+    assert.equal(sodium.crypto_sign_verify_detached(
+        sodium.from_base64(restorationSignature, sodium.base64_variants.URLSAFE_NO_PADDING),
+        sodium.from_string(restorationCanonical),
+        sodium.from_base64(deviceA.publicSigningKey, sodium.base64_variants.URLSAFE_NO_PADDING),
+    ), true);
 
     const nextKey = await generateConversationKey();
     assert.notDeepEqual(nextKey, currentKey);

@@ -25,6 +25,24 @@ class E2eeDeviceProofService
         ]);
     }
 
+    public function restorationCanonical(
+        int $userId,
+        int $approverDeviceId,
+        int $targetDeviceId,
+        string $challenge,
+        array $provisioning,
+    ): string {
+        return $this->canonical([
+            'v' => 1,
+            'purpose' => 'device_restoration',
+            'user_id' => $userId,
+            'approver_device_id' => $approverDeviceId,
+            'target_device_id' => $targetDeviceId,
+            'challenge' => $challenge,
+            'provisioning' => $this->normalizedProvisioning($provisioning),
+        ]);
+    }
+
     public function rotationCanonical(
         int $userId,
         int $deviceId,

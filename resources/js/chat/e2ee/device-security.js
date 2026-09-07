@@ -32,6 +32,18 @@ export function deviceApprovalCanonical({ userId, approverDeviceId, targetDevice
     });
 }
 
+export function deviceRestorationCanonical({ userId, approverDeviceId, targetDeviceId, challenge, provisioning }) {
+    return JSON.stringify({
+        v: 1,
+        purpose: 'device_restoration',
+        user_id: Number(userId),
+        approver_device_id: Number(approverDeviceId),
+        target_device_id: Number(targetDeviceId),
+        challenge: String(challenge),
+        provisioning: normalizedProvisioning(provisioning),
+    });
+}
+
 export function conversationRotationCanonical({ userId, deviceId, conversationId, keyVersion, wrappedKeys }) {
     return JSON.stringify({
         v: 1,

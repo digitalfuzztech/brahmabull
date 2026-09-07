@@ -32,5 +32,6 @@ export {
 export {
     conversationRotationCanonical,
     deviceApprovalCanonical,
+    deviceRestorationCanonical,
     signDeviceProof,
 } from './device-security.js';

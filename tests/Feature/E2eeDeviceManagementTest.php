@@ -310,6 +310,130 @@ class E2eeDeviceManagementTest extends TestCase
         $this->assertSame(1, ChatE2eeDevice::where('user_id', $agent->id)->whereNotNull('trusted_at')->count());
     }
 
+    public function test_signed_restore_retrusts_revoked_device_at_current_boundary_without_rewriting_history(): void
+    {
+        $agent = $this->user('agent');
+        $peer = $this->user('agent');
+        $approverMaterial = $this->material('Approver');
+        $approver = $this->register($agent, $approverMaterial);
+        $target = $this->register($agent, $this->material('Revoked'));
+        $target->update(['trusted_at' => now()]);
+        $peerDevice = $this->register($peer, $this->material('Peer'));
+        $conversation = app(ConversationService::class)->getOrCreateDirectConversation($agent, $peer);
+        app(E2eeActivationService::class)->activate($conversation, $agent, 1, [
+            $this->wrapped($approver->id, 1), $this->wrapped($target->id, 1), $this->wrapped($peerDevice->id, 1),
+        ]);
+        app(E2eeDeviceService::class)->revoke($agent, $target);
+        $historical = $this->getConnection()->table('chat_e2ee_conversation_keys')
+            ->where('conversation_id', $conversation->id)->where('device_id', $target->id)->where('key_version', 1)->value('wrapped_key');
+
+        $conversation->update(['current_key_version' => 2, 'e2ee_rotation_required_at' => null]);
+        foreach ([$approver, $peerDevice] as $device) {
+            $this->getConnection()->table('chat_e2ee_conversation_keys')->insert([
+                'conversation_id' => $conversation->id, 'device_id' => $device->id, 'key_version' => 2,
+                'wrapped_key' => $this->encoded(random_bytes(80)), 'wrapping_algorithm' => 'x25519-sealedbox',
+                'format_version' => 1, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $plan = app(E2eeDeviceTrustService::class)->restorationPlan($agent, $target->fresh(), $approver->device_uuid);
+        $provisioning = [['conversation_id' => $conversation->id, 'key_version' => 2,
+            'wrapped_key' => $this->encoded(random_bytes(80)), 'wrapping_algorithm' => 'x25519-sealedbox', 'format_version' => 1]];
+        $canonical = app(E2eeDeviceProofService::class)->restorationCanonical(
+            $agent->id, $approver->id, $target->id, $plan['challenge'], $provisioning,
+        );
+        $signature = $this->encoded(sodium_crypto_sign_detached($canonical, $approverMaterial['signing_secret']));
+        $restored = app(E2eeDeviceTrustService::class)->restore(
+            $agent, $target->fresh(), $approver->device_uuid, $plan['challenge'], $provisioning, $signature,
+        );
+
+        $this->assertNull($restored->revoked_at);
+        $this->assertNotNull($restored->trusted_at);
+        $this->assertDatabaseHas('chat_e2ee_conversation_keys', ['conversation_id' => $conversation->id,
+            'device_id' => $target->id, 'key_version' => 2]);
+        $this->assertSame($historical, $this->getConnection()->table('chat_e2ee_conversation_keys')
+            ->where('conversation_id', $conversation->id)->where('device_id', $target->id)->where('key_version', 1)->value('wrapped_key'));
+        $message = app(E2eeMessageService::class)->send($conversation->fresh(), $agent, fake()->uuid(), $this->envelope(2), 1, 2);
+        $this->assertNull($message->body);
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restore(
+            $agent, $target->fresh(), $approver->device_uuid, $plan['challenge'], $provisioning, $signature,
+        ), AuthorizationException::class);
+
+        $other = $this->user('agent');
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restorationPlan(
+            $other, tap($target->fresh())->update(['revoked_at' => now()]), $this->register($other, $this->material('Other'))->device_uuid,
+        ), AuthorizationException::class);
+        $view = file_get_contents(resource_path('views/livewire/admin/team-messenger.blade.php'));
+        $this->assertStringContainsString('This device has been revoked.', $view);
+        $this->assertStringContainsString('Restore Device', $view);
+    }
+
+    public function test_restore_requires_trusted_same_user_approver_valid_signature_and_is_not_replayable(): void
+    {
+        $agent = $this->user('agent');
+        $trustedMaterial = $this->material('Trusted');
+        $trusted = $this->register($agent, $trustedMaterial);
+        $target = $this->register($agent, $this->material('Target'));
+        $target->update(['trusted_at' => now()]);
+        app(E2eeDeviceService::class)->revoke($agent, $target);
+        $untrusted = $this->register($agent, $this->material('Untrusted'));
+
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restorationPlan(
+            $agent, $target->fresh(), $untrusted->device_uuid,
+        ), ModelNotFoundException::class);
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restorationPlan(
+            $agent, $target->fresh(), $target->device_uuid,
+        ), ModelNotFoundException::class);
+        $other = $this->user('agent');
+        $otherTrusted = $this->register($other, $this->material('Other'));
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restorationPlan(
+            $other, $target->fresh(), $otherTrusted->device_uuid,
+        ), AuthorizationException::class);
+
+        $plan = app(E2eeDeviceTrustService::class)->restorationPlan($agent, $target->fresh(), $trusted->device_uuid);
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restore(
+            $agent, $target->fresh(), $trusted->device_uuid, $plan['challenge'], [],
+            $this->encoded(random_bytes(SODIUM_CRYPTO_SIGN_BYTES)),
+        ), DomainException::class);
+        $this->assertNotNull($target->fresh()->revoked_at);
+        $canonical = app(E2eeDeviceProofService::class)->restorationCanonical(
+            $agent->id, $trusted->id, $target->id, $plan['challenge'], [],
+        );
+        $signature = $this->encoded(sodium_crypto_sign_detached($canonical, $trustedMaterial['signing_secret']));
+        app(E2eeDeviceTrustService::class)->restore(
+            $agent, $target->fresh(), $trusted->device_uuid, $plan['challenge'], [], $signature,
+        );
+        $this->assertThrows(fn () => app(E2eeDeviceTrustService::class)->restore(
+            $agent, $target->fresh(), $trusted->device_uuid, $plan['challenge'], [], $signature,
+        ), AuthorizationException::class);
+    }
+
+    public function test_restoring_only_revoked_current_key_holder_clears_rotation_pause_without_changing_key_version(): void
+    {
+        $agent = $this->user('agent');
+        $peer = $this->user('agent');
+        $approverMaterial = $this->material('Approver');
+        $approver = $this->register($agent, $approverMaterial);
+        $target = $this->register($agent, $this->material('Target'));
+        $target->update(['trusted_at' => now()]);
+        $peerDevice = $this->register($peer, $this->material('Peer'));
+        $conversation = app(ConversationService::class)->getOrCreateDirectConversation($agent, $peer);
+        app(E2eeActivationService::class)->activate($conversation, $agent, 1, [
+            $this->wrapped($approver->id, 1), $this->wrapped($target->id, 1), $this->wrapped($peerDevice->id, 1),
+        ]);
+        app(E2eeDeviceService::class)->revoke($agent, $target);
+        $this->assertNotNull($conversation->fresh()->e2ee_rotation_required_at);
+        $plan = app(E2eeDeviceTrustService::class)->restorationPlan($agent, $target->fresh(), $approver->device_uuid);
+        $this->assertSame([], $plan['conversations']);
+        $canonical = app(E2eeDeviceProofService::class)->restorationCanonical(
+            $agent->id, $approver->id, $target->id, $plan['challenge'], [],
+        );
+        app(E2eeDeviceTrustService::class)->restore($agent, $target->fresh(), $approver->device_uuid,
+            $plan['challenge'], [], $this->encoded(sodium_crypto_sign_detached($canonical, $approverMaterial['signing_secret'])));
+        $this->assertSame(1, $conversation->fresh()->current_key_version);
+        $this->assertNull($conversation->fresh()->e2ee_rotation_required_at);
+    }
+
     private function register(User $user, array $material): ChatE2eeDevice
     {
         return app(E2eeDeviceService::class)->register($user, $material['payload']);

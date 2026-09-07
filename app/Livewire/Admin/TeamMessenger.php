@@ -325,7 +325,8 @@ class TeamMessenger extends Component
         $conversation = $this->currentInternalConversation();
         $message = ChatMessage::where('conversation_id', $conversation->id)->findOrFail($messageId);
         app(ChatAuthorizationService::class)->assertCanSendInternal($conversation, $this->staff());
-        if ($conversation->conversation_type === 'internal_channel') {
+        if ($conversation->conversation_type === 'internal_channel'
+            && $conversation->channel_key === BrahmaNoticeboardService::CHANNEL_KEY) {
             throw new AuthorizationException('Noticeboard replies are disabled.');
         }
         if ($message->deleted_at !== null) {

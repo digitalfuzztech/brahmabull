@@ -11,6 +11,7 @@ use App\Livewire\Admin\AgentShow;
 use App\Livewire\Admin\BrahmaDeposits;
 use App\Livewire\Admin\BrahmaPlays;
 use App\Livewire\Admin\Cashouts;
+use App\Livewire\Admin\ChatSettings;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Deposits;
 use App\Livewire\Admin\GameShow;
@@ -96,6 +97,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/admin/inbox', SupportInbox::class)
         ->name('admin.inbox');
+    Route::get('/admin/chat-settings', ChatSettings::class)
+        ->name('admin.chat-settings');
 });
 
 Route::middleware(['auth', 'role:agent'])->group(function () {
@@ -176,6 +179,10 @@ Route::middleware(['auth', 'role:admin|agent', 'throttle:30,1'])
             ->name('devices.approval-plan');
         Route::post('/devices/{device}/approve', [ChatE2eeDeviceController::class, 'approve'])
             ->name('devices.approve');
+        Route::get('/devices/{device}/restoration-plan', [ChatE2eeDeviceController::class, 'restorationPlan'])
+            ->name('devices.restoration-plan');
+        Route::post('/devices/{device}/restore', [ChatE2eeDeviceController::class, 'restore'])
+            ->name('devices.restore');
         Route::delete('/devices/{device}', [ChatE2eeDeviceController::class, 'destroy'])->name('devices.destroy');
         Route::get('/conversations/{conversation}/devices', [ChatE2eeConversationController::class, 'devices'])
             ->name('conversations.devices');

@@ -115,4 +115,27 @@ class ChatE2eeDeviceController extends Controller
             'device' => $approved->only(['id', 'device_uuid', 'trusted_at', 'revoked_at']),
         ]);
     }
+
+    public function restorationPlan(Request $request, ChatE2eeDevice $device, E2eeDeviceTrustService $trust): JsonResponse
+    {
+        $validated = $request->validate(['approver_device_uuid' => ['required', 'string', 'max:64']]);
+
+        return response()->json($trust->restorationPlan($request->user(), $device, $validated['approver_device_uuid']));
+    }
+
+    public function restore(Request $request, ChatE2eeDevice $device, E2eeDeviceTrustService $trust): JsonResponse
+    {
+        $validated = $request->validate([
+            'approver_device_uuid' => ['required', 'string', 'max:64'], 'challenge' => ['required', 'string', 'max:128'],
+            'provisioning' => ['present', 'array', 'max:500'], 'provisioning.*.conversation_id' => ['required', 'integer', 'distinct'],
+            'provisioning.*.key_version' => ['required', 'integer', 'min:1'], 'provisioning.*.wrapped_key' => ['required', 'string', 'max:8192'],
+            'provisioning.*.wrapping_algorithm' => ['required', 'string', 'max:50'], 'provisioning.*.format_version' => ['required', 'integer', 'in:1'],
+            'signature' => ['required', 'string', 'max:256'], 'user_id' => ['prohibited'], 'private_key' => ['prohibited'],
+            'conversation_key' => ['prohibited'], 'raw_key' => ['prohibited'],
+        ]);
+        $restored = $trust->restore($request->user(), $device, $validated['approver_device_uuid'], $validated['challenge'],
+            $validated['provisioning'], $validated['signature']);
+
+        return response()->json(['device' => $restored->only(['id', 'device_uuid', 'trusted_at', 'revoked_at'])]);
+    }
 }

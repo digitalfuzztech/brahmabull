@@ -381,6 +381,8 @@ class TeamInboxService
             : collect();
         $isE2ee = $conversation->conversation_type === 'internal_direct'
             && $conversation->encryption_mode === 'e2ee_v1';
+        $canSend = $participant !== null && $this->authorization->canSendInternal($conversation, $staff);
+        $isNoticeboard = $conversation->channel_key === BrahmaNoticeboardService::CHANNEL_KEY;
 
         return [
             'id' => $conversation->id,
@@ -388,11 +390,15 @@ class TeamInboxService
             'name' => $this->displayName($conversation, $staff),
             'member_count' => $conversation->activeParticipants->count(),
             'is_observer' => $participant === null,
-            'can_send' => $participant !== null
-                && ($conversation->conversation_type !== 'internal_channel' || $staff->hasRole('admin')),
-            'can_reply' => $participant !== null && $conversation->conversation_type !== 'internal_channel',
-            'can_react' => $participant !== null && $conversation->conversation_type !== 'internal_channel',
-            'can_attach' => $participant !== null && $conversation->conversation_type !== 'internal_channel',
+            'can_send' => $canSend,
+            'can_reply' => $canSend && ! $isNoticeboard,
+            'can_react' => $canSend && ! $isNoticeboard,
+            'can_attach' => $canSend && ! $isNoticeboard,
+            'channel_mode' => $conversation->channel_mode,
+            'channel_readonly_message' => $conversation->conversation_type !== 'internal_channel' || $canSend ? null
+                : ($isNoticeboard ? 'This channel is read-only for Agents.'
+                    : (($conversation->channel_mode ?? 'read_only') === 'restricted'
+                        ? 'Only selected members can post in this channel.' : 'Only Admin can post in this channel.')),
             'is_e2ee' => $isE2ee,
             'e2ee_available' => $conversation->conversation_type === 'internal_direct'
                 && $trustedDeviceUserIds->unique()->count() === 2,

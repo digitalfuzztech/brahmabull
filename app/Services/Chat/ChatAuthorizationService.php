@@ -111,8 +111,13 @@ class ChatAuthorizationService
 
     public function assertCanManageRules(User $actor): void
     {
+        $this->assertCanManageChatSettings($actor);
+    }
+
+    public function assertCanManageChatSettings(User $actor): void
+    {
         if (! $actor->hasRole('admin')) {
-            throw new AuthorizationException('Only administrators may manage chatbot rules.');
+            throw new AuthorizationException('Only administrators may manage chat settings.');
         }
     }
 
@@ -133,6 +138,7 @@ class ChatAuthorizationService
 
         if ($conversation->conversation_type === 'internal_channel'
             && $actor->hasAnyRole(['admin', 'agent'])
+            && ! $conversation->is_archived
             && $this->isActiveParticipant($conversation, $actor)) {
             return;
         }
@@ -163,13 +169,30 @@ class ChatAuthorizationService
             return;
         }
 
-        if ($conversation->conversation_type === 'internal_channel'
-            && $actor->hasRole('admin')
-            && $this->isActiveParticipant($conversation, $actor)) {
-            return;
+        if ($conversation->conversation_type === 'internal_channel' && $this->isActiveParticipant($conversation, $actor)) {
+            if ($actor->hasRole('admin')) {
+                return;
+            }
+            $mode = $conversation->channel_mode ?? 'read_only';
+            if ($actor->hasRole('agent') && ($mode === 'open' || ($mode === 'restricted'
+                && $conversation->participants()->where('user_id', $actor->id)->where('channel_can_post', true)
+                    ->whereNull('channel_blocked_at')->exists()))) {
+                return;
+            }
         }
 
         throw new AuthorizationException('You cannot send messages to this internal conversation.');
+    }
+
+    public function canSendInternal(ChatConversation $conversation, User $actor): bool
+    {
+        try {
+            $this->assertCanSendInternal($conversation, $actor);
+
+            return true;
+        } catch (AuthorizationException) {
+            return false;
+        }
     }
 
     public function assertCanManageGroup(ChatConversation $conversation, User $actor): void
@@ -187,7 +210,8 @@ class ChatAuthorizationService
 
     public function assertCanReact(ChatConversation $conversation, User $actor): void
     {
-        if ($conversation->conversation_type === 'internal_channel') {
+        if ($conversation->conversation_type === 'internal_channel'
+            && $conversation->channel_key === BrahmaNoticeboardService::CHANNEL_KEY) {
             throw new AuthorizationException('Noticeboard reactions are disabled.');
         }
 

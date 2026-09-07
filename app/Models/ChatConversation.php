@@ -19,6 +19,8 @@ class ChatConversation extends Model
         'created_by',
         'direct_key',
         'channel_key',
+        'channel_description',
+        'channel_mode',
         'is_archived',
         'encryption_mode',
         'e2ee_enabled_at',

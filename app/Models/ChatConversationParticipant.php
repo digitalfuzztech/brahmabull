@@ -12,6 +12,8 @@ class ChatConversationParticipant extends Model
         'conversation_id',
         'user_id',
         'participant_role',
+        'channel_can_post',
+        'channel_blocked_at',
         'joined_at',
         'left_at',
         'last_read_at',
@@ -21,6 +23,8 @@ class ChatConversationParticipant extends Model
     protected function casts(): array
     {
         return [
+            'channel_can_post' => 'boolean',
+            'channel_blocked_at' => 'datetime',
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
             'last_read_at' => 'datetime',

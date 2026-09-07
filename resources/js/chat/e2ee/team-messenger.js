@@ -4,6 +4,7 @@ import {
     decryptPayload,
     decryptReaction,
     deviceApprovalCanonical,
+    deviceRestorationCanonical,
     E2EE_ATTACHMENT_PLAINTEXT_MAX_BYTES,
     encryptAttachment,
     encryptPayload,
@@ -692,6 +693,10 @@ export function createE2eeDeviceManager(config, dependencies = {}) {
             return Boolean(device && !device.trusted_at && !device.revoked_at);
         },
 
+        currentDeviceRevoked() {
+            return Boolean(this.currentDevice()?.revoked_at);
+        },
+
         hasTrustedApprover() {
             return this.devices.some(device => !this.isCurrent(device)
                 && device.trusted_at && !device.revoked_at);
@@ -706,6 +711,11 @@ export function createE2eeDeviceManager(config, dependencies = {}) {
             return Boolean(!device.trusted_at && !device.revoked_at
                 && currentRegistration?.trusted_at && !currentRegistration?.revoked_at
                 && !this.isCurrent(device));
+        },
+
+        canRestore(device) {
+            return Boolean(device.revoked_at && currentRegistration?.trusted_at
+                && !currentRegistration?.revoked_at && !this.isCurrent(device));
         },
 
         fingerprint(value) {
@@ -762,6 +772,42 @@ export function createE2eeDeviceManager(config, dependencies = {}) {
                 window.dispatchEvent(new CustomEvent('e2ee-device-status-changed'));
             } catch (error) {
                 this.error = error.message || 'Unable to approve this secure device.';
+            } finally {
+                this.busy = false;
+            }
+        },
+
+        async restore(device) {
+            if (!this.canRestore(device) || this.busy) return;
+            if (!window.confirm(`Restore this secure device to the current encryption boundary?\n\nFingerprint: ${this.fingerprint(device.key_fingerprint)}\n\nHistorical messages still require keys retained by that browser.`)) return;
+            this.busy = true;
+            this.error = '';
+            try {
+                const planUrl = config.restorationPlanUrl.replace('__DEVICE__', device.id);
+                const query = new URLSearchParams({ approver_device_uuid: this.currentDeviceUuid });
+                const plan = await request(`${planUrl}?${query}`);
+                const localKeys = await loadDeviceKeyMaterial(this.currentDeviceUuid);
+                const provisioning = [];
+                for (const conversation of plan.conversations) {
+                    const key = await unwrapConversationKey(conversation.approver_wrapped_key, localKeys.publicEncryptionKey, localKeys.privateEncryptionKey);
+                    provisioning.push({
+                        conversation_id: conversation.conversation_id,
+                        key_version: conversation.key_version,
+                        wrapped_key: await wrapConversationKeyForDevice(key, plan.target_device.public_encryption_key),
+                        wrapping_algorithm: 'x25519-sealedbox', format_version: 1,
+                    });
+                }
+                const canonical = deviceRestorationCanonical({ userId: config.currentUserId,
+                    approverDeviceId: plan.approver_device.id, targetDeviceId: plan.target_device.id,
+                    challenge: plan.challenge, provisioning });
+                const signature = await signDeviceProof(canonical, localKeys.privateSigningKey);
+                await request(config.restoreUrl.replace('__DEVICE__', device.id), { method: 'POST', body: JSON.stringify({
+                    approver_device_uuid: this.currentDeviceUuid, challenge: plan.challenge, provisioning, signature,
+                }) });
+                await this.refresh();
+                window.dispatchEvent(new CustomEvent('e2ee-device-status-changed'));
+            } catch (error) {
+                this.error = error.message || 'Unable to restore this secure device.';
             } finally {
                 this.busy = false;
             }
