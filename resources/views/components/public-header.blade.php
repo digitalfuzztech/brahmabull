@@ -15,12 +15,21 @@
             : null;
 
 @endphp
-<div x-data="{ mobileMenu:false }">
-    <header class="fixed top-0 left-0 right-0 z-[999] w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl">
+<div
+    x-data="{ mobileMenu:false, headerScrolled:false }"
+    x-init="headerScrolled = window.scrollY > 24"
+    @scroll.window="headerScrolled = window.scrollY > 24"
+>
+    <header
+        class="fixed left-0 right-0 top-0 z-[999] w-full transition-all duration-300"
+        :class="headerScrolled
+        ? 'bb-public-header bb-public-header-scrolled'
+        : 'bb-public-header bb-public-header-top'"
+    >
 
-        <div class="mx-auto max-w-7xl px-6">
+        <div class="mx-auto max-w-[1380px] px-5 md:px-7">
 
-            <div class="flex h-20 items-center justify-between">
+            <div class="flex h-20 items-center justify-between gap-4">
 
                 <!-- Logo -->
                 <div class="flex items-center gap-1 md:gap-3">
@@ -28,22 +37,24 @@
                     <a
                         href="/">
 
-                        <img src="{{asset('images/logo.png')}}"
-                             class="w-10 md:w-20 rounded-xl object-cover"
-                             alt="logo">
+                        <img
+                            src="{{ asset('images/logo.png') }}"
+                            class="bb-header-logo w-10 rounded-xl object-contain md:w-14"
+                            alt="logo"
+                        >
 
                     </a>
 
                     <a href="/">
 
                         <h1
-                            class="text-sm md:text-xl font-black uppercase tracking-wider text-white">
+                            class="bb-display text-sm font-black uppercase tracking-[0.06em] text-white md:text-[19px]">
 
                             BrahmaBull
 
                         </h1>
 
-                        <p class="text-xs uppercase tracking-widest text-purple-400">
+                        <p class="mt-0.5 text-[9px] font-bold uppercase tracking-[0.22em] text-fuchsia-400 md:text-[10px]">
 
                            GAMING
 
@@ -59,18 +70,16 @@
 
                         <a
                             href="{{ route('login') }}"
-                            class="rounded-xl border px-3 py-1 md:px-5 md:py-2 text-sm font-semibold transition hover:border-purple-500 hover:bg-purple-500">
-
+                            class="bb-header-login rounded-xl px-5 py-2.5 text-sm font-bold text-white"
+                        >
                             Login
-
                         </a>
 
                         <a
                             href="{{ route('register') }}"
-                            class="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-1 md:px-5 md:py-2 text-sm font-bold transition hover:scale-105">
-
+                            class="bb-header-register rounded-xl px-5 py-2.5 text-sm font-black text-white"
+                        >
                             Register
-
                         </a>
 
                     </div>
@@ -79,7 +88,7 @@
 
 
                 @if($isPlayer)
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3 lg:gap-4">
                         <div class="hidden sm:block">
                             <livewire:pages.brahma-balance />
                         </div>
@@ -103,20 +112,32 @@
                                 />
                             </svg>
                         </button>
-                        <livewire:pages.notification-bell />
-                        <div class="hidden md:flex items-center gap-6">
 
-                            <a href="{{ route('games') }}" class="font-bold hover:text-purple-400 transition-all">Play Now</a>
+                        <div class="hidden items-center gap-5 md:flex lg:gap-6">
 
+                            <a
+                                href="{{ route('games') }}"
+                                class="text-[13px] font-black text-white transition hover:text-fuchsia-300"
+                            >
+                                Play Now
+                            </a>
 
-                            <a href="{{route('cashouts')}}" class="font-bold hover:text-purple-400 transition-all">Request Withdrawal</a>
+                            <a
+                                href="{{ route('cashouts') }}"
+                                class="text-[13px] font-black text-white transition hover:text-fuchsia-300"
+                            >
+                                Request Withdrawal
+                            </a>
                             <div
                                 x-data="{ open: false }"
                                 class="relative"
                             >
                                 <button
                                     @click="open = !open"
-                                    class="flex items-center gap-3 rounded-3xl p-1 border border-purple-400"
+                                    class="flex items-center gap-2.5 rounded-full border border-purple-400/70
+       bg-purple-500/5 py-1 pl-1 pr-3
+       shadow-[0_0_18px_rgba(139,92,246,0.12)]
+       transition hover:bg-purple-500/10"
                                 >
                                     <img
                                         src="{{ auth()->user()->photo
@@ -176,6 +197,7 @@
 
 
                         </div>
+                        <livewire:pages.notification-bell />
                     </div>
 
 

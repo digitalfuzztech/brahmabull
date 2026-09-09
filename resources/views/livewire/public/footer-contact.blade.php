@@ -1,20 +1,20 @@
 <div>
 
         @guest
-        <form wire:submit="send" class="flex gap-3">
+        <form wire:submit="send" class="bb-footer-email-form">
 
             <input
                 wire:model="email"
                 type="email"
                 placeholder="Enter your email"
-                class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white"
+                class="bb-footer-input"
             >
 
             <button
                 type="submit"
                 wire:loading.attr="disabled"
                 wire:target="send"
-                class="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-bold disabled:opacity-70"
+                class="bb-footer-send-button disabled:opacity-60"
             >
 
     <span wire:loading.remove wire:target="send">
@@ -57,25 +57,28 @@
         @endguest
     @auth
         @if(auth()->user()->hasRole('player'))
-    <form wire:submit="send" class="flex flex-col gap-3">
+                    <form
+                        wire:submit="send"
+                        class="bb-footer-message-form"
+                    >
         <input
             wire:model="subject"
             type="text"
             placeholder="Your Subject"
-            class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white"
+            class="bb-footer-input"
         >
         <textarea
             wire:model="message"
             type="message"
             placeholder="Enter your message"
-            class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white"
+            class="bb-footer-textarea"
         > </textarea>
 
             <button
                 type="submit"
                 wire:loading.attr="disabled"
                 wire:target="send"
-                class="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-bold disabled:opacity-70"
+                class="bb-footer-send-button bb-footer-send-button-full disabled:opacity-60"
             >
 
     <span wire:loading.remove wire:target="send">
@@ -117,24 +120,27 @@
     </form>
 
                 @elseif(auth()->user()->hasRole('agent'))
-                    <form wire:submit="send" class="flex flex-col gap-3">
+                    <form
+                        wire:submit="send"
+                        class="bb-footer-message-form"
+                    >
                         <input
                             wire:model="subject"
                             type="text"
                             placeholder="Your Subject"
-                            class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white"
+                            class="bb-footer-input"
                         >
                         <textarea
                             wire:model="message"
                             type="message"
                             placeholder="Enter your message"
-                            class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white"
+                            class="bb-footer-textarea"
                         > </textarea>
                             <button
                                 type="submit"
                                 wire:loading.attr="disabled"
                                 wire:target="send"
-                                class="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-bold disabled:opacity-70"
+                                class="bb-footer-send-button bb-footer-send-button-full disabled:opacity-60"
                             >
 
     <span wire:loading.remove wire:target="send">
@@ -179,7 +185,7 @@
 @endif
             @endauth
     @error('email')
-    <div class="mt-2 text-sm text-red-400">
+    <div class="bb-footer-error">
         {{ $message }}
     </div>
     @enderror
@@ -193,7 +199,7 @@
                 $wire.hideSuccess()
             }, 5000)
         "
-            class="mt-3 rounded-xl border border-green-500/30 bg-green-500/10 p-8 text-sm text-green-400"
+            class="bb-footer-success"
         >
             Email sent, we will contact you soon.
         </div>

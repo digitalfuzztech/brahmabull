@@ -1,36 +1,58 @@
-@props(['title' => 'Game', 'desc' => 'Win real rewards', 'image' => '/images/games/default.jpg' ])
+@props([
+    'title' => 'Game',
+    'desc' => 'Win real rewards',
+    'image' => '/images/games/default.jpg'
+])
 
-<div
-    class="group relative cursor-pointer rounded-2xl border border-slate-800 bg-slate-900 p-4 transition
-           hover:-translate-y-2 hover:border-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+<div class="bb-game-card group">
 
-    <!-- Glow overlay -->
+    {{-- GAME IMAGE --}}
+    <img
+        src="{{ $image }}"
+        alt="{{ $title }}"
+        class="bb-game-card-image"
+    >
+
+
+    {{-- SUBTLE TOP VIGNETTE --}}
     <div
-        class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-600/10 to-indigo-700/10 opacity-0 group-hover:opacity-100 transition">
-    </div>
+        class="bb-game-card-top-shade"
+        aria-hidden="true"
+    ></div>
 
-    <!-- Game image -->
-    <div class="relative mb-4 aspect-square rounded-xl overflow-hidden">
 
-        <img
-            src="{{ $image }}"
-            class="h-full w-full object-cover group-hover:scale-110 transition duration-500"
-            alt="{{ $title }}"
-        />
+    {{-- DARK LOWER GRADIENT FOR TEXT --}}
+    <div
+        class="bb-game-card-bottom-shade"
+        aria-hidden="true"
+    ></div>
 
-    </div>
 
-    <!-- Content -->
-    <div class="relative">
+    {{-- HOVER LIGHT SWEEP --}}
+    <div
+        class="bb-game-card-shine"
+        aria-hidden="true"
+    ></div>
 
-        <h3 class="font-bold text-white group-hover:text-purple-300 transition">
+
+    {{-- GAME INFORMATION --}}
+    <div class="bb-game-card-content">
+
+        <h3 class="bb-game-card-title">
             {{ $title }}
         </h3>
 
-        <p class="text-sm text-slate-400">
+        <p class="bb-game-card-description">
             {{ $desc }}
         </p>
 
     </div>
+
+
+    {{-- INNER EDGE --}}
+    <div
+        class="bb-game-card-inner-edge"
+        aria-hidden="true"
+    ></div>
 
 </div>

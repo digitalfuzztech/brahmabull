@@ -1,186 +1,373 @@
-<section class="relative overflow-hidden" wire:poll.5000ms="next">
+<section
+    class="bb-casino-hero"
+    wire:poll.5000ms="next"
+>
 
-    <!-- Background glow -->
-    <div class="absolute -left-40 top-0 h-96 w-96 rounded-full bg-purple-700/20 blur-3xl"></div>
-    <div class="absolute right-0 top-20 h-96 w-96 rounded-full bg-indigo-700/20 blur-3xl"></div>
+    {{-- ===================================================== --}}
+    {{-- CINEMATIC HERO BACKGROUND                             --}}
+    {{-- ===================================================== --}}
 
-    <div class="mx-auto max-w-7xl px-6 py-28">
+    <img
+        src="{{ asset('images/ui/casino/hero-casino-bg.png') }}"
+        alt=""
+        aria-hidden="true"
+        class="bb-casino-hero-bg"
+    >
 
-        <div class="relative grid items-center gap-16 lg:grid-cols-2">
+    <div class="bb-casino-hero-shade"></div>
+    <div class="bb-casino-hero-bottom"></div>
 
-            <!-- LEFT CONTENT -->
-            <div class="transition-all duration-500">
 
-                <p class="mb-4 text-sm font-bold uppercase tracking-[0.3em] text-purple-400">
-                    BrahmaBull Gaming Club
-                </p>
+    {{-- Decorative side signs from generated assets --}}
+    <img
+        src="{{ asset('images/ui/casino/hero-marquee-left.png') }}"
+        alt=""
+        aria-hidden="true"
+        class="bb-hero-marquee-left bb-marquee-enter-left hidden 2xl:block"
+    >
 
-                <h1 class="mb-6 text-6xl font-black leading-tight lg:text-7xl">
-                    {{ $slides[$active]['title'] }}
-                </h1>
+    <img
+        src="{{ asset('images/ui/casino/hero-marquee-right.png') }}"
+        alt=""
+        aria-hidden="true"
+        class="bb-hero-marquee-right bb-marquee-enter-right hidden 2xl:block"
+    >
 
-                <p class="mb-10 max-w-xl text-lg text-slate-300">
-                    {{ $slides[$active]['subtitle'] }}
-                </p>
 
-                <div class="flex flex-wrap gap-4">
+    {{-- ===================================================== --}}
+    {{-- REAL HERO CONTENT                                     --}}
+    {{-- ===================================================== --}}
 
-                    {{-- ========================= --}}
-                    {{-- GUEST USERS --}}
-                    {{-- ========================= --}}
-                    @guest
+    <div class="relative mx-auto max-w-[1380px] px-5 md:px-7">
+
+        <div
+            class="grid min-h-[630px] items-center gap-8
+                   py-12 lg:grid-cols-[1.02fr_0.98fr]
+                   lg:gap-8 lg:py-6"
+        >
+
+            {{-- ================================================= --}}
+            {{-- LEFT CONTENT                                      --}}
+            {{-- ================================================= --}}
+
+            <div class="relative z-20 max-w-[720px]">
+
+                {{-- ONLY THIS PART CHANGES WITH EACH SLIDE --}}
+                <div
+                    wire:key="hero-copy-{{ $active }}"
+                    class="bb-hero-copy-cycle"
+                >
+
+                    <p
+                        class="mb-5 text-[11px] font-black uppercase
+                   tracking-[0.34em] text-fuchsia-300
+                   sm:text-xs"
+                    >
+                        BrahmaBull Gaming Club
+                    </p>
+
+
+                    <h1
+                        class="bb-hero-title text-[3.45rem]
+                   sm:text-[4.8rem]
+                   lg:text-[5.45rem]
+                   xl:text-[6.15rem]"
+                        aria-label="{{ $slides[$active]['title'] }}"
+                    >
 
                         @if($active === 0)
 
-                            <a href="#games"
-                               class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
-                                Explore Games
-                            </a>
+                            <span class="bb-hero-title-white block">
+                    Play. Win.
+                </span>
 
-                            <a href="/register"
-                               class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
-                                Join Us
-                            </a>
+                            <span class="bb-hero-title-gold block">
+                    Dominate.
+                </span>
 
                         @elseif($active === 1)
 
-                            <a href="#about"
-                               class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
-                                Learn More
-                            </a>
+                            <span class="bb-hero-title-white block">
+                    Earn Real
+                </span>
 
-                            <a href="/login"
-                               class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
-                                Start Playing
-                            </a>
+                            <span class="bb-hero-title-gold block">
+                    Rewards
+                </span>
 
                         @elseif($active === 2)
 
-                            <a href="/login"
-                               class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
-                                Invite Friends
-                            </a>
+                            <span class="bb-hero-title-white block">
+                    Referral
+                </span>
 
-                            <a href="/login"
-                               class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
-                                Play Now
-                            </a>
+                            <span class="bb-hero-title-gold block">
+                    Bonuses
+                </span>
 
                         @endif
 
-                    @endguest
+                    </h1>
 
 
+                    <p
+                        class="mt-6 max-w-[590px] text-[15px]
+                   font-medium leading-7 text-slate-200
+                   sm:text-[17px]"
+                    >
+                        {{ $slides[$active]['subtitle'] }}
+                    </p>
 
-                    {{-- ========================= --}}
-                    {{-- PLAYER --}}
-                    {{-- ========================= --}}
-                    @auth
 
-                        @if(auth()->user()->hasRole('player'))
+                    <div class="mt-8 flex flex-wrap gap-4">
+
+                        {{-- GUEST --}}
+                        @guest
 
                             @if($active === 0)
 
-                                <a href="/catalog"
-                                   class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
+                                <a
+                                    href="#games"
+                                    class="bb-hero-primary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
                                     Explore Games
                                 </a>
 
-                                <a href="/catalog"
-                                   class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
-                                    Play Now
+                                <a
+                                    href="/register"
+                                    class="bb-hero-secondary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
+                                    Join Us
                                 </a>
 
                             @elseif($active === 1)
 
-                                <a href="/profile"
-                                   class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
-                                    My Details
+                                <a
+                                    href="#about"
+                                    class="bb-hero-primary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
+                                    Learn More
                                 </a>
 
-                                <a href="/catalog"
-                                   class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
-                                    Play Now
+                                <a
+                                    href="/login"
+                                    class="bb-hero-secondary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
+                                    Start Playing
                                 </a>
 
                             @elseif($active === 2)
 
-                                <button
-                                    type="button"
-                                    @click="$dispatch('open-referral-modal')"
-                                    class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold"
+                                <a
+                                    href="/login"
+                                    class="bb-hero-primary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
                                 >
                                     Invite Friends
-                                </button>
+                                </a>
 
-                                <a href="/catalog"
-                                   class="rounded-2xl border border-slate-700 px-8 py-4 font-bold">
-
-                                    Start Playing
-
+                                <a
+                                    href="/login"
+                                    class="bb-hero-secondary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
+                                    Play Now
                                 </a>
 
                             @endif
 
-                        @endif
-
-                    @endauth
+                        @endguest
 
 
+                        {{-- PLAYER --}}
+                        @auth
 
-                    {{-- ========================= --}}
-                    {{-- AGENT --}}
-                    {{-- ========================= --}}
-                    @auth
+                            @if(auth()->user()->hasRole('player'))
 
-                        @if(auth()->user()->hasRole('agent'))
+                                @if($active === 0)
 
-                            <a href="/agent"
-                               class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
+                                    <a
+                                        href="/catalog"
+                                        class="bb-hero-primary inline-flex min-h-[54px]
+                           items-center justify-center rounded-xl
+                           px-7 text-sm font-black"
+                                    >
+                                        Explore Games
+                                    </a>
 
-                                Dashboard
+                                    <a
+                                        href="/catalog"
+                                        class="bb-hero-secondary inline-flex min-h-[54px]
+                           items-center justify-center rounded-xl
+                           px-7 text-sm font-black"
+                                    >
+                                        Play Now
+                                    </a>
 
-                            </a>
+                                @elseif($active === 1)
 
-                        @endif
+                                    <a
+                                        href="/profile"
+                                        class="bb-hero-primary inline-flex min-h-[54px]
+                           items-center justify-center rounded-xl
+                           px-7 text-sm font-black"
+                                    >
+                                        My Details
+                                    </a>
 
-                    @endauth
+                                    <a
+                                        href="/catalog"
+                                        class="bb-hero-secondary inline-flex min-h-[54px]
+                           items-center justify-center rounded-xl
+                           px-7 text-sm font-black"
+                                    >
+                                        Play Now
+                                    </a>
+
+                                @elseif($active === 2)
+
+                                    <button
+                                        type="button"
+                                        @click="$dispatch('open-referral-modal')"
+                                        class="bb-hero-primary inline-flex min-h-[54px]
+                           items-center justify-center rounded-xl
+                           px-7 text-sm font-black"
+                                    >
+                                        Invite Friends
+                                    </button>
+
+                                    <a
+                                        href="/catalog"
+                                        class="bb-hero-secondary inline-flex min-h-[54px]
+                           items-center justify-center rounded-xl
+                           px-7 text-sm font-black"
+                                    >
+                                        Start Playing
+                                    </a>
+
+                                @endif
+
+                            @endif
+
+                        @endauth
 
 
+                        {{-- AGENT --}}
+                        @auth
 
-                    {{-- ========================= --}}
-                    {{-- ADMIN --}}
-                    {{-- ========================= --}}
-                    @auth
+                            @if(auth()->user()->hasRole('agent'))
 
-                        @if(auth()->user()->hasRole('admin'))
+                                <a
+                                    href="/agent"
+                                    class="bb-hero-primary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
+                                    Dashboard
+                                </a>
 
-                            <a href="/admin"
-                               class="rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-bold">
+                            @endif
 
-                                Dashboard
+                        @endauth
 
-                            </a>
 
-                        @endif
+                        {{-- ADMIN --}}
+                        @auth
 
-                    @endauth
+                            @if(auth()->user()->hasRole('admin'))
+
+                                <a
+                                    href="/admin"
+                                    class="bb-hero-primary inline-flex min-h-[54px]
+                       items-center justify-center rounded-xl
+                       px-7 text-sm font-black"
+                                >
+                                    Dashboard
+                                </a>
+
+                            @endif
+
+                        @endauth
+
+                    </div>
 
                 </div>
-            </div>
 
-            <!-- RIGHT VISUAL -->
-            <div class="transition-all duration-500">
 
-                <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur">
+                {{-- ================================================= --}}
+                {{-- STATIC FEATURE STRIP                              --}}
+                {{-- DO NOT PUT THIS INSIDE bb-hero-copy-cycle         --}}
+                {{-- ================================================= --}}
 
-                    <div class="aspect-[4/3] overflow-hidden rounded-2xl">
+                <div
+                    class="mt-10 grid max-w-[650px]
+               border-t border-amber-400/15
+               sm:grid-cols-3"
+                >
 
-                        <img
-                            src="{{ $slides[$active]['image'] }}"
-                            class="h-full w-full object-cover transition duration-500"
-                            alt="slide image"
-                        />
+                    <div class="bb-hero-benefit">
+
+            <span class="bb-hero-benefit-icon">
+                ✦
+            </span>
+
+                        <div>
+                            <div class="text-[14px] font-black uppercase tracking-wider text-white">
+                                Rewards
+                            </div>
+
+                            <div class="mt-0.5 text-[12px] text-slate-400">
+                                Amazing bonuses and rewards
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="bb-hero-benefit">
+
+            <span class="bb-hero-benefit-icon">
+                ⚡
+            </span>
+
+                        <div>
+                            <div class="text-[14px] font-black uppercase tracking-wider text-white">
+                                Fast Access
+                            </div>
+
+                            <div class="mt-0.5 text-[12px] text-slate-400">
+                                Fast account setup and support
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="bb-hero-benefit">
+
+            <span class="bb-hero-benefit-icon">
+                ◆
+            </span>
+
+                        <div>
+                            <div class="text-[14px] font-black uppercase tracking-wider text-white">
+                                Trusted
+                            </div>
+
+                            <div class="mt-0.5 text-[12px] text-slate-400">
+                                Smooth and secure experience
+                            </div>
+                        </div>
 
                     </div>
 
@@ -189,6 +376,34 @@
             </div>
 
 
+            {{-- ================================================= --}}
+            {{-- RIGHT CASINO FEATURE ART                           --}}
+            {{-- ================================================= --}}
+
+            <div
+                class="relative z-10 flex items-center justify-center
+                       lg:justify-end"
+            >
+
+                <div
+                    class="pointer-events-none absolute
+                           h-[420px] w-[420px]
+                           rounded-full bg-purple-600/20
+                           blur-[110px]"
+                ></div>
+
+                <div class="bb-feature-art-enter relative z-10">
+
+                    <img
+                        src="{{ asset('images/ui/casino/hero-feature-art.png') }}"
+                        alt=""
+                        aria-hidden="true"
+                        class="bb-hero-feature-art"
+                    >
+
+                </div>
+
+            </div>
 
         </div>
 

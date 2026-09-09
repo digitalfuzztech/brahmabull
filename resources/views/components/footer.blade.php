@@ -1,70 +1,160 @@
-<footer class="border-t border-slate-800 py-12">
+<footer class="bb-footer">
 
-    <div class="mx-auto max-w-7xl px-6">
+    {{-- faint casino atmosphere --}}
+    <div
+        class="bb-footer-background"
+        aria-hidden="true"
+    ></div>
 
-        <div class="flex flex-col gap-4 md:flex-row md:justify-between items-center">
-            <div class="flex flex-col items-center">
-                <img src="{{ asset('images/logo-brahma.png') }}" class="w-[300px]">
-            </div>
+    <div
+        class="bb-footer-glow bb-footer-glow-left"
+        aria-hidden="true"
+    ></div>
 
-<div>
-    @guest
-        <h3 class="bold uppercase text-center mb-4">
-
-            Hear From Us
-
-        </h3>
-        @endguest
-    @auth
-    @if(auth()->user()->hasRole('player'))
-    <h3 class="bold uppercase text-center mb-4">
-
-        Contact Us
-
-    </h3>
-    @elseif(auth()->user()->hasRole('agent'))
-                <h3 class="bold uppercase text-center mb-4">
-
-                    Contact Admin
-
-                </h3>
-        @elseif(auth()->user()->hasRole('admin'))
-
-        @endif
-    @endauth
-        <livewire:public.footer-contact />
-</div>
+    <div
+        class="bb-footer-glow bb-footer-glow-right"
+        aria-hidden="true"
+    ></div>
 
 
-            <div class="flex flex-col items-center md:items-end  md:justify-end">
-                <h3 class="font-black uppercase text-right">
+    <div class="relative z-10 mx-auto max-w-[1180px] px-5 md:px-7">
 
-                    BrahmaBull Gaming Club
+        {{-- ===================================================== --}}
+        {{-- MAIN FOOTER                                          --}}
+        {{-- ===================================================== --}}
 
-                </h3>
+        <div class="bb-footer-main">
 
-                <p class="text-sm text-slate-400 text-center md:text-right">
+            {{-- ================================================= --}}
+            {{-- LEFT: BRAND                                       --}}
+            {{-- ================================================= --}}
 
+            <div class="bb-footer-brand">
+
+                <img
+                    src="{{ asset('images/logo-brahma.png') }}"
+                    alt="BrahmaBull Gaming Club"
+                    class="bb-footer-logo"
+                >
+
+                <p class="bb-footer-tagline">
                     Play. Win. Dominate.
-
-                </p>
-                <p class="text-sm text-slate-400 text-center md:text-right">
-                    42 Homestead Drive
-                    Far Rockaway, NY 11691
                 </p>
 
             </div>
 
 
+            {{-- ================================================= --}}
+            {{-- CENTER: EXISTING CONTACT COMPONENT                --}}
+            {{-- ================================================= --}}
 
+            <div class="bb-footer-contact">
+
+                @guest
+
+                    <h3 class="bb-footer-heading">
+                        Stay Connected
+                    </h3>
+
+                @endguest
+
+
+                @auth
+
+                    @if(auth()->user()->hasRole('player'))
+
+                        <h3 class="bb-footer-heading">
+                            Contact Us
+                        </h3>
+
+                    @elseif(auth()->user()->hasRole('agent'))
+
+                        <h3 class="bb-footer-heading">
+                            Contact Admin
+                        </h3>
+
+                    @elseif(auth()->user()->hasRole('admin'))
+
+                    @endif
+
+                @endauth
+
+
+                <livewire:public.footer-contact />
+
+            </div>
+
+
+            {{-- ================================================= --}}
+            {{-- RIGHT: EXISTING COMPANY DETAILS                   --}}
+            {{-- ================================================= --}}
+
+            <div class="bb-footer-company">
+
+                <h3 class="bb-footer-company-name">
+                    BrahmaBull Gaming Club
+                </h3>
+
+                <p class="bb-footer-company-tagline">
+                    Play. Win. Dominate.
+                </p>
+
+
+                <div class="bb-footer-address">
+
+                    <span class="bb-footer-location-icon">
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            aria-hidden="true"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"
+                            />
+
+                            <circle
+                                cx="12"
+                                cy="10"
+                                r="2.5"
+                            />
+                        </svg>
+
+                    </span>
+
+                    <p>
+                        42 Homestead Drive<br>
+                        Far Rockaway, NY 11691
+                    </p>
+
+                </div>
+
+            </div>
 
         </div>
-        <div class="text-sm text-slate-500 text-center mt-10">
 
-            © {{ date('Y') }} BrahmaBull Gaming Club.
-            All rights reserved.
+
+        {{-- ===================================================== --}}
+        {{-- BOTTOM BAR                                           --}}
+        {{-- ===================================================== --}}
+
+        <div class="bb-footer-bottom">
+
+            <div class="bb-footer-bottom-line"></div>
+
+            <div class="bb-footer-copyright">
+
+                © {{ date('Y') }} BrahmaBull Gaming Club.
+                All rights reserved.
+
+            </div>
 
         </div>
+
     </div>
 
 </footer>

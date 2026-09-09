@@ -32,6 +32,7 @@
 <!-- PAGE -->
 
 <div class="relative flex min-h-screen items-center justify-center px-6 py-12">
+    <img src="{{asset('images/ui/casino/register-bg.png')}}" alt="" class="bb-login-bg">
 
     <div class="w-full max-w-md">
 

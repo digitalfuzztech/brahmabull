@@ -1,4 +1,4 @@
-<section class="relative overflow-hidden">
+<section class="relative">
 
     <livewire:public.hero-carousel />
 

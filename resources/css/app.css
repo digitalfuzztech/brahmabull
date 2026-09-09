@@ -195,3 +195,3838 @@ html {
 #headerBar {
     transition: left 0.3s ease;
 }
+
+
+/* ============================================================
+   BRAHMABULL - HEADER + HERO REDESIGN
+   FRONTEND ONLY
+   ============================================================ */
+
+.bb-public-ui {
+    font-family: 'Inter', sans-serif;
+    background: #020617;
+}
+
+.bb-display {
+    font-family: 'Montserrat', sans-serif;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+/* ============================================================
+   BRAHMABULL HEADER
+   transparent at top -> glass/dark after scroll
+   ============================================================ */
+
+.bb-public-header {
+    transition:
+        background 300ms ease,
+        border-color 300ms ease,
+        box-shadow 300ms ease,
+        backdrop-filter 300ms ease;
+}
+
+
+/* INITIAL PAGE POSITION */
+
+.bb-public-header-top {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(2, 4, 18, 0.24) 0%,
+            rgba(2, 4, 18, 0.08) 65%,
+            transparent 100%
+        );
+
+    border-bottom-color: transparent;
+
+    box-shadow: none;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
+}
+
+
+/* AFTER USER SCROLLS */
+
+.bb-public-header-scrolled {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(2, 4, 18, 0.95) 0%,
+            rgba(2, 4, 18, 0.88) 100%
+        );
+
+    border-bottom: 1px solid rgba(139, 92, 246, 0.20);
+
+    box-shadow:
+        0 12px 38px rgba(0, 0, 0, 0.38),
+        0 1px 0 rgba(255, 255, 255, 0.025);
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+}
+
+/* ============================================================
+   HEADER LOGO
+   purple edge + soft golden aura
+   ============================================================ */
+
+.bb-header-logo-wrap {
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    isolation: isolate;
+}
+
+
+/* golden glow BEHIND the logo */
+
+.bb-header-logo-wrap::before {
+    content: '';
+
+    position: absolute;
+
+    z-index: -1;
+
+    width: 78%;
+    height: 78%;
+
+    border-radius: 999px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(251, 191, 36, 0.30) 0%,
+            rgba(245, 158, 11, 0.15) 38%,
+            rgba(245, 158, 11, 0.04) 62%,
+            transparent 75%
+        );
+
+    filter: blur(10px);
+
+    transform: scale(1.28);
+
+    opacity: 0.75;
+}
+
+
+/* purple contour around actual transparent logo */
+
+.bb-header-logo {
+    position: relative;
+
+    z-index: 1;
+
+    filter:
+        drop-shadow(1px 0 0 rgba(168, 85, 247, 0.85))
+        drop-shadow(-1px 0 0 rgba(168, 85, 247, 0.85))
+        drop-shadow(0 1px 0 rgba(168, 85, 247, 0.85))
+        drop-shadow(0 -1px 0 rgba(168, 85, 247, 0.85))
+        drop-shadow(0 0 7px rgba(139, 92, 246, 0.55))
+        drop-shadow(0 0 13px rgba(251, 191, 36, 0.24));
+
+    transition:
+        filter 220ms ease,
+        transform 220ms ease;
+}
+
+
+a:hover .bb-header-logo {
+    transform: translateY(-1px);
+
+    filter:
+        drop-shadow(1px 0 0 rgba(192, 132, 252, 0.95))
+        drop-shadow(-1px 0 0 rgba(192, 132, 252, 0.95))
+        drop-shadow(0 1px 0 rgba(192, 132, 252, 0.95))
+        drop-shadow(0 -1px 0 rgba(192, 132, 252, 0.95))
+        drop-shadow(0 0 10px rgba(168, 85, 247, 0.70))
+        drop-shadow(0 0 19px rgba(251, 191, 36, 0.32));
+}
+
+.bb-header-login {
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    background: rgba(2, 6, 23, 0.38);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+    transition:
+        border-color 180ms ease,
+        background 180ms ease,
+        transform 180ms ease;
+}
+
+.bb-header-login:hover {
+    border-color: rgba(192, 132, 252, 0.75);
+    background: rgba(139, 92, 246, 0.10);
+    transform: translateY(-1px);
+}
+
+.bb-header-register {
+    border: 1px solid rgba(216, 180, 254, 0.55);
+
+    background:
+        linear-gradient(
+            100deg,
+            #7c3aed 0%,
+            #9333ea 48%,
+            #2563eb 100%
+        );
+
+    box-shadow:
+        0 0 22px rgba(124, 58, 237, 0.38),
+        0 0 16px rgba(37, 99, 235, 0.20);
+
+    transition:
+        transform 180ms ease,
+        filter 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.bb-header-register:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+
+    box-shadow:
+        0 0 30px rgba(124, 58, 237, 0.5),
+        0 0 22px rgba(37, 99, 235, 0.28);
+}
+
+/* FINAL HEADER STATE OVERRIDES */
+
+header.bb-public-header.bb-public-header-top {
+    background: transparent !important;
+    background-color: rgb(50 30 85 / 0.3) !important;
+
+    border-bottom-color: transparent !important;
+
+    box-shadow: none !important;
+
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+
+header.bb-public-header.bb-public-header-scrolled {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(2, 4, 18, 0.96) 0%,
+            rgba(2, 4, 18, 0.90) 100%
+        ) !important;
+
+    border-bottom: 1px solid rgba(139, 92, 246, 0.20) !important;
+
+    box-shadow:
+        0 12px 38px rgba(0, 0, 0, 0.38) !important;
+
+    backdrop-filter: blur(22px) !important;
+    -webkit-backdrop-filter: blur(22px) !important;
+}
+
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.bb-casino-hero {
+    position: relative;
+
+    min-height: 710px;
+
+    isolation: isolate;
+
+    overflow: hidden;
+
+    background: #020617;
+
+    margin-top: -5rem;
+    padding-top: 5rem;
+}
+
+
+/* full generated casino background */
+
+.bb-casino-hero-bg {
+    position: absolute;
+    inset: 0;
+
+    z-index: -40;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    object-position: center;
+
+    user-select: none;
+    pointer-events: none;
+}
+
+
+/* left text protection */
+
+.bb-casino-hero-shade {
+    position: absolute;
+    inset: 0;
+
+    z-index: -30;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(2, 6, 23, 0.98) 0%,
+            rgba(2, 6, 23, 0.95) 23%,
+            rgba(2, 6, 23, 0.79) 42%,
+            rgba(2, 6, 23, 0.36) 62%,
+            rgba(2, 6, 23, 0.06) 100%
+        );
+}
+
+
+/* blends hero into the rest of the page */
+
+.bb-casino-hero-bottom {
+    position: absolute;
+
+    z-index: -20;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 180px;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            0deg,
+            #020617 0%,
+            rgba(2, 6, 23, 0.88) 24%,
+            rgba(2, 6, 23, 0) 100%
+        );
+}
+
+
+/* subtle colored light over the hero */
+
+.bb-casino-hero::after {
+    content: '';
+
+    position: absolute;
+    inset: 0;
+
+    z-index: -10;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            circle at 78% 40%,
+            rgba(124, 58, 237, 0.13),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 87% 70%,
+            rgba(37, 99, 235, 0.12),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 66% 24%,
+            rgba(245, 158, 11, 0.07),
+            transparent 20%
+        );
+}
+
+
+/* right hand foreground artwork */
+
+.bb-hero-feature-art {
+    width: min(610px, 45vw);
+
+    max-height: 600px;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(0 28px 38px rgba(0, 0, 0, 0.48))
+        drop-shadow(0 0 30px rgba(124, 58, 237, 0.22))
+        drop-shadow(0 0 18px rgba(245, 158, 11, 0.15));
+
+    will-change: transform;
+
+    animation:
+        bb-hero-float
+        4.8s
+        cubic-bezier(0.45, 0, 0.55, 1)
+        1.05s
+        infinite;
+}
+
+
+/* side casino signs */
+
+.bb-hero-marquee-left,
+.bb-hero-marquee-right {
+    position: absolute;
+
+    z-index: 2;
+
+    top: 86px;
+
+    width: 170px;
+
+    pointer-events: none;
+
+    opacity: 0.82;
+
+    filter:
+        drop-shadow(0 0 16px rgba(245, 158, 11, 0.22))
+        drop-shadow(0 0 20px rgba(139, 92, 246, 0.18));
+}
+
+.bb-hero-marquee-left {
+    left: -35px;
+}
+
+.bb-hero-marquee-right {
+    right: -35px;
+}
+
+
+/* heading */
+
+.bb-hero-title {
+    font-family: 'Montserrat', sans-serif;
+
+    font-weight: 900;
+
+    text-transform: uppercase;
+
+    letter-spacing: -0.045em;
+
+    line-height: 0.93;
+
+    text-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.65),
+        0 0 22px rgba(255, 255, 255, 0.05);
+}
+
+.bb-hero-title-white {
+    color: #ffffff;
+}
+
+.bb-hero-title-gold {
+    color: transparent;
+
+    background:
+        linear-gradient(
+            180deg,
+            #fff7cf 0%,
+            #ffd369 22%,
+            #fbbf24 52%,
+            #f59e0b 76%,
+            #d97706 100%
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    filter:
+        drop-shadow(0 4px 0 rgba(120, 53, 15, 0.48))
+        drop-shadow(0 8px 20px rgba(245, 158, 11, 0.25));
+}
+
+
+/* hero buttons */
+
+.bb-hero-primary {
+    border: 1px solid rgba(216, 180, 254, 0.72);
+
+    color: white;
+
+    background:
+        linear-gradient(
+            100deg,
+            #7c3aed 0%,
+            #9333ea 46%,
+            #2563eb 100%
+        );
+
+    box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.25),
+        0 0 30px rgba(124, 58, 237, 0.40),
+        0 0 24px rgba(37, 99, 235, 0.24);
+
+    transition:
+        transform 180ms ease,
+        filter 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.bb-hero-primary:hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.1);
+
+    box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.35),
+        0 0 40px rgba(124, 58, 237, 0.52),
+        0 0 30px rgba(37, 99, 235, 0.30);
+}
+
+.bb-hero-secondary {
+    color: white;
+
+    border: 1px solid rgba(148, 163, 184, 0.42);
+
+    background: rgba(2, 6, 23, 0.48);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+    backdrop-filter: blur(12px);
+
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        background 180ms ease;
+}
+
+.bb-hero-secondary:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(192, 132, 252, 0.70);
+
+    background: rgba(124, 58, 237, 0.12);
+}
+
+
+/* feature strip, based on existing page copy */
+
+.bb-hero-benefit {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-height: 56px;
+
+    padding: 10px 14px;
+
+    border-top: 1px solid rgba(251, 191, 36, 0.16);
+}
+
+.bb-hero-benefit-icon {
+    display: flex;
+
+    flex: 0 0 auto;
+
+    width: 48px;
+    height: 48px;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    color: #fbbf24;
+
+    border: 1px solid rgba(251, 191, 36, 0.45);
+
+    background: rgba(120, 53, 15, 0.20);
+
+    box-shadow:
+        0 0 20px rgba(245, 158, 11, 0.12);
+}
+
+
+@keyframes bb-hero-float {
+
+    0%,
+    100% {
+        transform:
+            translate3d(0, 0, 0);
+    }
+
+
+    50% {
+        transform:
+            translate3d(0, -7px, 0);
+    }
+
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+    .bb-hero-copy-cycle,
+    .bb-marquee-enter-left,
+    .bb-marquee-enter-right,
+    .bb-feature-art-enter,
+    .bb-hero-feature-art {
+        animation: none !important;
+
+        opacity: 1 !important;
+
+        transform: none !important;
+    }
+
+}
+
+
+@media (max-width: 1279px) {
+    .bb-hero-marquee-left,
+    .bb-hero-marquee-right {
+        display: none;
+    }
+
+    .bb-hero-feature-art {
+        width: min(520px, 48vw);
+    }
+}
+
+
+@media (max-width: 1023px) {
+    .bb-casino-hero {
+        min-height: auto;
+    }
+
+    .bb-casino-hero-shade {
+        background:
+            linear-gradient(
+                180deg,
+                rgba(2, 6, 23, 0.54) 0%,
+                rgba(2, 6, 23, 0.78) 42%,
+                #020617 100%
+            );
+    }
+
+    .bb-hero-feature-art {
+        width: min(500px, 82vw);
+    }
+}
+
+
+@media (max-width: 640px) {
+    .bb-hero-feature-art {
+        width: min(390px, 92vw);
+    }
+
+    .bb-hero-title {
+        letter-spacing: -0.035em;
+    }
+}
+
+/* ============================================================
+   BRAHMABULL HERO — SMOOTH 5 SECOND VISUAL CYCLE
+   Synced visually with existing wire:poll.5000ms
+   ============================================================ */
+
+.bb-casino-hero {
+    --bb-hero-cycle-duration: 5s;
+}
+
+
+/* ============================================================
+   HERO COPY
+   ============================================================ */
+
+.bb-hero-copy-cycle {
+    opacity: 0;
+
+    will-change:
+        opacity,
+        transform;
+
+    animation:
+        bb-hero-copy-cycle
+        5s
+        linear
+        both;
+}
+
+
+@keyframes bb-hero-copy-cycle {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate3d(0, 14px, 0);
+
+        animation-timing-function:
+            cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+
+    16% {
+        opacity: 1;
+
+        transform:
+            translate3d(0, 0, 0);
+
+        animation-timing-function:
+            linear;
+    }
+
+
+    78% {
+        opacity: 1;
+
+        transform:
+            translate3d(0, 0, 0);
+
+        animation-timing-function:
+            cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+
+    100% {
+        opacity: 0;
+
+        transform:
+            translate3d(0, -8px, 0);
+    }
+}
+
+.bb-marquee-enter-left {
+    opacity: 0;
+
+    will-change:
+        opacity,
+        transform;
+
+    animation:
+        bb-marquee-left-enter
+        1.65s
+        cubic-bezier(0.16, 1, 0.3, 1)
+        100ms
+        forwards;
+}
+
+
+.bb-marquee-enter-right {
+    opacity: 0;
+
+    will-change:
+        opacity,
+        transform;
+
+    animation:
+        bb-marquee-right-enter
+        1.65s
+        cubic-bezier(0.16, 1, 0.3, 1)
+        100ms
+        forwards;
+}
+
+
+@keyframes bb-marquee-left-enter {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate3d(-24px, 5px, 0)
+            scale(0.985);
+    }
+
+
+    100% {
+        opacity: 0.82;
+
+        transform:
+            translate3d(0, 0, 0)
+            scale(1);
+    }
+}
+
+
+@keyframes bb-marquee-right-enter {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate3d(24px, 5px, 0)
+            scale(0.985);
+    }
+
+
+    100% {
+        opacity: 0.82;
+
+        transform:
+            translate3d(0, 0, 0)
+            scale(1);
+    }
+}
+
+.bb-feature-art-enter {
+    opacity: 0;
+
+    will-change:
+        opacity,
+        transform;
+
+    animation:
+        bb-feature-art-enter
+        1.8s
+        cubic-bezier(0.16, 1, 0.3, 1)
+        80ms
+        forwards;
+}
+
+
+@keyframes bb-feature-art-enter {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate3d(0, 26px, 0)
+            scale(0.97);
+    }
+
+
+    72% {
+        opacity: 1;
+
+        transform:
+            translate3d(0, -2px, 0)
+            scale(1.002);
+    }
+
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translate3d(0, 0, 0)
+            scale(1);
+    }
+}
+/* ============================================================
+   BRAHMABULL — TOP GAMES
+   ============================================================ */
+
+.bb-top-games-section {
+}
+
+
+/* slight separation without creating a visible hard border */
+
+.bb-top-games-section::before {
+    content: '';
+
+    position: absolute;
+    inset: 0 0 auto;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(139, 92, 246, 0.15),
+            rgba(59, 130, 246, 0.10),
+            transparent
+        );
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   SEE ALL
+   ============================================================ */
+
+.bb-top-games-see-all {
+    transition:
+        color 180ms ease,
+        transform 180ms ease,
+        text-shadow 180ms ease;
+}
+
+.bb-top-games-see-all:hover {
+    color: #e879f9;
+
+    transform: translateX(3px);
+
+    text-shadow:
+        0 0 14px rgba(217, 70, 239, 0.45);
+}
+
+
+/* ============================================================
+   SLIDER TRACK
+   ============================================================ */
+
+.bb-top-games-track {
+    gap: 1rem;
+
+    overflow-x: auto;
+    overflow-y: visible;
+
+    padding:
+        0.55rem
+        0.35rem
+        1rem;
+
+    scroll-snap-type:
+        x mandatory;
+
+    scrollbar-width:
+        none;
+
+    overscroll-behavior-inline:
+        contain;
+
+    -webkit-overflow-scrolling:
+        touch;
+
+    scroll-behavior:
+        smooth;
+}
+
+.bb-top-games-track::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* ============================================================
+   FOUR UNIFORM CARDS ON DESKTOP
+   ============================================================ */
+
+.bb-game-slide {
+    flex:
+        0
+        0
+        calc((100% - 3rem) / 4);
+
+    min-width: 0;
+
+    scroll-snap-align: start;
+
+}
+
+
+.bb-game-slide {
+    --bb-card-gold: 251, 191, 36;
+    --bb-card-blue: 59, 130, 246;
+    --bb-card-purple: 168, 85, 247;
+}
+
+
+/* ============================================================
+   GAME CARD
+   ============================================================ */
+
+.bb-game-card {
+    position: relative;
+
+    isolation: isolate;
+
+    width: 100%;
+
+    aspect-ratio: 5 / 6;
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    border: 1px solid transparent;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            #071022,
+            #071022
+        ) padding-box,
+
+        linear-gradient(
+            135deg,
+            rgba(var(--bb-card-gold), 0.95) 0%,
+            rgba(var(--bb-card-purple), 0.88) 48%,
+            rgba(var(--bb-card-blue), 1) 100%
+        ) border-box;
+
+    box-shadow:
+        0 15px 38px rgba(0, 0, 0, 0.48),
+
+        0 0 8px
+        rgba(var(--bb-card-gold), 0.24),
+
+        0 0 18px
+        rgba(var(--bb-card-purple), 0.20),
+
+        0 0 26px
+        rgba(var(--bb-card-blue), 0.16),
+
+        inset 0 0 20px
+        rgba(255, 255, 255, 0.025);
+
+    transform:
+        translate3d(0, 0, 0);
+
+    transition:
+        transform 500ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+
+        box-shadow 500ms ease,
+
+        filter 500ms ease;
+}
+
+
+.bb-game-card:hover {
+    transform:
+        translate3d(0, -7px, 0)
+        scale(1.012);
+
+    box-shadow:
+        0 22px 48px
+        rgba(0, 0, 0, 0.55),
+
+        0 0 11px
+        rgba(var(--bb-card-gold), 0.40),
+
+        0 0 25px
+        rgba(var(--bb-card-purple), 0.32),
+
+        0 0 38px
+        rgba(var(--bb-card-blue), 0.27),
+
+        inset 0 0 24px
+        rgba(255, 255, 255, 0.035);
+}
+
+
+/* ============================================================
+   IMAGE
+   ============================================================ */
+
+.bb-game-card-image {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: -4;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    transform:
+        scale(1.001);
+
+    transition:
+        transform 850ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+        filter 600ms ease;
+}
+
+
+.bb-game-card:hover .bb-game-card-image {
+    transform:
+        scale(1.065);
+
+    filter:
+        saturate(1.08)
+        contrast(1.03)
+        brightness(1.04);
+}
+
+
+/* ============================================================
+   IMAGE SHADING
+   ============================================================ */
+
+.bb-game-card-top-shade {
+    position: absolute;
+
+    inset:
+        0
+        0
+        auto;
+
+    z-index: 1;
+
+    height: 34%;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(2, 6, 23, 0.20),
+            transparent
+        );
+}
+
+
+.bb-game-card-bottom-shade {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 2;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            180deg,
+            transparent 30%,
+            rgba(2, 6, 23, 0.05) 44%,
+            rgba(2, 6, 23, 0.42) 61%,
+            rgba(2, 6, 23, 0.88) 79%,
+            rgba(2, 6, 23, 0.99) 100%
+        );
+}
+/* ============================================================
+   CONTENT
+   ============================================================ */
+
+.bb-game-card-content {
+    position: absolute;
+
+    z-index: 5;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding:
+        1.15rem
+        1.05rem
+        1.1rem;
+}
+
+.bb-game-card-title {
+    overflow: hidden;
+
+    color: #ffffff;
+
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size: 0.96rem;
+
+    font-weight: 900;
+
+    line-height: 1.2;
+
+    letter-spacing: 0.01em;
+
+    text-overflow: ellipsis;
+
+    text-transform: uppercase;
+
+    white-space: nowrap;
+
+    text-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.95),
+
+        0 0 12px
+        rgba(168, 85, 247, 0.10);
+}
+
+.bb-game-card-description {
+    overflow: hidden;
+
+    margin-top: 0.38rem;
+
+    color:
+        rgba(226, 232, 240, 0.78);
+
+    font-size: 0.74rem;
+
+    font-weight: 500;
+
+    line-height: 1.3;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    text-shadow:
+        0 2px 7px
+        rgba(0, 0, 0, 0.95);
+}
+
+.bb-game-card:hover
+.bb-game-card-description {
+    color: rgba(255, 255, 255, 0.94);
+}
+
+
+/* ============================================================
+   INNER BORDER HIGHLIGHT
+   ============================================================ */
+
+.bb-game-card-inner-edge {
+    position: absolute;
+
+    z-index: 8;
+
+    inset: 1px;
+
+    border-radius: 16px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    box-shadow:
+        inset
+        1px
+        1px
+        0
+        rgba(255, 255, 255, 0.12),
+
+        inset
+        -1px
+        -1px
+        0
+        rgba(59, 130, 246, 0.08),
+
+        inset
+        0
+        0
+        16px
+        rgba(168, 85, 247, 0.035);
+
+    pointer-events: none;
+}
+/* ============================================================
+   LIGHT SWEEP ON HOVER
+   ============================================================ */
+
+.bb-game-card-shine {
+    position: absolute;
+
+    z-index: 4;
+
+    top: -20%;
+    bottom: -20%;
+
+    left: -60%;
+
+    width: 38%;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transform:
+        skewX(-18deg)
+        translate3d(-170%, 0, 0);
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.10),
+            rgba(255, 255, 255, 0.18),
+            transparent
+        );
+
+    transition:
+        transform 950ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 300ms ease;
+}
+
+
+.bb-game-card:hover
+.bb-game-card-shine {
+    opacity: 1;
+
+    transform:
+        skewX(-18deg)
+        translate3d(520%, 0, 0);
+}
+
+
+/* ============================================================
+   TABLET — 3 FULL CARDS
+   ============================================================ */
+
+@media (max-width: 1023px) {
+
+    .bb-game-slide {
+        flex-basis:
+            calc((100% - 2rem) / 3);
+
+        min-width: 220px;
+    }
+
+}
+
+
+/* ============================================================
+   SMALL TABLET — 2 FULL CARDS
+   ============================================================ */
+
+@media (max-width: 767px) {
+
+    .bb-top-games-track {
+        gap: 0.85rem;
+    }
+
+
+    .bb-game-slide {
+        flex-basis:
+            calc((100% - 0.85rem) / 2);
+
+        min-width: 210px;
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE — LARGE SWIPEABLE CARD + NEXT-CARD PEEK
+   ============================================================ */
+
+@media (max-width: 639px) {
+
+    .bb-game-slide {
+        flex:
+            0
+            0
+            82%;
+
+        min-width: 238px;
+
+        max-width: 300px;
+    }
+
+
+    .bb-game-card-content {
+        padding:
+            0.9rem
+            0.9rem
+            1rem;
+    }
+
+
+    .bb-game-card-title {
+        font-size: 0.9rem;
+    }
+
+
+    .bb-game-card-description {
+        font-size: 0.72rem;
+    }
+
+}
+
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .bb-game-card,
+    .bb-game-card-image,
+    .bb-game-card-shine,
+    .bb-top-games-see-all {
+        transition: none !important;
+    }
+
+}
+
+
+.bb-top-games-fire {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 auto;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0 0 6px
+            rgba(249, 115, 22, 0.80)
+        )
+        drop-shadow(
+            0 0 13px
+            rgba(236, 72, 153, 0.40)
+        );
+
+    animation:
+        bb-top-games-fire-float
+        3.8s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes bb-top-games-fire-float {
+
+    0%,
+    100% {
+        transform:
+            translate3d(0, 0, 0)
+            rotate(-2deg);
+    }
+
+    50% {
+        transform:
+            translate3d(0, -3px, 0)
+            rotate(2deg);
+    }
+}
+
+/* ============================================================
+   TOP GAMES SLIDER CONTROLS
+   ============================================================ */
+
+.bb-games-slider {
+    position: relative;
+}
+
+
+/* footer underneath cards */
+
+.bb-games-slider-footer {
+    display: grid;
+
+    grid-template-columns:
+        auto
+        minmax(120px, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 1rem;
+
+    margin-top: 0.35rem;
+
+    padding:
+        0
+        0.25rem;
+}
+
+
+/* Drag / swipe label */
+
+.bb-games-slider-hint {
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.45rem;
+
+    color:
+        rgba(148, 163, 184, 0.72);
+
+    font-size: 0.72rem;
+
+    font-weight: 600;
+
+    letter-spacing: 0.025em;
+}
+
+
+/* Long subtle track */
+
+.bb-games-slider-progress {
+    position: relative;
+
+    overflow: hidden;
+
+    width: 100%;
+    height: 3px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(71, 85, 105, 0.35);
+
+    box-shadow:
+        inset
+        0
+        0
+        4px
+        rgba(0, 0, 0, 0.45);
+}
+
+
+/* colored progress */
+
+.bb-games-slider-progress-fill {
+    height: 100%;
+
+    min-width: 8%;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            #f59e0b 0%,
+            #d946ef 48%,
+            #3b82f6 100%
+        );
+
+    box-shadow:
+        0 0 8px
+        rgba(217, 70, 239, 0.65),
+
+        0 0 12px
+        rgba(59, 130, 246, 0.40);
+
+    transition:
+        width 180ms ease;
+}
+
+
+/* buttons wrapper */
+
+.bb-games-slider-buttons {
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.55rem;
+}
+
+
+/* previous / next */
+
+.bb-games-slider-button {
+    display: inline-flex;
+
+    width: 34px;
+    height: 34px;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(168, 85, 247, 0.42);
+
+    border-radius: 999px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(30, 41, 59, 0.74),
+            rgba(15, 23, 42, 0.90)
+        );
+
+    box-shadow:
+        0 0 12px
+        rgba(139, 92, 246, 0.10),
+
+        inset
+        0 1px 0
+        rgba(255, 255, 255, 0.06);
+
+    transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        background 220ms ease,
+        box-shadow 220ms ease,
+        opacity 220ms ease;
+}
+
+
+.bb-games-slider-button:hover:not(:disabled) {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(217, 70, 239, 0.78);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(126, 34, 206, 0.36),
+            rgba(37, 99, 235, 0.32)
+        );
+
+    box-shadow:
+        0 0 17px
+        rgba(168, 85, 247, 0.30),
+
+        0 0 12px
+        rgba(59, 130, 246, 0.18);
+}
+
+
+.bb-slider-button-disabled {
+    cursor: default;
+
+    opacity: 0.28;
+}
+@media (max-width: 639px) {
+
+    .bb-games-slider-footer {
+        grid-template-columns:
+            1fr
+            auto;
+
+        gap: 0.8rem;
+    }
+
+
+    .bb-games-slider-hint {
+        display: none;
+    }
+
+
+    .bb-games-slider-progress {
+        width: 100%;
+    }
+
+
+    .bb-top-games-fire {
+        width: 30px;
+        height: 30px;
+    }
+
+}
+
+.bg-top-games{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    opacity: 0.3;
+}
+
+
+/* ============================================================
+   BRAHMABULL — ABOUT SECTION
+   ============================================================ */
+
+.bb-about-section {
+    position: relative;
+
+    background:
+        linear-gradient(
+            180deg,
+            #020617 0%,
+            #03091d 50%,
+            #020617 100%
+        );
+}
+
+
+.bb-about-shell {
+    position: relative;
+
+    isolation: isolate;
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        rgba(59, 130, 246, 0.30);
+
+    border-radius: 24px;
+
+    background:
+        rgba(3, 9, 29, 0.94);
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.45),
+
+        0 0 28px rgba(37, 99, 235, 0.07),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.035);
+}
+
+
+/* ============================================================
+   ABOUT BACKGROUND
+   ============================================================ */
+
+.bb-about-background {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: -4;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    opacity: 0.34;
+
+    filter:
+        saturate(1.10)
+        contrast(1.05);
+
+    pointer-events: none;
+}
+
+
+.bb-about-background-shade {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: -3;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(2, 6, 23, 0.24) 0%,
+            rgba(2, 6, 23, 0.82) 34%,
+            rgba(2, 6, 23, 0.93) 59%,
+            rgba(2, 6, 23, 0.88) 100%
+        );
+}
+
+
+/* ============================================================
+   TROPHY
+   ============================================================ */
+
+.bb-about-trophy-column {
+    position: relative;
+
+    display: flex;
+
+    min-height: 430px;
+
+    align-items: flex-end;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+
+.bb-about-trophy-column::after {
+    content: '';
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 35%;
+
+    z-index: -1;
+
+    background:
+        linear-gradient(
+            0deg,
+            rgba(2, 6, 23, 0.80),
+            transparent
+        );
+
+    pointer-events: none;
+}
+
+
+.bb-about-trophy-glow {
+    position: absolute;
+
+    left: 50%;
+    bottom: 14%;
+
+    width: 280px;
+    height: 280px;
+
+    border-radius: 50%;
+
+    transform:
+        translateX(-50%);
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(245, 158, 11, 0.21) 0%,
+            rgba(217, 70, 239, 0.12) 35%,
+            rgba(59, 130, 246, 0.07) 55%,
+            transparent 73%
+        );
+
+    filter: blur(24px);
+
+    pointer-events: none;
+}
+
+
+.bb-about-trophy {
+    position: relative;
+
+    z-index: 2;
+
+    height: 100%;
+
+    object-fit: cover;
+
+
+
+
+    filter:
+        drop-shadow(
+            0 20px 28px
+            rgba(0, 0, 0, 0.50)
+        )
+
+        drop-shadow(
+            0 0 19px
+            rgba(245, 158, 11, 0.17)
+        )
+
+        drop-shadow(
+            0 0 15px
+            rgba(168, 85, 247, 0.14)
+        );
+
+    transition:
+        transform 700ms
+        cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+.bb-about-shell:hover
+.bb-about-trophy {
+    transform:
+        translateY(2px)
+        scale(1.012);
+}
+
+
+/* ============================================================
+   CENTRAL ABOUT CONTENT
+   ============================================================ */
+
+.bb-about-content {
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    padding:
+        3rem
+        1.75rem
+        3rem
+        2.1rem;
+}
+
+
+.bb-about-title {
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size:
+        clamp(
+            1.65rem,
+            2.15vw,
+            2.25rem
+        );
+
+    font-weight: 900;
+
+    line-height: 1.15;
+
+    letter-spacing:
+        -0.035em;
+}
+
+
+.bb-about-title-accent {
+    color: transparent;
+
+    background:
+        linear-gradient(
+            90deg,
+            #f0abfc 0%,
+            #d946ef 48%,
+            #a855f7 100%
+        );
+
+    -webkit-background-clip:
+        text;
+
+    background-clip:
+        text;
+
+    filter:
+        drop-shadow(
+            0
+            0
+            14px
+            rgba(217, 70, 239, 0.16)
+        );
+}
+
+
+.bb-about-title-line {
+    width: 72px;
+    height: 2px;
+
+    margin-top: 1rem;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #f59e0b,
+            #d946ef,
+            transparent
+        );
+}
+
+
+/* ============================================================
+   BENEFIT LIST
+   ============================================================ */
+
+.bb-about-benefits {
+    display: grid;
+
+    gap: 0.82rem;
+
+    margin-top: 1.55rem;
+}
+
+
+.bb-about-benefits li {
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.78rem;
+
+    color:
+        rgba(241, 245, 249, 0.93);
+
+    font-size: 0.92rem;
+
+    font-weight: 500;
+
+    line-height: 1.35;
+}
+
+
+.bb-about-check {
+    display: inline-flex;
+
+    flex: 0 0 auto;
+
+    width: 31px;
+    height: 31px;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid
+        rgba(216, 180, 254, 0.42);
+
+    border-radius: 999px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            145deg,
+            #d946ef,
+            #7c3aed 55%,
+            #2563eb
+        );
+
+    box-shadow:
+        0 0 13px
+        rgba(168, 85, 247, 0.34),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.22);
+}
+
+
+.bb-about-check svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+/* ============================================================
+   STAT GRID
+   ============================================================ */
+
+.bb-about-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    align-content: center;
+
+    gap: 1.25rem;
+
+    padding:
+        3rem
+        2rem
+        3rem
+        1rem;
+}
+
+
+.bb-about-stat-card {
+    position: relative;
+
+    overflow: hidden;
+
+    min-height: 160px;
+
+    padding:
+        1.45rem
+        1.4rem;
+
+    border:
+        1px solid
+        rgba(168, 85, 247, 0.57);
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(76, 29, 149, 0.17),
+            rgba(15, 23, 42, 0.74) 50%,
+            rgba(30, 64, 175, 0.12)
+        );
+
+    box-shadow:
+        0 12px 30px
+        rgba(0, 0, 0, 0.25),
+
+        0 0 14px
+        rgba(168, 85, 247, 0.09),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.045);
+
+    transition:
+        transform 380ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+
+        border-color 380ms ease,
+
+        box-shadow 380ms ease;
+}
+
+
+.bb-about-stat-card::after {
+    content: '';
+
+    position: absolute;
+
+    width: 7px;
+    height: 7px;
+
+    right: 15px;
+    bottom: 15px;
+
+    border-radius: 50%;
+
+    background:
+        #a855f7;
+
+    box-shadow:
+        0 0 6px #a855f7,
+        0 0 13px #2563eb;
+}
+
+
+.bb-about-stat-card:hover {
+    transform:
+        translateY(-5px);
+
+    border-color:
+        rgba(96, 165, 250, 0.75);
+
+    box-shadow:
+        0 18px 36px
+        rgba(0, 0, 0, 0.32),
+
+        0 0 22px
+        rgba(168, 85, 247, 0.18),
+
+        0 0 17px
+        rgba(37, 99, 235, 0.13);
+}
+
+
+.bb-about-stat-icon {
+    width: 38px;
+    height: 38px;
+
+    color: #d946ef;
+
+    filter:
+        drop-shadow(
+            0
+            0
+            9px
+            rgba(217, 70, 239, 0.42)
+        );
+}
+
+
+.bb-about-stat-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+
+.bb-about-stat-value {
+    margin-top: 0.75rem;
+
+    color: white;
+
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size: 1.85rem;
+
+    font-weight: 900;
+
+    line-height: 1;
+
+    letter-spacing:
+        -0.035em;
+
+    text-shadow:
+        0
+        3px
+        12px
+        rgba(0, 0, 0, 0.65);
+}
+
+
+.bb-about-stat-label {
+    margin-top: 0.42rem;
+
+    color:
+        rgba(226, 232, 240, 0.87);
+
+    font-size: 0.9rem;
+
+    font-weight: 500;
+}
+
+
+/* ============================================================
+   BRAHMABULL — CTA
+   ============================================================ */
+
+.bb-cta-section {
+    position: relative;
+
+    background:
+        #020617;
+}
+
+
+.bb-cta-shell {
+    position: relative;
+
+    isolation: isolate;
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        rgba(217, 70, 239, 0.72);
+
+    border-radius: 23px;
+
+    background:
+        #050817;
+
+    box-shadow:
+        0 20px 55px
+        rgba(0, 0, 0, 0.42),
+
+        -8px 0 25px
+        rgba(168, 85, 247, 0.14),
+
+        8px 0 25px
+        rgba(236, 72, 153, 0.12),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.04);
+}
+
+
+.bb-cta-shell::before {
+    content: '';
+
+    position: absolute;
+
+    inset: -1px;
+
+    z-index: 3;
+
+    border-radius: inherit;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(168, 85, 247, 0.82),
+            rgba(59, 130, 246, 0.45) 35%,
+            rgba(217, 70, 239, 0.52) 70%,
+            rgba(244, 63, 94, 0.82)
+        );
+
+    padding: 1px;
+
+    -webkit-mask:
+        linear-gradient(#fff 0 0)
+        content-box,
+
+        linear-gradient(#fff 0 0);
+
+    -webkit-mask-composite:
+        xor;
+
+    mask-composite:
+        exclude;
+}
+
+
+/* ============================================================
+   CTA BACKGROUND
+   ============================================================ */
+
+.bb-cta-background {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: -4;
+
+    width: 100%;
+    height: 100%;
+    opacity: 0.4;
+    object-fit: cover;
+    object-position: center;
+
+    pointer-events: none;
+
+    filter:
+        saturate(1.08)
+        contrast(1.04);
+}
+
+
+.bb-cta-background-shade {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: -3;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(2, 6, 23, 0.04) 0%,
+            rgba(2, 6, 23, 0.45) 28%,
+            rgba(2, 6, 23, 0.56) 50%,
+            rgba(2, 6, 23, 0.40) 72%,
+            rgba(2, 6, 23, 0.08) 100%
+        );
+}
+
+
+/* ============================================================
+   CTA CONTENT
+   ============================================================ */
+
+.bb-cta-content {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    text-align: center;
+}
+
+
+.bb-cta-title {
+    color: transparent;
+
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size:
+        clamp(
+            2rem,
+            3.6vw,
+            3.7rem
+        );
+
+    font-weight: 900;
+
+    font-style: italic;
+
+    line-height: 1.05;
+
+    letter-spacing:
+        -0.045em;
+
+    background:
+        linear-gradient(
+            90deg,
+            #fbbf24 0%,
+            #fff7c2 18%,
+            #ffffff 39%,
+            #e879f9 62%,
+            #ffffff 82%,
+            #60a5fa 100%
+        );
+
+    -webkit-background-clip:
+        text;
+
+    background-clip:
+        text;
+
+    filter:
+        drop-shadow(
+            0
+            3px
+            0
+            rgba(120, 53, 15, 0.32)
+        )
+
+        drop-shadow(
+            0
+            0
+            14px
+            rgba(217, 70, 239, 0.24)
+        );
+}
+
+
+.bb-cta-description {
+    max-width: 700px;
+
+    margin-top: 1rem;
+
+    color:
+        rgba(241, 245, 249, 0.92);
+
+    font-size:
+        clamp(
+            0.88rem,
+            1.2vw,
+            1rem
+        );
+
+    font-weight: 500;
+
+    line-height: 1.55;
+
+    text-shadow:
+        0
+        2px
+        8px
+        rgba(0, 0, 0, 0.75);
+}
+
+
+/* ============================================================
+   CTA BUTTON
+   ============================================================ */
+
+.bb-cta-button {
+    display: inline-flex;
+
+    min-width:
+        min(
+            430px,
+            100%
+        );
+
+    min-height: 65px;
+
+    margin-top: 1.75rem;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 0.85rem;
+
+    padding:
+        0.9rem
+        2rem;
+
+    border:
+        1px solid
+        rgba(216, 180, 254, 0.84);
+
+    border-radius: 17px;
+
+    color: white;
+
+    font-size: 0.96rem;
+
+    font-weight: 900;
+
+    background:
+        linear-gradient(
+            100deg,
+            #d946ef 0%,
+            #9333ea 29%,
+            #6d28d9 51%,
+            #2563eb 77%,
+            #0ea5e9 100%
+        );
+
+    box-shadow:
+        0 0 0
+        1px
+        rgba(168, 85, 247, 0.22),
+
+        0 0 25px
+        rgba(217, 70, 239, 0.38),
+
+        0 0 30px
+        rgba(37, 99, 235, 0.32),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.25);
+
+    transition:
+        transform 350ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+
+        filter 350ms ease,
+
+        box-shadow 350ms ease;
+}
+
+
+.bb-cta-button svg {
+    width: 24px;
+    height: 24px;
+
+    flex: 0 0 auto;
+}
+
+
+.bb-cta-button-arrow {
+    font-size: 1.35rem;
+
+    transition:
+        transform 300ms
+        cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+.bb-cta-button:hover {
+    transform:
+        translateY(-3px);
+
+    filter:
+        brightness(1.08);
+
+    box-shadow:
+        0 0 0
+        1px
+        rgba(216, 180, 254, 0.35),
+
+        0 0 36px
+        rgba(217, 70, 239, 0.50),
+
+        0 0 40px
+        rgba(37, 99, 235, 0.42),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.30);
+}
+
+
+.bb-cta-button:hover
+.bb-cta-button-arrow {
+    transform:
+        translateX(5px);
+}
+
+
+/* ============================================================
+   CTA BENEFITS — RIGHT SIDE
+   ============================================================ */
+
+.bb-cta-benefits {
+    display: grid;
+
+    gap: 1.1rem;
+
+    align-self: center;
+}
+
+
+.bb-cta-benefit {
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.75rem;
+
+    color: white;
+
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size: 0.82rem;
+
+    font-weight: 900;
+
+    white-space: nowrap;
+
+    text-shadow:
+        0
+        2px
+        10px
+        rgba(0, 0, 0, 0.82);
+}
+
+
+.bb-cta-benefit-check {
+    display: inline-flex;
+
+    width: 37px;
+    height: 37px;
+
+    flex: 0 0 auto;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        2px solid
+        rgba(251, 191, 36, 0.80);
+
+    border-radius: 999px;
+
+    color: #fff7c2;
+
+    font-size: 1.05rem;
+
+    font-weight: 900;
+
+    background:
+        rgba(120, 53, 15, 0.18);
+
+    box-shadow:
+        0
+        0
+        10px
+        rgba(245, 158, 11, 0.50),
+
+        inset
+        0
+        0
+        8px
+        rgba(245, 158, 11, 0.12);
+}
+
+/* ============================================================
+   ABOUT + CTA RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1023px) {
+
+    .bb-about-background-shade {
+        background:
+            linear-gradient(
+                180deg,
+                rgba(2, 6, 23, 0.38),
+                rgba(2, 6, 23, 0.90) 43%,
+                rgba(2, 6, 23, 0.95)
+            );
+    }
+
+
+    .bb-about-trophy-column {
+        min-height: 350px;
+    }
+
+
+    .bb-about-trophy {
+        width:
+            min(
+                400px,
+                90%
+            );
+
+        max-height: 350px;
+    }
+
+
+    .bb-about-content {
+        padding:
+            2rem
+            2rem;
+    }
+
+
+    .bb-about-stats {
+        padding:
+            1rem
+            2rem
+            2.5rem;
+    }
+
+
+    .bb-cta-benefits {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(0, 1fr)
+            );
+
+        width: 100%;
+
+        margin-top: 0.5rem;
+    }
+
+
+    .bb-cta-benefit {
+        justify-content: center;
+
+        white-space: normal;
+
+        text-align: center;
+    }
+
+}
+
+
+@media (max-width: 639px) {
+
+    .bb-about-shell,
+    .bb-cta-shell {
+        border-radius: 18px;
+    }
+
+
+    .bb-about-trophy-column {
+        min-height: 285px;
+    }
+
+
+    .bb-about-trophy {
+        width:
+            min(
+                330px,
+                96%
+            );
+
+        max-height: 290px;
+    }
+
+
+    .bb-about-content {
+        padding:
+            1.6rem
+            1.25rem;
+    }
+
+
+    .bb-about-benefits {
+        gap: 0.7rem;
+    }
+
+
+    .bb-about-benefits li {
+        font-size: 0.82rem;
+    }
+
+
+    .bb-about-check {
+        width: 27px;
+        height: 27px;
+    }
+
+
+    .bb-about-check svg {
+        width: 13px;
+        height: 13px;
+    }
+
+
+    .bb-about-stats {
+        gap: 0.85rem;
+
+        padding:
+            0.5rem
+            1.25rem
+            1.5rem;
+    }
+
+
+    .bb-about-stat-card {
+        min-height: 135px;
+
+        padding:
+            1.1rem;
+    }
+
+
+    .bb-about-stat-icon {
+        width: 31px;
+        height: 31px;
+    }
+
+
+    .bb-about-stat-value {
+        font-size: 1.45rem;
+    }
+
+
+    .bb-about-stat-label {
+        font-size: 0.76rem;
+    }
+
+
+    .bb-cta-background {
+        object-position: center;
+    }
+
+
+    .bb-cta-benefits {
+        grid-template-columns: 1fr;
+
+        gap: 0.7rem;
+    }
+
+
+    .bb-cta-benefit {
+        justify-content: flex-start;
+
+        width: max-content;
+
+        margin-inline: auto;
+    }
+
+
+    .bb-cta-benefit-check {
+        width: 31px;
+        height: 31px;
+
+        font-size: 0.9rem;
+    }
+
+
+    .bb-cta-button {
+        min-height: 58px;
+
+        padding:
+            0.8rem
+            1.3rem;
+    }
+
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+    .bb-about-trophy,
+    .bb-about-stat-card,
+    .bb-cta-button,
+    .bb-cta-button-arrow {
+        transition: none !important;
+    }
+
+}
+/* ============================================================
+   BRAHMABULL — PREMIUM CASINO FOOTER
+   UI ONLY
+   ============================================================ */
+
+.bb-footer {
+    position: relative;
+
+    isolation: isolate;
+
+    overflow: hidden;
+
+    padding:
+        4.5rem
+        0
+        1.35rem;
+
+    border-top:
+        1px solid
+        rgba(59, 130, 246, 0.16);
+
+    background:
+        linear-gradient(
+            180deg,
+            #020617 0%,
+            #02071a 45%,
+            #010412 100%
+        );
+}
+
+
+/* ============================================================
+   CINEMATIC BACKGROUND
+   reuses existing generated casino artwork
+   ============================================================ */
+
+.bb-footer-background {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: -5;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            180deg,
+            rgba(2, 6, 23, 0.80) 0%,
+            rgba(2, 6, 23, 0.91) 42%,
+            rgba(2, 6, 23, 0.98) 100%
+        ),
+        url('/images/ui/casino/about-bg.png');
+
+    background-size:
+        cover;
+
+    background-position:
+        center bottom;
+
+    opacity: 0.66;
+
+    filter:
+        saturate(1.1)
+        contrast(1.04);
+}
+
+
+/* purple / blue atmosphere on edges */
+
+.bb-footer-glow {
+    position: absolute;
+
+    z-index: -3;
+
+    width: 350px;
+    height: 350px;
+
+    border-radius: 50%;
+
+    filter:
+        blur(115px);
+
+    pointer-events: none;
+}
+
+
+.bb-footer-glow-left {
+    left: -180px;
+    bottom: -110px;
+
+    background:
+        rgba(124, 58, 237, 0.17);
+}
+
+
+.bb-footer-glow-right {
+    right: -180px;
+    bottom: -120px;
+
+    background:
+        rgba(37, 99, 235, 0.14);
+}
+
+
+/* ============================================================
+   THREE-COLUMN FOOTER
+   ============================================================ */
+
+.bb-footer-main {
+    display: grid;
+
+    grid-template-columns:
+        0.88fr
+        1.25fr
+        0.87fr;
+
+    align-items: center;
+
+    gap: 3.5rem;
+}
+
+
+/* ============================================================
+   LEFT BRAND
+   ============================================================ */
+
+.bb-footer-brand {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+.bb-footer-logo {
+    width:
+        min(
+            230px,
+            100%
+        );
+
+    height: auto;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0
+            0
+            12px
+            rgba(168, 85, 247, 0.20)
+        )
+
+        drop-shadow(
+            0
+            0
+            16px
+            rgba(245, 158, 11, 0.10)
+        );
+}
+
+
+.bb-footer-tagline {
+    margin-top: -0.25rem;
+
+    color:
+        rgba(226, 232, 240, 0.68);
+
+    font-size: 0.72rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+}
+
+
+/* ============================================================
+   CENTER CONTACT
+   ============================================================ */
+
+.bb-footer-contact {
+    width: 100%;
+
+    max-width: 460px;
+
+    margin-inline: auto;
+}
+
+
+.bb-footer-heading {
+    margin-bottom: 1rem;
+
+    color: white;
+
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size: 0.82rem;
+
+    font-weight: 900;
+
+    letter-spacing:
+        0.08em;
+
+    text-align: center;
+
+    text-transform: uppercase;
+
+    text-shadow:
+        0
+        0
+        12px
+        rgba(168, 85, 247, 0.14);
+}
+
+
+/* ============================================================
+   GUEST EMAIL FORM
+   ============================================================ */
+
+.bb-footer-email-form {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    gap: 0.65rem;
+
+    width: 100%;
+}
+
+
+/* ============================================================
+   PLAYER / AGENT CONTACT FORM
+   ============================================================ */
+
+.bb-footer-message-form {
+    display: grid;
+
+    gap: 0.75rem;
+}
+
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+
+.bb-footer-input,
+.bb-footer-textarea {
+    width: 100%;
+
+    border:
+        1px solid
+        rgba(71, 85, 105, 0.62);
+
+    border-radius: 10px;
+
+    outline: none;
+
+    color: white;
+
+    background:
+        rgba(8, 15, 36, 0.76);
+
+    box-shadow:
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.025);
+
+    backdrop-filter:
+        blur(12px);
+
+    -webkit-backdrop-filter:
+        blur(12px);
+
+    transition:
+        border-color 220ms ease,
+        background 220ms ease,
+        box-shadow 220ms ease;
+}
+
+
+.bb-footer-input {
+    min-height: 47px;
+
+    padding:
+        0
+        1rem;
+
+    font-size: 0.82rem;
+}
+
+
+.bb-footer-textarea {
+    min-height: 92px;
+
+    resize: vertical;
+
+    padding:
+        0.85rem
+        1rem;
+
+    font-size: 0.82rem;
+
+    line-height: 1.45;
+}
+
+
+.bb-footer-input::placeholder,
+.bb-footer-textarea::placeholder {
+    color:
+        rgba(148, 163, 184, 0.66);
+}
+
+
+.bb-footer-input:focus,
+.bb-footer-textarea:focus {
+    border-color:
+        rgba(168, 85, 247, 0.72);
+
+    background:
+        rgba(15, 23, 42, 0.90);
+
+    box-shadow:
+        0
+        0
+        0
+        3px
+        rgba(139, 92, 246, 0.08),
+
+        0
+        0
+        17px
+        rgba(139, 92, 246, 0.10);
+}
+
+
+/* ============================================================
+   SEND BUTTON
+   ============================================================ */
+
+.bb-footer-send-button {
+    display: inline-flex;
+
+    min-width: 100px;
+    min-height: 47px;
+
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        0.7rem
+        1.5rem;
+
+    border:
+        1px solid
+        rgba(216, 180, 254, 0.45);
+
+    border-radius: 10px;
+
+    color: white;
+
+    font-size: 0.8rem;
+
+    font-weight: 900;
+
+    background:
+        linear-gradient(
+            100deg,
+            #9333ea 0%,
+            #7c3aed 46%,
+            #2563eb 100%
+        );
+
+    box-shadow:
+        0
+        0
+        18px
+        rgba(124, 58, 237, 0.27),
+
+        0
+        0
+        12px
+        rgba(37, 99, 235, 0.17),
+
+        inset
+        0
+        1px
+        0
+        rgba(255, 255, 255, 0.16);
+
+    transition:
+        transform 250ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+
+        filter 250ms ease,
+
+        box-shadow 250ms ease;
+}
+
+
+.bb-footer-send-button:hover:not(:disabled) {
+    transform:
+        translateY(-2px);
+
+    filter:
+        brightness(1.10);
+
+    box-shadow:
+        0
+        0
+        25px
+        rgba(168, 85, 247, 0.38),
+
+        0
+        0
+        17px
+        rgba(37, 99, 235, 0.25);
+}
+
+
+.bb-footer-send-button-full {
+    width: 100%;
+}
+
+
+/* ============================================================
+   RIGHT COMPANY INFO
+   ============================================================ */
+
+.bb-footer-company {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    justify-content: center;
+
+    text-align: right;
+}
+
+
+.bb-footer-company-name {
+    color: white;
+
+    font-family:
+        'Montserrat',
+        sans-serif;
+
+    font-size: 0.79rem;
+
+    font-weight: 900;
+
+    letter-spacing:
+        0.055em;
+
+    text-transform: uppercase;
+}
+
+
+.bb-footer-company-tagline {
+    margin-top: 0.25rem;
+
+    color:
+        rgba(226, 232, 240, 0.72);
+
+    font-size: 0.72rem;
+
+    font-weight: 600;
+}
+
+
+.bb-footer-address {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: flex-end;
+
+    gap: 0.55rem;
+
+    margin-top: 0.8rem;
+
+    color:
+        rgba(203, 213, 225, 0.72);
+
+    font-size: 0.7rem;
+
+    font-weight: 500;
+
+    line-height: 1.5;
+}
+
+
+.bb-footer-location-icon {
+    display: inline-flex;
+
+    width: 18px;
+    height: 18px;
+
+    flex: 0 0 auto;
+
+    color: white;
+
+    margin-top: 1px;
+}
+
+
+.bb-footer-location-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* ============================================================
+   SUCCESS + ERROR
+   ============================================================ */
+
+.bb-footer-error {
+    margin-top: 0.55rem;
+
+    color: #f87171;
+
+    font-size: 0.75rem;
+}
+
+
+.bb-footer-success {
+    margin-top: 0.7rem;
+
+    padding:
+        0.8rem
+        1rem;
+
+    border:
+        1px solid
+        rgba(34, 197, 94, 0.30);
+
+    border-radius: 10px;
+
+    color: #86efac;
+
+    background:
+        rgba(34, 197, 94, 0.08);
+
+    font-size: 0.75rem;
+}
+
+
+/* ============================================================
+   BOTTOM
+   ============================================================ */
+
+.bb-footer-bottom {
+    margin-top: 3rem;
+}
+
+
+.bb-footer-bottom-line {
+    width: 100%;
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(71, 85, 105, 0.32) 15%,
+            rgba(139, 92, 246, 0.20) 50%,
+            rgba(71, 85, 105, 0.32) 85%,
+            transparent 100%
+        );
+}
+
+
+.bb-footer-copyright {
+    margin-top: 1rem;
+
+    color:
+        rgba(148, 163, 184, 0.65);
+
+    font-size: 0.67rem;
+
+    font-weight: 500;
+
+    text-align: center;
+}
+
+/* ============================================================
+   FOOTER RESPONSIVE
+   Desktop = 3 columns
+   Tablet/mobile = natural stacked layout
+   ============================================================ */
+
+
+/* ============================================================
+   TABLET AND BELOW
+   ============================================================ */
+
+@media (max-width: 1023px) {
+
+    .bb-footer {
+        padding:
+            3.5rem
+            0
+            1.25rem;
+    }
+
+
+    /*
+     * STOP using desktop columns.
+     * Each footer section gets its own full row.
+     */
+    .bb-footer-main {
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 2rem;
+    }
+
+
+    /* =========================
+       LOGO
+       ========================= */
+
+    .bb-footer-brand {
+        width: 100%;
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: center;
+
+        justify-content: center;
+
+        text-align: center;
+    }
+
+
+    .bb-footer-logo {
+        width: 220px;
+        max-width: 82vw;
+
+        height: auto;
+    }
+
+
+    .bb-footer-tagline {
+        margin-top: 0.2rem;
+
+        font-size: 0.7rem;
+
+        letter-spacing: 0.08em;
+    }
+
+
+    /* =========================
+       CONTACT AREA
+       ========================= */
+
+    .bb-footer-contact {
+        width: 100%;
+
+        max-width: 400px;
+
+        margin-inline: auto;
+
+        text-align: center;
+    }
+
+
+    .bb-footer-heading {
+        margin-bottom: 0.9rem;
+
+        font-size: 0.78rem;
+
+        letter-spacing: 0.05em;
+
+        text-align: center;
+    }
+
+
+    /*
+     * Guest input + send stay SIDE BY SIDE
+     * exactly like screenshot.
+     */
+    .bb-footer-email-form {
+        display: grid;
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto;
+
+        gap: 0.55rem;
+
+        width: 100%;
+    }
+
+
+    .bb-footer-input {
+        min-width: 0;
+
+        min-height: 46px;
+
+        padding:
+            0
+            0.9rem;
+
+        font-size: 0.8rem;
+    }
+
+
+    .bb-footer-textarea {
+        min-height: 90px;
+
+        padding:
+            0.8rem
+            0.9rem;
+
+        font-size: 0.8rem;
+    }
+
+
+    .bb-footer-send-button {
+        width: auto;
+
+        min-width: 84px;
+        min-height: 46px;
+
+        padding:
+            0.7rem
+            1.15rem;
+
+        font-size: 0.78rem;
+    }
+
+
+    .bb-footer-send-button-full {
+        width: 100%;
+    }
+
+
+    /* =========================
+       COMPANY
+       ========================= */
+
+    .bb-footer-company {
+        width: 100%;
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: center;
+
+        justify-content: center;
+
+        text-align: center;
+    }
+
+
+    .bb-footer-company-name {
+        font-size: 0.78rem;
+
+        line-height: 1.3;
+
+        text-align: center;
+    }
+
+
+    .bb-footer-company-tagline {
+        margin-top: 0.15rem;
+
+        font-size: 0.7rem;
+
+        text-align: center;
+    }
+
+
+    .bb-footer-address {
+        justify-content: center;
+
+        margin-top: 0.55rem;
+
+        font-size: 0.68rem;
+
+        line-height: 1.45;
+
+        text-align: left;
+    }
+
+
+    .bb-footer-location-icon {
+        width: 15px;
+        height: 15px;
+
+        margin-top: 1px;
+    }
+
+
+    /* =========================
+       COPYRIGHT
+       ========================= */
+
+    .bb-footer-bottom {
+        margin-top: 2.25rem;
+    }
+
+
+    .bb-footer-copyright {
+        margin-top: 1rem;
+
+        font-size: 0.65rem;
+
+        text-align: center;
+    }
+
+}
+
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 639px) {
+
+    .bb-footer {
+        padding:
+            3rem
+            0
+            1.1rem;
+    }
+
+
+    .bb-footer-main {
+        gap: 1.85rem;
+    }
+
+
+    /* Keep logo prominent — DO NOT shrink it tiny */
+
+    .bb-footer-logo {
+        width: 205px;
+
+        max-width: 78vw;
+    }
+
+
+    .bb-footer-tagline {
+        font-size: 0.66rem;
+    }
+
+
+    /* Contact width similar to screenshot */
+
+    .bb-footer-contact {
+        max-width: 300px;
+    }
+
+
+    .bb-footer-heading {
+        margin-bottom: 0.8rem;
+
+        font-size: 0.73rem;
+    }
+
+
+    /*
+     * Keep email and Send horizontally aligned.
+     */
+    .bb-footer-email-form {
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto;
+
+        gap: 0.5rem;
+    }
+
+
+    .bb-footer-input {
+        min-height: 39px;
+
+        padding:
+            0
+            0.75rem;
+
+        border-radius: 9px;
+
+        font-size: 0.7rem;
+    }
+
+
+    .bb-footer-send-button {
+        min-width: 64px;
+        min-height: 39px;
+
+        padding:
+            0.55rem
+            0.85rem;
+
+        border-radius: 9px;
+
+        font-size: 0.7rem;
+    }
+
+
+    /*
+     * Player/Agent subject + message stay naturally vertical.
+     */
+    .bb-footer-message-form {
+        gap: 0.65rem;
+    }
+
+
+    .bb-footer-textarea {
+        min-height: 82px;
+
+        padding:
+            0.7rem
+            0.75rem;
+
+        border-radius: 9px;
+
+        font-size: 0.7rem;
+    }
+
+
+    .bb-footer-company-name {
+        font-size: 0.72rem;
+    }
+
+
+    .bb-footer-company-tagline {
+        font-size: 0.65rem;
+    }
+
+
+    .bb-footer-address {
+        margin-top: 0.45rem;
+
+        font-size: 0.61rem;
+
+        line-height: 1.45;
+    }
+
+
+    .bb-footer-location-icon {
+        width: 13px;
+        height: 13px;
+    }
+
+
+    .bb-footer-bottom {
+        margin-top: 2rem;
+    }
+
+
+    .bb-footer-copyright {
+        margin-top: 0.9rem;
+
+        font-size: 0.59rem;
+    }
+
+}
+
+
+
+/* ============================================================
+   VERY SMALL PHONES
+   still stacked — only modest reductions
+   ============================================================ */
+
+@media (max-width: 390px) {
+
+    .bb-footer-logo {
+        width: 190px;
+    }
+
+
+    .bb-footer-contact {
+        max-width: 280px;
+    }
+
+
+    .bb-footer-email-form {
+        gap: 0.4rem;
+    }
+
+
+    .bb-footer-send-button {
+        min-width: 60px;
+
+        padding-inline: 0.7rem;
+    }
+
+}
+
+.bb-login-bg{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index:-1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position:  center;
+}
