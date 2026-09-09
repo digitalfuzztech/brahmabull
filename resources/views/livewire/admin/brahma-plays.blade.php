@@ -75,7 +75,7 @@
                                         @if(auth()->user()?->hasRole('admin'))
                                             <button wire:click="openModal({{ $play->id }})" class="rounded-lg bg-purple-600 px-3 py-1">Edit</button>
                                         @else
-                                            <span class="rounded-lg bg-green-700 px-3 py-1">Verified</span>
+                                            <span class="rounded-lg bg-green-700 px-3 py-1">Processed</span>
                                         @endif
                                     @elseif($play->status === 'rejected')
                                         @if(auth()->user()?->hasRole('admin'))
@@ -118,6 +118,14 @@
                     <p>Current Brahma Balance: ${{ number_format((float) $selectedPlay->user?->fresh()?->brahma_balance, 2) }}</p>
                     <p>Game: {{ $selectedPlay->game?->name }}</p>
                     <p>Points to Load: {{ number_format((float) $selectedPlay->points_to_load, 2) }} <span class="text-sm text-slate-400">(player requested)</span></p>
+                    <section class="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm">
+                        <p class="font-bold text-amber-200">Promotional Bonus Reminder</p>
+                        <p class="mt-2">Requested / Play Amount: {{ number_format((float) $selectedPlay->points_to_load, 2) }}</p>
+                        <p>Pending Promotional Bonus: {{ number_format($pendingPromotionalBonus) }}</p>
+                        <p class="text-amber-100">Promotional Total Reference: {{ number_format((float) $selectedPlay->points_to_load + $pendingPromotionalBonus, 2) }}</p>
+                        <p class="mt-1 text-xs text-slate-400">Informational only. This does not alter the request or Brahma Balance debit.</p>
+                        @error('bonus') <p class="mt-2 text-red-300">{{ $message }}</p> @enderror
+                    </section>
 
                     @if($selectedPlay->debited_at)
                         <p>Status: <span class="font-semibold text-green-400">Verified (financially applied)</span></p>
@@ -155,8 +163,8 @@
 
                 <div class="flex justify-end gap-3 border-t border-slate-800 p-5">
                     @php($playSaveMethod = auth()->user()?->hasRole('admin') ? 'adminProcessPlay' : 'processPlay')
-                    <button wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
-                    <button wire:click="{{ $playSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $playSaveMethod }}" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
+                    <button type="button" wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
+                    <button type="button" wire:click="{{ $playSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $playSaveMethod }}" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
                         <span wire:loading.remove wire:target="{{ $playSaveMethod }}">Save</span>
                         <span wire:loading wire:target="{{ $playSaveMethod }}">Processing...</span>
                     </button>

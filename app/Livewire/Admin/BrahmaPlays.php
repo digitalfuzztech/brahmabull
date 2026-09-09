@@ -8,6 +8,7 @@ use App\Models\Game;
 use App\Models\GameAccount;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\Spin\SpinBonusService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,14 +22,23 @@ class BrahmaPlays extends Component
     protected $paginationTheme = 'tailwind';
 
     public $selectedPlay = null;
+
     public $status = 'pending';
+
     public $game_username = '';
+
     public $game_password = '';
+
     public $rejection_note = '';
 
+    public int $pendingPromotionalBonus = 0;
+
     public $search = '';
+
     public $searchDate = '';
+
     public $gameFilter = '';
+
     public $statusFilter = '';
 
     public function getPlaysProperty()
@@ -72,11 +82,12 @@ class BrahmaPlays extends Component
         ]);
     }
 
-    public function openModal($playId): void
+    public function openModal($playId, SpinBonusService $bonusService): void
     {
         $this->resetValidation();
 
         $this->selectedPlay = BrahmaPlayRequest::with(['user.playerProfile', 'game'])->findOrFail($playId);
+        $this->pendingPromotionalBonus = $bonusService->pending($this->selectedPlay->user);
         $this->status = $this->selectedPlay->status ?? 'pending';
         $this->game_username = $this->selectedPlay->game_username ?? '';
         $this->game_password = $this->selectedPlay->game_password ?? '';
@@ -86,7 +97,7 @@ class BrahmaPlays extends Component
             ->where('game_id', $this->selectedPlay->game_id)
             ->first();
 
-        if ($account && !$this->game_username) {
+        if ($account && ! $this->game_username) {
             $this->game_username = $account->game_username;
             $this->game_password = $account->game_password;
         }
@@ -94,7 +105,16 @@ class BrahmaPlays extends Component
 
     public function closeModal(): void
     {
-        $this->reset(['selectedPlay', 'status', 'game_username', 'game_password', 'rejection_note']);
+        $this->reset(['selectedPlay', 'status', 'game_username', 'game_password', 'rejection_note', 'pendingPromotionalBonus']);
+    }
+
+    public function fulfillPromotionalBonus(int $playId, SpinBonusService $bonusService): void
+    {
+        $this->resetValidation('bonus');
+        $play = BrahmaPlayRequest::with('user')->findOrFail($playId);
+        $amount = $bonusService->fulfill(auth()->user(), $play);
+        $this->pendingPromotionalBonus = $bonusService->pending($play->user);
+        session()->flash('success', "{$amount} promotional Bonus Points fulfilled.");
     }
 
     public function processPlay(): void
@@ -202,7 +222,7 @@ class BrahmaPlays extends Component
                     'source_type' => BrahmaPlayRequest::class,
                     'source_id' => $play->id,
                     'performed_by' => auth()->id(),
-                    'description' => 'Brahma Play request verified: ' . $play->reference,
+                    'description' => 'Brahma Play request verified: '.$play->reference,
                 ]);
 
                 GameAccount::updateOrCreate(
@@ -217,7 +237,15 @@ class BrahmaPlays extends Component
                     ]
                 );
 
-                return ['play' => $play->fresh(['user', 'game']), 'debited' => true, 'already_processed' => false];
+                $play = $play->fresh(['user', 'game']);
+                $bonusAwarded = app(SpinBonusService::class)->consumeForVerification(auth()->user(), $play);
+
+                return [
+                    'play' => $play,
+                    'debited' => true,
+                    'already_processed' => false,
+                    'bonus_awarded' => $bonusAwarded,
+                ];
             }
 
             $play->update([
@@ -247,13 +275,22 @@ class BrahmaPlays extends Component
             session()->flash('success', 'This Brahma Play was already financially processed. No balance was changed.');
         } elseif ($this->status === 'verified') {
             $url = $play->game?->game_url;
-            $playUrl = $url && str_starts_with($url, 'http') ? $url : ($url ? 'https://' . $url : route('games'));
+            $playUrl = $url && str_starts_with($url, 'http') ? $url : ($url ? 'https://'.$url : route('games'));
+            $requestedPoints = (float) $play->points_to_load;
+            $bonusAwarded = (int) ($result['bonus_awarded'] ?? 0);
+            $totalPointsLoaded = $requestedPoints + $bonusAwarded;
 
             Notification::create([
                 'user_id' => $play->user_id,
                 'type' => 'brahma_play_verified',
                 'title' => 'Play request verified',
-                'message' => 'Your Play request [' . $play->reference . '] for ' . $play->game?->name . ' was verified.' . "\n\nPoints Loaded: " . number_format((float) $play->points_to_load, 2) . "\nGame Username: " . $play->game_username . "\nGame Password: " . $play->game_password . "\nPlease click the Play Button to Play.",
+                'message' => 'Your Brahma Play request ['.$play->reference.'] for '.$play->game?->name.' was verified.'
+                    ."\n\nRequested Points: ".number_format($requestedPoints, 2)
+                    ."\nPending Bonus Points: ".number_format($bonusAwarded)
+                    ."\nTotal Points Loaded: ".number_format($totalPointsLoaded, 2)
+                    ."\nGame Username: ".$play->game_username
+                    ."\nGame Password: ".$play->game_password
+                    ."\nPlease click the Play Button to Play.",
                 'action_text' => 'Play',
                 'action_url' => $playUrl,
                 'entity_type' => BrahmaPlayRequest::class,
@@ -262,14 +299,24 @@ class BrahmaPlays extends Component
                 'created_by' => auth()->id(),
             ]);
 
-            $this->notifyAdminsAgentsProcessed($play, $processor, 'brahma_play_verified_admin', 'Brahma Play Verified', 'Brahma Play [' . $play->reference . '] for ' . $play->user->name . ' (' . $play->user->username . ') game ' . $play->game?->name . ' points ' . number_format((float) $play->points_to_load, 2) . ' was verified by ' . $processor->name . ' on ' . now()->format('Y-m-d H:i:s') . '. Remaining balance: $' . number_format((float) $play->balance_after_debit, 2) . '.');
+            $this->notifyAdminsAgentsProcessed(
+                $play,
+                $processor,
+                'brahma_play_verified_admin',
+                'Brahma Play Verified',
+                'Player: '.$play->user->name.' ('.$play->user->username.")\nRequested Points: ".number_format($requestedPoints, 2)
+                    ."\nPending Bonus Points: ".number_format($bonusAwarded)
+                    ."\nTotal Points Loaded: ".number_format($totalPointsLoaded, 2)
+                    ."\nVerified by: ".$processor->name
+                    ."\nRemaining balance: $".number_format((float) $play->balance_after_debit, 2)
+            );
             session()->flash('success', 'Brahma Play verified and balance debited.');
         } elseif ($this->status === 'rejected') {
             Notification::create([
                 'user_id' => $play->user_id,
                 'type' => 'brahma_play_rejected',
                 'title' => 'Brahma Play Request Rejected',
-                'message' => 'Your Brahma Play request [' . $play->reference . '] for ' . $play->game?->name . ' was rejected. Reason: ' . $play->rejection_note,
+                'message' => 'Your Brahma Play request ['.$play->reference.'] for '.$play->game?->name.' was rejected. Reason: '.$play->rejection_note,
                 'action_text' => 'Got It',
                 'action_url' => route('player.notifications'),
                 'entity_type' => BrahmaPlayRequest::class,
@@ -278,7 +325,7 @@ class BrahmaPlays extends Component
                 'created_by' => auth()->id(),
             ]);
 
-            $this->notifyAdminsAgentsProcessed($play, $processor, 'brahma_play_rejected_admin', 'Brahma Play Rejected', 'Brahma Play [' . $play->reference . '] for ' . $play->user->name . ' (' . $play->user->username . ') game ' . $play->game?->name . ' was rejected by ' . $processor->name . '. Reason: ' . $play->rejection_note);
+            $this->notifyAdminsAgentsProcessed($play, $processor, 'brahma_play_rejected_admin', 'Brahma Play Rejected', 'Brahma Play ['.$play->reference.'] for '.$play->user->name.' ('.$play->user->username.') game '.$play->game?->name.' was rejected by '.$processor->name.'. Reason: '.$play->rejection_note);
             session()->flash('success', 'Brahma Play rejected.');
         } else {
             session()->flash('success', 'Brahma Play updated.');

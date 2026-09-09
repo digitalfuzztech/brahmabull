@@ -11,6 +11,7 @@ use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 use App\Models\Referral;
 use App\Models\Notification;
+use App\Services\Spin\SpinEligibilityService;
 
 new #[Layout('layouts.guest')] class extends Component
 {
@@ -160,6 +161,7 @@ new #[Layout('layouts.guest')] class extends Component
                 ? $lastPlayerId + 1
                 : 10001,
         ]);
+        app(SpinEligibilityService::class)->grantOnboarding($user);
         event(new Registered($user));
 
        // Auth::login($user);

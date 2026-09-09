@@ -134,6 +134,13 @@
                     <p>Reference: {{ $selectedDeposit->reference }}</p>
                     <p>Date: {{ $selectedDeposit->created_at->format('Y-m-d H:i:s') }}</p>
                     <p>Deposit Amount: ${{ number_format((float) $selectedDeposit->amount, 2) }} <span class="text-sm text-slate-400">(player submitted)</span></p>
+                    @if($activeVipBadge)
+                        <section data-spin-vip-banner class="rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-400/20 to-fuchsia-500/20 p-4 shadow-[0_0_24px_rgba(251,191,36,.25)]">
+                            <p class="font-black tracking-wider text-amber-200">VIP BADGE ACTIVE</p>
+                            <p class="mt-2 text-white">Player currently has: <strong>{{ $activeVipBadge['name'] }}</strong></p>
+                            <p class="text-amber-100">Valid until: {{ $activeVipBadge['expires'] ?? 'No expiration' }}</p>
+                        </section>
+                    @endif
                     <p>Deposited To: {{ $selectedDeposit->wallet_type ?? '-' }}</p>
                     <p>Wallet: {{ $selectedDeposit->wallet_name ?? '-' }}</p>
                     <p>Account: {{ $selectedDeposit->wallet_account_identifier ?? '-' }}</p>

@@ -17,14 +17,14 @@ class FloatingAlertCenter extends Component
 
     public function mount(HeaderActivityService $activity): void
     {
-        $cursors = $activity->initialCursors($this->staff());
+        $cursors = $activity->initialCursors($this->viewer());
         $this->messageCursor = $cursors['message'];
         $this->notificationCursor = $cursors['notification'];
     }
 
     public function pollAlerts(HeaderActivityService $activity): void
     {
-        $result = $activity->after($this->staff(), $this->messageCursor, $this->notificationCursor);
+        $result = $activity->after($this->viewer(), $this->messageCursor, $this->notificationCursor);
         $this->messageCursor = $result['message_cursor'];
         $this->notificationCursor = $result['notification_cursor'];
 
@@ -53,11 +53,12 @@ class FloatingAlertCenter extends Component
 
         if ($alert['kind'] === 'notification') {
             $notification = Notification::query()
-                ->where('user_id', $this->staff()->id)
+                ->where('user_id', $this->viewer()->id)
                 ->findOrFail($alert['notification_id']);
             $notification->update(['is_read' => true, 'read_at' => now()]);
-            $url = $notification->action_url ?: route($this->staff()->hasRole('admin') ? 'admin.notifications' : 'agent.notifications');
-            if ($this->staff()->hasRole('agent')) {
+            $viewer = $this->viewer();
+            $url = $notification->action_url ?: route($viewer->hasRole('admin') ? 'admin.notifications' : ($viewer->hasRole('agent') ? 'agent.notifications' : 'player.notifications'));
+            if ($viewer->hasRole('agent')) {
                 $url = str_replace(['/admin/', 'admin.'], ['/agent/', 'agent.'], $url);
             }
             $this->redirect($url, navigate: true);
@@ -65,7 +66,9 @@ class FloatingAlertCenter extends Component
             return;
         }
 
-        $route = $this->staff()->hasRole('admin') ? 'admin.inbox' : 'agent.inbox';
+        $viewer = $this->viewer();
+        abort_unless($viewer->hasAnyRole(['admin', 'agent']), 403);
+        $route = $viewer->hasRole('admin') ? 'admin.inbox' : 'agent.inbox';
         $this->redirect(route($route, [
             'domain' => $alert['kind'] === 'support' ? 'support' : 'team',
             'conversation' => $alert['conversation_id'],
@@ -82,11 +85,11 @@ class FloatingAlertCenter extends Component
         return view('livewire.admin.floating-alert-center');
     }
 
-    private function staff(): User
+    private function viewer(): User
     {
         /** @var User $user */
         $user = auth()->user();
-        abort_unless($user?->hasAnyRole(['admin', 'agent']), 403);
+        abort_unless($user, 403);
 
         return $user;
     }

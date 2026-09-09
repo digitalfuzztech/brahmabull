@@ -21,7 +21,7 @@
 
             <div class="flex-1">
 
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
 
                     <h2 class="text-3xl font-black">
                         {{ auth()->user()->name }}
@@ -30,6 +30,11 @@
                     <span class="px-3 py-1 rounded-full bg-purple-600/20 text-purple-400 text-sm">
         @ {{ auth()->user()->username }}
     </span>
+                    @if($activeSpinBadge)
+                        <span data-spin-player-badge class="rounded-full border border-amber-300/60 bg-amber-400/15 px-3 py-1 text-xs font-black uppercase text-amber-200" title="{{ $activeSpinBadge->metadata['label'] ?? 'VIP Badge' }} — Expires {{ $activeSpinBadge->expires_at?->format('M j, Y H:i') }}">
+                            {{ $activeSpinBadge->metadata['label'] ?? 'VIP Badge' }} · expires {{ $activeSpinBadge->expires_at?->format('M j') }}
+                        </span>
+                    @endif
 
                 </div>
 
@@ -197,7 +202,7 @@
 
             {{-- TAB CARDS --}}
 
-            <div class="grid md:grid-cols-3 gap-6 mt-6">
+            <div class="grid md:grid-cols-4 gap-6 mt-6">
 
                 <button
                     wire:click="$set('activeTab','deposits')"
@@ -211,6 +216,17 @@
                     <div class="text-2xl font-black mt-2">
                         ${{ number_format($monthDeposits) }}
                     </div>
+                </button>
+
+                <button
+                    wire:click="$set('activeTab','spin_wins')"
+                    class="rounded-2xl p-5 text-left border
+            {{ $activeTab === 'spin_wins'
+                ? 'bg-purple-600 border-purple-500'
+                : 'bg-slate-800 border-slate-700' }}"
+                >
+                    <div>Spin Wins</div>
+                    <div class="text-2xl font-black mt-2">{{ number_format($spinWins->count()) }}</div>
                 </button>
 
                 <button
@@ -509,6 +525,48 @@
 
                 </div>
 
+            @endif
+
+            @if($activeTab === 'spin_wins')
+                <div class="overflow-x-auto mt-8">
+                    <h4 class="mb-3 text-lg font-bold text-white">Spin Wins</h4>
+                    <div class="mb-6 grid min-w-[680px] grid-cols-6 gap-3">
+                        @foreach([
+                            ['Today\'s Wins', $todaySpinWins],
+                            ['Total Sajilo Won', $totalSajiloWon],
+                            ['Pending Bonus', $pendingBonus],
+                            ['Total Bonus Won', $totalBonusWon],
+                            ['Total Bonus Awarded', $totalBonusAwarded],
+                            ['Active Badge', $activeSpinBadge?->metadata['label'] ?? 'None'],
+                        ] as [$label, $value])
+                            <section class="rounded-xl border border-slate-700 bg-slate-900 p-3">
+                                <p class="text-xs text-slate-400">{{ $label }}</p>
+                                <p class="mt-1 font-black text-white">{{ is_numeric($value) ? number_format($value) : $value }}</p>
+                            </section>
+                        @endforeach
+                    </div>
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-slate-700"><th class="text-left py-3">Date</th><th class="text-left py-3">Win Type</th><th class="text-left py-3">Points Won</th><th class="text-left py-3">Status</th></tr></thead>
+                        <tbody>
+                        @forelse($spinWins as $spin)
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3">{{ $spin->spun_at?->format('M d') }}</td>
+                                <td class="py-3">{{ $spinActionLabels[$spin->offer_snapshot_type] ?? Str::headline($spin->offer_snapshot_type) }}</td>
+                                <td class="py-3">{{ in_array($spin->offer_snapshot_type, ['sajilo_points','bonus_points','free_spin'], true) ? ($spin->offer_snapshot_value ?: '-') : '-' }}</td>
+                                <td class="py-3 capitalize">
+                                    @if($spin->offer_snapshot_type === 'bonus_points')
+                                        {{ $spin->promotionalPoints?->status === 'fulfilled' ? 'Awarded' : 'Pending' }}
+                                    @else
+                                        {{ $spin->status }}
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="py-6 text-center">No Spin Wins found.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
             @endif
 
         </div>

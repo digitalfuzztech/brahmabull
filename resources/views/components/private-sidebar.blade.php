@@ -126,6 +126,11 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14l4-4h12a2 2 0 0 0 2-2V8"/><path d="M16 3h5v5"/><path d="M15 9l6-6"/></svg>
                     <span class="sidebar-text">Chat Settings</span>
                 </a>
+                <a href="{{ route('admin.spinning-wheel') }}"
+                   class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-slate-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/><circle cx="12" cy="12" r="2"/></svg>
+                    <span class="sidebar-text">Spinning Wheel</span>
+                </a>
             @endif
 
             @if(auth()->user()->hasRole('agent'))

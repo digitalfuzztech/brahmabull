@@ -5,50 +5,48 @@ namespace App\Services\Chat;
 use App\Models\ChatMessage;
 use App\Models\Notification;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class HeaderActivityService
 {
-    public function initialCursors(User $staff): array
+    public function initialCursors(User $viewer): array
     {
-        $this->assertStaff($staff);
-
         return [
             'message' => (int) ChatMessage::query()->max('id'),
-            'notification' => (int) Notification::query()->where('user_id', $staff->id)->max('id'),
+            'notification' => (int) Notification::query()->where('user_id', $viewer->id)->max('id'),
         ];
     }
 
-    public function after(User $staff, int $messageCursor, int $notificationCursor): array
+    public function after(User $viewer, int $messageCursor, int $notificationCursor): array
     {
-        $this->assertStaff($staff);
         $latestMessageId = (int) ChatMessage::query()->max('id');
-        $latestNotificationId = (int) Notification::query()->where('user_id', $staff->id)->max('id');
+        $latestNotificationId = (int) Notification::query()->where('user_id', $viewer->id)->max('id');
 
-        $team = ChatMessage::query()
+        $team = $viewer->hasAnyRole(['admin', 'agent']) ? ChatMessage::query()
             ->where('id', '>', $messageCursor)
             ->where('id', '<=', $latestMessageId)
             ->whereNotNull('sender_id')
-            ->where('sender_id', '!=', $staff->id)
-            ->whereHas('conversation', function ($query) use ($staff): void {
+            ->where('sender_id', '!=', $viewer->id)
+            ->whereHas('conversation', function ($query) use ($viewer): void {
                 $query->whereIn('conversation_type', ['internal_direct', 'internal_group', 'internal_channel'])
                     ->where('is_archived', false)
-                    ->whereHas('activeParticipants', fn ($query) => $query->where('user_id', $staff->id));
+                    ->whereHas('activeParticipants', fn ($query) => $query->where('user_id', $viewer->id));
             })
             ->with(['conversation.activeParticipants.user:id,name', 'sender:id,name', 'attachments:id,message_id,media_type'])
             ->oldest('id')->limit(20)->get()
-            ->map(fn (ChatMessage $message) => $this->teamAlert($message));
+            ->map(fn (ChatMessage $message) => $this->teamAlert($message)) : collect();
 
-        $support = ChatMessage::query()
+        $support = $viewer->hasAnyRole(['admin', 'agent']) ? ChatMessage::query()
             ->where('id', '>', $messageCursor)
             ->where('id', '<=', $latestMessageId)
             ->where('sender_type', 'player')
-            ->whereHas('conversation', function ($query) use ($staff): void {
+            ->whereHas('conversation', function ($query) use ($viewer): void {
                 $query->where('conversation_type', 'support');
-                if ($staff->hasRole('agent')) {
+                if ($viewer->hasRole('agent')) {
                     $query->where(fn ($query) => $query
                         ->where('status', '!=', 'resolved')
-                        ->orWhere('assigned_to', $staff->id));
+                        ->orWhere('assigned_to', $viewer->id));
                 }
             })
             ->with(['conversation.player:id,name', 'sender:id,name'])
@@ -61,13 +59,19 @@ class HeaderActivityService
                 'preview' => Str::limit((string) $message->body, 100),
                 'conversation_id' => $message->conversation_id,
                 'notification_id' => null,
-            ]);
+            ]) : collect();
 
-        $notifications = Notification::query()
-            ->where('user_id', $staff->id)
+        $notificationRows = Notification::query()
+            ->where('user_id', $viewer->id)
             ->where('id', '>', $notificationCursor)
             ->where('id', '<=', $latestNotificationId)
-            ->oldest('id')->limit(20)->get()
+            ->oldest('id')->limit(20)->get();
+        $readyNotifications = $notificationRows->takeWhile(function (Notification $notification): bool {
+            $floatAfter = data_get($notification->data, 'float_after');
+
+            return blank($floatAfter) || Carbon::parse($floatAfter)->isPast();
+        });
+        $notifications = $readyNotifications
             ->map(fn (Notification $notification) => [
                 'key' => 'notification:'.$notification->id,
                 'kind' => 'notification',
@@ -81,7 +85,7 @@ class HeaderActivityService
         return [
             'alerts' => $team->concat($support)->concat($notifications)->values()->all(),
             'message_cursor' => max($messageCursor, $latestMessageId),
-            'notification_cursor' => max($notificationCursor, $latestNotificationId),
+            'notification_cursor' => max($notificationCursor, (int) ($readyNotifications->last()?->id ?? $notificationCursor)),
         ];
     }
 
@@ -105,10 +109,5 @@ class HeaderActivityService
             'conversation_id' => $message->conversation_id,
             'notification_id' => null,
         ];
-    }
-
-    private function assertStaff(User $staff): void
-    {
-        abort_unless($staff->hasAnyRole(['admin', 'agent']), 403);
     }
 }

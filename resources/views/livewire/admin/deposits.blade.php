@@ -331,6 +331,21 @@
                     <p class="text-white">
                         Deposit Amount: ${{ $selectedDeposit->amount }}
                     </p>
+                    @if($activeVipBadge)
+                        <section data-spin-vip-banner class="rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-400/20 to-fuchsia-500/20 p-4 shadow-[0_0_24px_rgba(251,191,36,.25)]">
+                            <p class="font-black tracking-wider text-amber-200">VIP BADGE ACTIVE</p>
+                            <p class="mt-2 text-white">Player currently has: <strong>{{ $activeVipBadge['name'] }}</strong></p>
+                            <p class="text-amber-100">Valid until: {{ $activeVipBadge['expires'] ?? 'No expiration' }}</p>
+                        </section>
+                    @endif
+                    <section class="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm">
+                        <p class="font-bold text-amber-200">Promotional Bonus Reminder</p>
+                        <p class="mt-2 text-white">Requested / Deposit Amount: {{ number_format((float) $selectedDeposit->amount, 2) }}</p>
+                        <p class="text-white">Pending Promotional Bonus: {{ number_format($pendingPromotionalBonus) }}</p>
+                        <p class="text-amber-100">Promotional Total Reference: {{ number_format((float) $selectedDeposit->amount + $pendingPromotionalBonus, 2) }}</p>
+                        <p class="mt-1 text-xs text-slate-400">Informational only. This does not alter the deposit or loaded amount.</p>
+                        @error('bonus') <p class="mt-2 text-red-300">{{ $message }}</p> @enderror
+                    </section>
                     <p class="text-slate-400 text-sm">
                         {{ $selectedDeposit->game->game_url }}
                     </p>
@@ -384,12 +399,12 @@
 
                 <div class="p-5 flex justify-end gap-3 border-t border-slate-800">
 
-                    <button wire:click="closeModal"
+                    <button type="button" wire:click="closeModal"
                             class="px-4 py-2 bg-gray-700 rounded-xl">
                         Cancel
                     </button>
 
-                    <button wire:click="processDeposit"
+                    <button type="button" wire:click="processDeposit"
                             wire:loading.attr="disabled"
                             wire:target="processDeposit"
                             class="px-4 py-2 bg-green-600 rounded-xl">

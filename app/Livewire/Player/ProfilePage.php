@@ -2,16 +2,22 @@
 
 namespace App\Livewire\Player;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
-use App\Models\Deposit;
 use App\Models\BrahmaDeposit;
 use App\Models\Cashout;
-use App\Models\Referral;
+use App\Models\Deposit;
 use App\Models\GameAccount;
+use App\Models\Referral;
+use App\Models\SpinPromotionalPointLedger;
+use App\Models\SpinRewardEntitlement;
+use App\Models\SpinWheelSpin;
+use App\Services\Spin\SpinOfferService;
+use App\Services\Spin\SpinStatisticsService;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+
 #[Layout('layouts.public')]
 class ProfilePage extends Component
 {
@@ -24,20 +30,31 @@ class ProfilePage extends Component
     public $phone;
 
     public $password;
+
     public $password_confirmation;
 
     public $photo;
+
     public $username;
+
     public $year;
+
     public $current_password;
+
     public string $activeTab = 'deposits';
+
     public bool $showPassword = false;
+
     public bool $showPasswordConfirmation = false;
 
     public function mount()
     {
-        $this->month = now()->month;
-        $this->year = now()->year;
+        $latestSpin = SpinWheelSpin::where('user_id', auth()->id())
+            ->whereIn('offer_snapshot_type', SpinStatisticsService::WIN_TYPES)
+            ->latest('spun_at')->first();
+        $referenceDate = $latestSpin?->spun_at ?? now();
+        $this->month = $referenceDate->month;
+        $this->year = $referenceDate->year;
 
         $this->phone = auth()->user()->phone;
         $this->username = auth()->user()->username;
@@ -71,33 +88,35 @@ class ProfilePage extends Component
         $isChangingPhone = $this->phone !== $user->phone;
         $isChangingUsername = $this->username !== $user->username;
         $isChangingPhoto = $this->photo !== null;
-        $isChangingPassword = !empty($this->password);
+        $isChangingPassword = ! empty($this->password);
 
         if ($isChangingPhone || $isChangingUsername || $isChangingPhoto || $isChangingPassword) {
             $this->resetErrorBag('current_password');
             // MUST VERIFY CURRENT PASSWORD
             if (empty($this->current_password)) {
                 $this->addError('current_password', 'Please enter your current password.');
+
                 return;
             }
 
-            if (!Hash::check($this->current_password, $user->password)) {
+            if (! Hash::check($this->current_password, $user->password)) {
                 $this->addError('current_password', 'Your current password is wrong.');
+
                 return;
             }
         }
 
         $rules = [
-            'phone' => ['nullable','string','max:20'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'username' => [
                 'required',
                 'string',
                 'min:4',
                 'max:20',
                 'alpha_dash',
-                'unique:users,username,' . $user->id,
+                'unique:users,username,'.$user->id,
             ],
-            'photo' => ['nullable','image','max:2048'],
+            'photo' => ['nullable', 'image', 'max:2048'],
         ];
 
         if ($this->password) {
@@ -108,22 +127,22 @@ class ProfilePage extends Component
                 'min:8',
                 function ($attribute, $value, $fail) {
 
-                    if (!preg_match('/[A-Z]/', $value)) {
+                    if (! preg_match('/[A-Z]/', $value)) {
                         $fail('Password must contain uppercase.');
                     }
 
-                    if (!preg_match('/[a-z]/', $value)) {
+                    if (! preg_match('/[a-z]/', $value)) {
                         $fail('Password must contain lowercase.');
                     }
 
-                    if (!preg_match('/[0-9]/', $value)) {
+                    if (! preg_match('/[0-9]/', $value)) {
                         $fail('Password must contain number.');
                     }
 
-                    if (!preg_match('/[@$!%*#?&]/', $value)) {
+                    if (! preg_match('/[@$!%*#?&]/', $value)) {
                         $fail('Password must contain symbol.');
                     }
-                }
+                },
             ];
         }
 
@@ -155,7 +174,7 @@ class ProfilePage extends Component
             'password_confirmation',
             'photo',
             'current_password',
-            'username'
+            'username',
         ]);
 
         $this->showEditModal = false;
@@ -179,6 +198,7 @@ class ProfilePage extends Component
 
         $this->showEditModal = true;
     }
+
     public function closeModal()
     {
         $this->reset([
@@ -192,75 +212,78 @@ class ProfilePage extends Component
         $this->resetErrorBag();
         $this->showEditModal = false;
     }
+
     public function render()
     {
         $user = auth()->user();
+        $today = now();
+        $activeSpinBadge = SpinRewardEntitlement::query()
+            ->where('user_id', $user->id)
+            ->where('entitlement_type', 'badge')
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', $today))
+            ->latest()
+            ->first();
         $gameAccounts = GameAccount::all()
-            ->keyBy(fn($a) => $a->user_id.'-'.$a->game_id);
+            ->keyBy(fn ($a) => $a->user_id.'-'.$a->game_id);
+
         return view('livewire.player.profile-page', [
             'gameAccounts' => $gameAccounts,
             'brahmaBalance' => $user->brahma_balance,
-            'totalDeposits' =>
-                Deposit::where(
-                    'user_id',
-                    $user->id
-                )->sum('amount') + BrahmaDeposit::where(
-                    'user_id',
-                    $user->id
-                )->sum('amount'),
+            'totalDeposits' => Deposit::where(
+                'user_id',
+                $user->id
+            )->sum('amount') + BrahmaDeposit::where(
+                'user_id',
+                $user->id
+            )->sum('amount'),
 
-            'totalCashouts' =>
-                Cashout::where(
-                    'user_id',
-                    $user->id
-                )->sum('amount'),
+            'totalCashouts' => Cashout::where(
+                'user_id',
+                $user->id
+            )->sum('amount'),
 
-            'totalReferrals' =>
-                Referral::where(
-                    'referrer_id',
-                    $user->id
-                )->count(),
+            'totalReferrals' => Referral::where(
+                'referrer_id',
+                $user->id
+            )->count(),
 
-            'monthDeposits' =>
-                Deposit::where(
+            'monthDeposits' => Deposit::where(
+                'user_id',
+                $user->id
+            )
+                ->whereMonth(
+                    'created_at',
+                    $this->month
+                )
+                ->sum('amount') + BrahmaDeposit::where(
                     'user_id',
                     $user->id
                 )
-                    ->whereMonth(
-                        'created_at',
-                        $this->month
-                    )
-                    ->sum('amount') + BrahmaDeposit::where(
-                        'user_id',
-                        $user->id
-                    )
-                    ->whereMonth(
-                        'created_at',
-                        $this->month
-                    )
-                    ->sum('amount'),
-
-            'monthCashouts' =>
-                Cashout::where(
-                    'user_id',
-                    $user->id
+                ->whereMonth(
+                    'created_at',
+                    $this->month
                 )
-                    ->whereMonth(
-                        'created_at',
-                        $this->month
-                    )
-                    ->sum('amount'),
+                ->sum('amount'),
 
-            'monthReferrals' =>
-                Referral::where(
-                    'referrer_id',
-                    $user->id
+            'monthCashouts' => Cashout::where(
+                'user_id',
+                $user->id
+            )
+                ->whereMonth(
+                    'created_at',
+                    $this->month
                 )
-                    ->whereMonth(
-                        'created_at',
-                        $this->month
-                    )
-                    ->count(),
+                ->sum('amount'),
+
+            'monthReferrals' => Referral::where(
+                'referrer_id',
+                $user->id
+            )
+                ->whereMonth(
+                    'created_at',
+                    $this->month
+                )
+                ->count(),
             'depositRows' => Deposit::query()
                 ->with('game')
                 ->where('user_id', auth()->id())
@@ -293,6 +316,31 @@ class ProfilePage extends Component
                 ->whereYear('created_at', $this->year)
                 ->latest()
                 ->get(),
+            'spinWins' => SpinWheelSpin::query()
+                ->with('promotionalPoints')
+                ->where('user_id', auth()->id())
+                ->whereIn('offer_snapshot_type', SpinStatisticsService::WIN_TYPES)
+                ->whereMonth('spun_at', $this->month)
+                ->whereYear('spun_at', $this->year)
+                ->latest('spun_at')
+                ->get(),
+            'spinActionLabels' => SpinOfferService::ACTION_LABELS,
+            'todaySpinWins' => SpinWheelSpin::where('user_id', $user->id)
+                ->whereIn('offer_snapshot_type', SpinStatisticsService::WIN_TYPES)
+                ->whereBetween('spun_at', [$today->copy()->startOfDay(), $today->copy()->endOfDay()])
+                ->count(),
+            'totalSajiloWon' => SpinPromotionalPointLedger::where('user_id', $user->id)
+                ->where('point_type', 'sajilo_points')->sum('amount'),
+            'pendingBonus' => SpinPromotionalPointLedger::where('user_id', $user->id)
+                ->where('point_type', 'bonus_points')->whereIn('status', ['pending', 'partially_fulfilled'])
+                ->where('remaining_amount', '>', 0)->sum('remaining_amount'),
+            'totalBonusWon' => SpinPromotionalPointLedger::where('user_id', $user->id)
+                ->where('point_type', 'bonus_points')->sum('amount'),
+            'totalBonusAwarded' => SpinPromotionalPointLedger::where('user_id', $user->id)
+                ->where('point_type', 'bonus_points')
+                ->selectRaw('COALESCE(SUM(amount - remaining_amount), 0) as awarded_total')
+                ->value('awarded_total'),
+            'activeSpinBadge' => $activeSpinBadge,
         ]);
     }
 }

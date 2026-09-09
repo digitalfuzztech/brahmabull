@@ -8,6 +8,12 @@
 
         $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
 
+        $activeSpinBadge = $isPlayer
+            ? auth()->user()->spinRewardEntitlements()->where('entitlement_type', 'badge')
+                ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                ->latest()->first()
+            : null;
+
 @endphp
 <div x-data="{ mobileMenu:false }">
     <header class="fixed top-0 left-0 right-0 z-[999] w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl">
@@ -122,6 +128,11 @@
                                     <span class="font-semibold">
         {{ auth()->user()->name }}
     </span>
+                                    @if($activeSpinBadge)
+                                        <span data-spin-player-badge class="rounded-full border border-amber-300/60 bg-amber-400/15 px-2 py-1 text-[10px] font-black uppercase text-amber-200" title="Expires {{ $activeSpinBadge->expires_at?->format('M j, Y H:i') }}">
+                                            {{ $activeSpinBadge->metadata['label'] ?? 'VIP Badge' }} · {{ $activeSpinBadge->expires_at?->diffForHumans() }}
+                                        </span>
+                                    @endif
 
                                     <svg
                                         class="h-4 w-4"
@@ -271,6 +282,9 @@
                         <div class="text-xs text-purple-400">
                             Player
                         </div>
+                        @if($activeSpinBadge)
+                            <div data-spin-player-badge class="mt-1 text-[10px] font-bold text-amber-300">{{ $activeSpinBadge->metadata['label'] ?? 'VIP Badge' }} · expires {{ $activeSpinBadge->expires_at?->format('M j') }}</div>
+                        @endif
 
                     </div>
 

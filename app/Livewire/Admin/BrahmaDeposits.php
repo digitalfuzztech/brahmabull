@@ -6,6 +6,7 @@ use App\Models\BrahmaBalanceTransaction;
 use App\Models\BrahmaDeposit;
 use App\Models\BrahmaDepositAdjustment;
 use App\Models\Notification;
+use App\Models\SpinRewardEntitlement;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletType;
@@ -22,15 +23,25 @@ class BrahmaDeposits extends Component
     protected $paginationTheme = 'tailwind';
 
     public $selectedDeposit = null;
+
     public $status = 'pending';
+
     public $load_balance;
+
     public $admin_notes;
+
     public $proofPreview = null;
 
+    public ?array $activeVipBadge = null;
+
     public $search = '';
+
     public $searchDate = '';
+
     public $walletTypeFilter = '';
+
     public $walletFilter = '';
+
     public $statusFilter = '';
 
     public function getDepositsProperty()
@@ -84,6 +95,14 @@ class BrahmaDeposits extends Component
         $this->resetValidation();
 
         $this->selectedDeposit = BrahmaDeposit::with(['user.playerProfile', 'wallet.walletType', 'wallet.walletAgent', 'processor'])->findOrFail($depositId);
+        $badge = SpinRewardEntitlement::where('user_id', $this->selectedDeposit->user_id)
+            ->where('entitlement_type', 'badge')
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->latest()->first();
+        $this->activeVipBadge = $badge ? [
+            'name' => $badge->metadata['label'] ?? 'VIP Badge',
+            'expires' => $badge->expires_at?->format('F j, Y g:i A'),
+        ] : null;
         $this->status = $this->selectedDeposit->status ?? 'pending';
         $this->load_balance = $this->selectedDeposit->load_balance;
         $this->admin_notes = $this->selectedDeposit->admin_notes;
@@ -91,7 +110,7 @@ class BrahmaDeposits extends Component
 
     public function closeModal(): void
     {
-        $this->reset(['selectedDeposit', 'status', 'load_balance', 'admin_notes']);
+        $this->reset(['selectedDeposit', 'status', 'load_balance', 'admin_notes', 'activeVipBadge']);
     }
 
     public function processDeposit(): void
@@ -180,7 +199,7 @@ class BrahmaDeposits extends Component
                         'source_type' => BrahmaDepositAdjustment::class,
                         'source_id' => $adjustment->id,
                         'performed_by' => auth()->id(),
-                        'description' => 'Brahma Deposit load correction: ' . $deposit->reference . ' (' . number_format($oldLoadBalance, 2) . ' to ' . number_format($newLoadBalance, 2) . ')',
+                        'description' => 'Brahma Deposit load correction: '.$deposit->reference.' ('.number_format($oldLoadBalance, 2).' to '.number_format($newLoadBalance, 2).')',
                     ]);
 
                     return ['deposit' => $deposit->fresh(['user']), 'credited' => false, 'already_processed' => true, 'adjusted' => true, 'delta' => $delta, 'balance_after' => $after];
@@ -219,7 +238,7 @@ class BrahmaDeposits extends Component
                     'source_type' => BrahmaDeposit::class,
                     'source_id' => $deposit->id,
                     'performed_by' => auth()->id(),
-                    'description' => 'Brahma Balance deposit verified: ' . $deposit->reference,
+                    'description' => 'Brahma Balance deposit verified: '.$deposit->reference,
                 ]);
 
                 return ['deposit' => $deposit->fresh(['user']), 'credited' => true, 'already_processed' => false];
@@ -250,8 +269,8 @@ class BrahmaDeposits extends Component
                 'type' => 'brahma_balance_adjusted',
                 'title' => 'Brahma Balance Updated',
                 'message' => $delta > 0
-                    ? 'Your Brahma Balance has been loaded with an additional $' . number_format($delta, 2) . '. Your current Brahma Balance is $' . number_format($balanceAfter, 2) . '.'
-                    : 'Your Brahma Balance was adjusted by -$' . number_format(abs($delta), 2) . '. Your current Brahma Balance is $' . number_format($balanceAfter, 2) . '.',
+                    ? 'Your Brahma Balance has been loaded with an additional $'.number_format($delta, 2).'. Your current Brahma Balance is $'.number_format($balanceAfter, 2).'.'
+                    : 'Your Brahma Balance was adjusted by -$'.number_format(abs($delta), 2).'. Your current Brahma Balance is $'.number_format($balanceAfter, 2).'.',
                 'action_text' => 'Play Now',
                 'action_url' => route('games'),
                 'entity_type' => BrahmaDeposit::class,
@@ -259,7 +278,7 @@ class BrahmaDeposits extends Component
                 'created_by' => auth()->id(),
             ]);
 
-            session()->flash('success', 'Load Balance corrected by ' . ($result['delta'] > 0 ? '+' : '') . number_format((float) $result['delta'], 2) . '.');
+            session()->flash('success', 'Load Balance corrected by '.($result['delta'] > 0 ? '+' : '').number_format((float) $result['delta'], 2).'.');
         } elseif ($result['already_processed']) {
             session()->flash('success', 'This Brahma Deposit was already financially processed. No balance was changed.');
         } elseif ($this->status === 'verified') {
@@ -267,7 +286,7 @@ class BrahmaDeposits extends Component
                 'user_id' => $deposit->user_id,
                 'type' => 'brahma_balance_loaded',
                 'title' => 'Brahma Balance Loaded',
-                'message' => 'Your Brahma Balance has been loaded with $' . number_format((float) $deposit->load_balance, 2) . '. Your current Brahma Balance is $' . number_format((float) $deposit->balance_after_credit, 2) . '. Reference: ' . $deposit->reference . '.',
+                'message' => 'Your Brahma Balance has been loaded with $'.number_format((float) $deposit->load_balance, 2).'. Your current Brahma Balance is $'.number_format((float) $deposit->balance_after_credit, 2).'. Reference: '.$deposit->reference.'.',
                 'action_text' => 'Play Now',
                 'action_url' => route('games'),
                 'entity_type' => BrahmaDeposit::class,
@@ -275,14 +294,14 @@ class BrahmaDeposits extends Component
                 'created_by' => auth()->id(),
             ]);
 
-            $this->notifyAdminsAgentsProcessed($deposit, $processor, 'brahma_deposit_verified', 'Brahma Balance Loaded', 'Brahma Balance of $' . number_format((float) $deposit->load_balance, 2) . ' was loaded to ' . $deposit->user->name . ' (' . $deposit->user->username . ') by ' . $processor->name . ' on ' . now()->format('Y-m-d H:i:s') . '. New balance: $' . number_format((float) $deposit->balance_after_credit, 2) . '.');
+            $this->notifyAdminsAgentsProcessed($deposit, $processor, 'brahma_deposit_verified', 'Brahma Balance Loaded', 'Brahma Balance of $'.number_format((float) $deposit->load_balance, 2).' was loaded to '.$deposit->user->name.' ('.$deposit->user->username.') by '.$processor->name.' on '.now()->format('Y-m-d H:i:s').'. New balance: $'.number_format((float) $deposit->balance_after_credit, 2).'.');
             session()->flash('success', 'Brahma Deposit verified and balance loaded.');
         } elseif ($this->status === 'rejected') {
             Notification::create([
                 'user_id' => $deposit->user_id,
                 'type' => 'brahma_deposit_rejected',
                 'title' => 'Brahma Balance Deposit Rejected',
-                'message' => 'Your Brahma Balance deposit [' . $deposit->reference . '] of $' . number_format((float) $deposit->amount, 2) . ' was rejected.',
+                'message' => 'Your Brahma Balance deposit ['.$deposit->reference.'] of $'.number_format((float) $deposit->amount, 2).' was rejected.',
                 'action_text' => 'Got It',
                 'action_url' => route('player.notifications'),
                 'entity_type' => BrahmaDeposit::class,
@@ -290,7 +309,7 @@ class BrahmaDeposits extends Component
                 'created_by' => auth()->id(),
             ]);
 
-            $this->notifyAdminsAgentsProcessed($deposit, $processor, 'brahma_deposit_rejected_admin', 'Brahma Deposit Rejected', 'Brahma Balance deposit [' . $deposit->reference . '] for ' . $deposit->user->name . ' (' . $deposit->user->username . ') was rejected by ' . $processor->name . '.');
+            $this->notifyAdminsAgentsProcessed($deposit, $processor, 'brahma_deposit_rejected_admin', 'Brahma Deposit Rejected', 'Brahma Balance deposit ['.$deposit->reference.'] for '.$deposit->user->name.' ('.$deposit->user->username.') was rejected by '.$processor->name.'.');
             session()->flash('success', 'Brahma Deposit rejected.');
         } else {
             session()->flash('success', 'Brahma Deposit updated.');

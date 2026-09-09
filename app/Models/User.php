@@ -198,4 +198,24 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(ChatE2eeDevice::class);
     }
+
+    public function spinAttemptGrants()
+    {
+        return $this->hasMany(SpinAttemptGrant::class);
+    }
+
+    public function spinWheelSpins()
+    {
+        return $this->hasMany(SpinWheelSpin::class);
+    }
+
+    public function spinRewardEntitlements()
+    {
+        return $this->hasMany(SpinRewardEntitlement::class);
+    }
+
+    public function spinPromotionalPointLedgers()
+    {
+        return $this->hasMany(SpinPromotionalPointLedger::class);
+    }
 }

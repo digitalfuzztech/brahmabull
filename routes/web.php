@@ -18,6 +18,7 @@ use App\Livewire\Admin\GameShow;
 use App\Livewire\Admin\Notifications;
 use App\Livewire\Admin\Players;
 use App\Livewire\Admin\PlayersAll;
+use App\Livewire\Admin\SpinningWheel;
 use App\Livewire\Admin\SupportInbox;
 use App\Livewire\Admin\TopPlayers;
 use App\Livewire\Admin\WalletAgents;
@@ -99,6 +100,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.inbox');
     Route::get('/admin/chat-settings', ChatSettings::class)
         ->name('admin.chat-settings');
+    Route::get('/admin/spinning-wheel', SpinningWheel::class)
+        ->name('admin.spinning-wheel');
 });
 
 Route::middleware(['auth', 'role:agent'])->group(function () {
