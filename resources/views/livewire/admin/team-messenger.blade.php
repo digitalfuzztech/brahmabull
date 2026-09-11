@@ -404,9 +404,9 @@
     </div>
 
     @if($showNewMessage)
-        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" wire:click.self="$set('showNewMessage', false)">
-            <div class="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-5">
-                <div class="flex justify-between"><h3 class="font-bold text-white">New Direct Message</h3><button type="button" wire:click="$set('showNewMessage', false)">×</button></div>
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[10000] flex items-center justify-center" wire:click.self="$set('showNewMessage', false)">
+            <div class="bb-admin-modal-shell bb-admin-modal-self-scroll max-w-md p-5">
+                <div class="flex justify-between"><h3 class="font-bold text-white">New Direct Message</h3><button type="button" wire:click="$set('showNewMessage', false)" class="bb-admin-modal-close" aria-label="Close new direct message">×</button></div>
                 <input wire:model.live.debounce.300ms="contactSearch" type="search" placeholder="Search staff" class="mt-4 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white">
                 <div class="mt-3 space-y-2">@foreach($contacts as $contact)<button type="button" wire:click="startDirect({{ $contact['id'] }})" class="w-full rounded-xl bg-slate-800 p-3 text-left"><span class="font-bold text-white">{{ $contact['name'] }}</span><span class="ml-2 text-xs text-slate-400">{{ $contact['role'] }} · {{ '@'.$contact['username'] }}</span></button>@endforeach</div>
             </div>
@@ -415,13 +415,13 @@
 
     @if($showDisableE2eeModal)
         <div class="fixed inset-0 z-[10001]" x-data x-on:keydown.escape.window="$wire.cancelDisableE2ee()">
-            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" wire:click="cancelDisableE2ee"></div>
+            <div class="bb-admin-modal-overlay fixed inset-0" wire:click="cancelDisableE2ee"></div>
             <div class="fixed inset-0 flex items-center justify-center p-4">
-                <div class="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-7 shadow-2xl">
+                <div class="bb-admin-modal-shell max-w-md p-7">
                     <h3 class="text-xl font-black text-white">Disable end-to-end encryption?</h3>
                     <p class="mt-3 text-sm leading-relaxed text-slate-300">Disabling end-to-end encryption means new messages in this conversation will be stored as normal server-readable chat messages. Existing encrypted messages will remain encrypted.</p>
                     <div class="mt-6 flex gap-3">
-                        <button type="button" wire:click="cancelDisableE2ee" class="flex-1 rounded-xl border border-slate-600 py-3 font-bold text-slate-200">Cancel</button>
+                        <button type="button" wire:click="cancelDisableE2ee" class="bb-admin-modal-secondary flex-1 py-3">Cancel</button>
                         <button type="button" wire:click="requestDisableE2ee" wire:loading.attr="disabled" wire:target="requestDisableE2ee" class="flex-1 rounded-xl bg-red-600 py-3 font-bold text-white disabled:opacity-50"><span wire:loading.remove wire:target="requestDisableE2ee">Request Disable</span><span wire:loading wire:target="requestDisableE2ee">Requesting&hellip;</span></button>
                     </div>
                 </div>
@@ -431,13 +431,13 @@
 
     @if($pendingDeleteMessageId)
         <div class="fixed inset-0 z-[10002]" x-data x-on:keydown.escape.window="$wire.cancelDeleteMessage()">
-            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" wire:click="cancelDeleteMessage"></div>
+            <div class="bb-admin-modal-overlay fixed inset-0" wire:click="cancelDeleteMessage"></div>
             <div class="fixed inset-0 flex items-center justify-center p-4">
-                <div class="w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl">
+                <div class="bb-admin-modal-shell max-w-sm p-8">
                     <h3 class="text-xl font-black text-white">Delete message?</h3>
                     <p class="mt-3 text-sm leading-relaxed text-slate-300">Are you sure you want to delete this message? This action cannot be undone.</p>
                     <div class="mt-6 flex gap-3">
-                        <button type="button" wire:click="cancelDeleteMessage" class="flex-1 rounded-xl border border-slate-600 py-3 font-bold text-slate-200">Cancel</button>
+                        <button type="button" wire:click="cancelDeleteMessage" class="bb-admin-modal-secondary flex-1 py-3">Cancel</button>
                         <button type="button" wire:click="confirmDeleteMessage" wire:loading.attr="disabled" wire:target="confirmDeleteMessage" class="flex-1 rounded-xl bg-red-600 py-3 font-bold text-white disabled:opacity-50"><span wire:loading.remove wire:target="confirmDeleteMessage">Delete Message</span><span wire:loading wire:target="confirmDeleteMessage">Deleting&hellip;</span></button>
                     </div>
                 </div>
@@ -445,14 +445,14 @@
         </div>
     @endif
 
-    <div x-cloak x-show="open" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" x-on:click.self="open = false">
-        <div class="max-h-[85dvh] w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+    <div x-cloak x-show="open" class="bb-admin-modal-overlay fixed inset-0 z-[10000] flex items-center justify-center" x-on:click.self="open = false">
+        <div class="bb-admin-modal-shell max-w-2xl">
+            <div class="bb-admin-modal-header flex items-center justify-between border-b border-slate-800 px-5 py-4">
                 <div><h3 class="font-bold text-white">Secure Chat Devices</h3><p class="text-xs text-slate-400">Approve and revoke only your own cryptographic devices.</p></div>
-                <button type="button" x-on:click="open = false" class="text-xl text-slate-400">×</button>
+                <button type="button" x-on:click="open = false" class="bb-admin-modal-close" aria-label="Close secure devices">×</button>
             </div>
             <p x-show="error" x-text="error" class="m-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"></p>
-            <div class="max-h-[65dvh] space-y-3 overflow-y-auto p-4">
+            <div class="bb-admin-modal-body space-y-3 overflow-y-auto p-4">
                 <p x-show="loading" class="py-8 text-center text-sm text-slate-400">Loading secure devices&hellip;</p>
                 <div x-show="!loading && currentDeviceAwaitingApproval()" class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
                     <p class="font-bold">This device is awaiting approval.</p>
@@ -482,14 +482,14 @@
                 </template>
                 <p x-show="!loading && !error && !devices.length" class="py-8 text-center text-sm text-slate-400">No secure devices registered.</p>
             </div>
-            <div class="border-t border-slate-800 px-5 py-3 text-xs text-slate-500">Newly approved devices receive current conversation keys; some older encrypted messages may remain unavailable. A revoked device may retain data it already downloaded. No recovery or Admin escrow key exists.</div>
+            <div class="bb-admin-modal-footer border-t border-slate-800 px-5 py-3 text-xs text-slate-500">Newly approved devices receive current conversation keys; some older encrypted messages may remain unavailable. A revoked device may retain data it already downloaded. No recovery or Admin escrow key exists.</div>
         </div>
     </div>
 
     @if($showCreateGroup)
-        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" wire:click.self="$set('showCreateGroup', false)">
-            <div class="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-5">
-                <div class="flex justify-between"><h3 class="font-bold text-white">Create Agent Group</h3><button type="button" wire:click="$set('showCreateGroup', false)">×</button></div>
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[10000] flex items-center justify-center" wire:click.self="$set('showCreateGroup', false)">
+            <div class="bb-admin-modal-shell bb-admin-modal-self-scroll max-w-lg p-5">
+                <div class="flex justify-between"><h3 class="font-bold text-white">Create Agent Group</h3><button type="button" wire:click="$set('showCreateGroup', false)" class="bb-admin-modal-close" aria-label="Close create group">×</button></div>
                 <input wire:model="groupName" maxlength="100" placeholder="Group name" class="mt-4 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white">
                 @error('groupName') <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror
                 <p class="mt-4 text-xs text-slate-400">Select at least two other Agents.</p>
@@ -501,9 +501,9 @@
     @endif
 
     @if($showDetails && $details)
-        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" wire:click.self="$set('showDetails', false)">
-            <div class="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-5">
-                <div class="flex justify-between"><h3 class="font-bold text-white">Conversation Details</h3><button type="button" wire:click="$set('showDetails', false)">×</button></div>
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[10000] flex items-center justify-center" wire:click.self="$set('showDetails', false)">
+            <div class="bb-admin-modal-shell bb-admin-modal-self-scroll max-w-lg p-5">
+                <div class="flex justify-between"><h3 class="font-bold text-white">Conversation Details</h3><button type="button" wire:click="$set('showDetails', false)" class="bb-admin-modal-close" aria-label="Close conversation details">×</button></div>
                 <div class="mt-4 space-y-2">@foreach($details['members'] as $member)<div class="flex items-center justify-between rounded-lg bg-slate-800 p-3"><div><p class="font-bold">{{ $member['name'] }}</p><p class="text-xs text-slate-400">{{ '@'.$member['username'] }}{{ $member['role'] === 'owner' ? ' · Owner' : '' }}</p></div>@if($details['is_owner'] && $member['id'] !== auth()->id())<button type="button" wire:click="removeMember({{ $member['id'] }})" class="text-xs text-red-300">Remove</button>@endif</div>@endforeach</div>
                 @if($details['type'] === 'internal_group' && $details['is_owner'])
                     <div class="mt-5 border-t border-slate-700 pt-4"><label class="text-xs text-slate-400">Rename Group</label><div class="mt-1 flex gap-2"><input wire:model="renamedGroup" class="min-w-0 flex-1 rounded-lg bg-slate-950 px-3 py-2"><button type="button" wire:click="renameGroup" class="rounded-lg bg-purple-600 px-3">Save</button></div></div>
@@ -515,9 +515,11 @@
     @endif
 
     @if($previewImageUrl)
-        <div class="fixed inset-0 z-[10001] flex items-center justify-center bg-black/90 p-4" wire:click.self="closeImagePreview">
-            <button type="button" wire:click="closeImagePreview" class="absolute right-5 top-5 rounded-full bg-slate-800 px-4 py-2 text-white">×</button>
-            <img src="{{ $previewImageUrl }}" alt="Internal attachment preview" class="max-h-[90vh] max-w-[95vw] object-contain">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[10001] flex items-center justify-center" wire:click.self="closeImagePreview">
+            <div class="bb-admin-modal-shell relative max-w-5xl p-3">
+                <button type="button" wire:click="closeImagePreview" class="bb-admin-modal-close absolute right-3 top-3 z-10" aria-label="Close attachment preview">×</button>
+                <img src="{{ $previewImageUrl }}" alt="Internal attachment preview" class="max-h-[calc(100dvh-3.5rem)] max-w-full object-contain">
+            </div>
         </div>
     @endif
 </div>

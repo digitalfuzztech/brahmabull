@@ -1,146 +1,83 @@
-<div class="max-w-7xl mx-auto px-6 py-6">
+<div class="bb-player-page bb-notifications-page mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+    <header class="bb-player-page-heading">
+        <div class="bb-player-kicker">Player Activity</div>
+        <h1>Notifications</h1>
+        <p>Review account updates, game access details, and transaction activity.</p>
+    </header>
 
-    <h1 class="text-2xl font-bold text-white mb-6">
-        Notifications
-    </h1>
+    <section class="bb-notification-filters" aria-label="Notification filters">
+        <label class="bb-filter-field bb-filter-field--search">
+            <span>Search</span>
+            <span class="bb-filter-control">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                </svg>
+                <input
+                    wire:model.live="search"
+                    type="search"
+                    placeholder="Search notifications..."
+                />
+            </span>
+        </label>
 
-    {{-- SEARCH --}}
-    <div class="mb-4 flex gap-3">
+        <label class="bb-filter-field">
+            <span>Category</span>
+            <select wire:model.live="type">
+                <option value="">All Types</option>
+                <option value="deposit">Deposits</option>
+                <option value="cashout">Cashouts</option>
+                <option value="game">Games</option>
+                <option value="brahma">Brahma</option>
+            </select>
+        </label>
 
-        <input
-            wire:model.live="search"
-            class="bg-slate-800 p-2 text-white rounded-xl w-full"
-            placeholder="Search notifications..."
-        />
+        <label class="bb-filter-field">
+            <span>Status</span>
+            <select wire:model.live="readStatus">
+                <option value="">All Status</option>
+                <option value="0">Unread</option>
+                <option value="1">Read</option>
+            </select>
+        </label>
+    </section>
 
-        <select
-            wire:model.live="type"
-            class="bg-slate-800 p-2 text-white rounded-xl"
-        >
+    <div class="bb-notification-list">
+        @forelse($notifications as $notification)
+            <article
+                wire:key="notification-{{ $notification->id }}"
+                class="bb-notification-card {{ $notification->is_read ? 'is-read' : 'is-unread' }}"
+            >
+                <div class="bb-notification-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 0 1-6 0v-1m6 0H9" />
+                    </svg>
+                </div>
 
-            <option value="">
-                All Types
-            </option>
+                <div class="bb-notification-copy">
+                    <div class="bb-notification-meta">
+                        <h2>{{ $notification->title }}</h2>
+                        <time datetime="{{ $notification->created_at->toIso8601String() }}">
+                            {{ $notification->created_at->diffForHumans() }}
+                        </time>
+                    </div>
 
-            <option value="deposit">
-                Deposits
-            </option>
+                    <p class="whitespace-pre-line">{{ $notification->message }}</p>
 
-            <option value="cashout">
-                Cashouts
-            </option>
-
-            <option value="game">
-                Games
-            </option>
-
-            <option value="brahma">
-                Brahma
-            </option>
-
-        </select>
-        <select
-            wire:model.live="readStatus"
-            class="bg-slate-800 p-2 text-white rounded-xl"
-        >
-            <option value="">
-                All Status
-            </option>
-
-            <option value="0">
-                Unread
-            </option>
-
-            <option value="1">
-                Read
-            </option>
-        </select>
-    </div>
-
-    <div
-        class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-
-        <table class="w-full text-sm text-left">
-
-            <thead class="text-slate-400 border-b border-slate-800">
-
-            <tr>
-
-                <th class="p-3">
-                    Notification
-                </th>
-
-                <th>
-                    Created
-                </th>
-
-                <th>
-                    Action
-                </th>
-
-            </tr>
-
-            </thead>
-
-            <tbody>
-
-            @foreach($notifications as $notification)
-
-                @php
-                    $bgClass = $notification->is_read
-                        ? 'opacity-60 bg-transparent'
-                        : 'bg-gray-700';
-                @endphp
-
-                <tr
-                    class="border-b border-slate-800 text-white {{ $bgClass }}"
-                >
-
-                    <td class="p-3">
-
-                        <div>
-
-                            <div class="text-indigo-300 font-bold">
-                                {{ $notification->title }}
-                            </div>
-
-                            <div class="mt-1 whitespace-pre-line">
-                                {{ $notification->message }}
-                            </div>
-
-                        </div>
-
-                    </td>
-
-                    <td class="text-slate-400">
-
-                        {{ $notification->created_at->diffForHumans() }}
-
-                    </td>
-
-                    <td class="p-3 space-x-2">
-
-                        {{-- PLAY BUTTONS --}}
+                    <div class="bb-notification-actions">
                         @if($notification->type === 'cashout_paid')
-
                             <button
                                 wire:click="viewProof({{ $notification->id }})"
-                                class="px-4 py-2 bg-purple-600 rounded-lg"
+                                class="bb-notification-action bb-notification-action--primary"
                             >
                                 View Proof
                             </button>
-
-
                         @elseif(in_array($notification->type, ['deposit_verified', 'brahma_play_verified', 'brahma_balance_loaded', 'brahma_balance_adjusted', 'brahma_play_submitted']))
-
                             <button
                                 wire:click="openNotification({{ $notification->id }})"
-                                class="px-4 py-2 bg-purple-600 rounded-lg"
+                                class="bb-notification-action bb-notification-action--primary"
                             >
                                 {{ $notification->action_text ?: 'Play' }}
                             </button>
-
-                            {{-- GOT IT BUTTONS --}}
                         @elseif(
                             in_array(
                                 $notification->type,
@@ -155,87 +92,71 @@
                                 ]
                             )
                         )
-
                             @if($notification->is_read)
-
                                 <button
-                                    wire:click="openNotification({{ $notification->id }})"
-                                    class="px-3 py-1 bg-green-700 rounded-lg"
+                                    wire:click="acknowledge({{ $notification->id }})"
+                                    class="bb-notification-action bb-notification-action--confirmed"
                                 >
                                     ✓ Got It
                                 </button>
-
                             @else
-
                                 <button
-                                    wire:click="openNotification({{ $notification->id }})"
-                                    class="px-3 py-1 bg-gray-600 rounded-lg"
+                                    wire:click="acknowledge({{ $notification->id }})"
+                                    class="bb-notification-action bb-notification-action--muted"
                                 >
                                     Got It
                                 </button>
-
                             @endif
-
-                            {{-- FALLBACK --}}
                         @else
-
                             @if($notification->is_read)
-
                                 <button
                                     wire:click="toggleRead({{ $notification->id }})"
-                                    class="px-3 py-1 bg-yellow-600 rounded-lg"
+                                    class="bb-notification-action bb-notification-action--muted"
                                 >
                                     Mark Unread
                                 </button>
-
                             @else
-
                                 <button
                                     wire:click="toggleRead({{ $notification->id }})"
-                                    class="px-3 py-1 bg-red-600 rounded-lg"
+                                    class="bb-notification-action bb-notification-action--primary"
                                 >
                                     Mark Read
                                 </button>
-
                             @endif
-
                         @endif
-
-                    </td>
-
-                </tr>
-
-            @endforeach
-
-            </tbody>
-
-        </table>
-
+                    </div>
+                </div>
+            </article>
+        @empty
+            <div class="bb-player-empty">
+                <span class="bb-player-empty__icon" aria-hidden="true">◇</span>
+                <h2>No notifications yet</h2>
+                <p>Account and game updates will appear here.</p>
+            </div>
+        @endforelse
     </div>
 
-    <div class="mt-4 custom-page-styles">
-
+    <div class="mt-6 custom-page-styles">
         {{ $notifications->links() }}
-
     </div>
-    @if(!empty($previewImage))
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
-            <div class="relative bg-slate-900 p-4 rounded-xl">
 
+    @if(!empty($previewImage))
+        <div class="bb-proof-preview fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
+            <div class="relative max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-2xl">
                 <button
                     wire:click="closePreview"
-                    class="absolute top-2 right-2 bg-red-600 px-2 rounded"
+                    class="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-red-600 text-white"
+                    aria-label="Close payment proof preview"
                 >
-                    ✕
+                    ×
                 </button>
 
                 <img
                     src="{{ $previewImage }}"
-                    class="max-h-[600px] rounded-lg"
+                    class="mx-auto max-h-[80vh] rounded-xl object-contain"
+                    alt="Cashout payment proof"
                 >
-
             </div>
         </div>
     @endif
-
 </div>

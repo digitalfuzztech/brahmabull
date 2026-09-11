@@ -5,7 +5,7 @@
 
     <div class="mx-auto max-w-[1380px] px-5 md:px-7">
 
-        <div class="bb-cta-shell">
+        <div data-bb-reveal="scale" class="bb-cta-shell">
 
             {{-- GENERATED CTA BACKGROUND --}}
             <img
@@ -41,7 +41,7 @@
                 {{-- REAL EXISTING CTA CONTENT                         --}}
                 {{-- ================================================= --}}
 
-                <div class="bb-cta-content">
+                <div data-bb-reveal class="bb-cta-content" style="--bb-reveal-delay: 80ms">
 
                     @guest
 
@@ -192,7 +192,7 @@
                 {{-- EXISTING SITE BENEFITS, USED DECORATIVELY         --}}
                 {{-- ================================================= --}}
 
-                <div class="bb-cta-benefits">
+                <div data-bb-reveal="right" class="bb-cta-benefits" style="--bb-reveal-delay: 150ms">
 
                     <div class="bb-cta-benefit">
 

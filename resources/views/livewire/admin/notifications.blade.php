@@ -10,17 +10,17 @@
         <input
             wire:model.live="search"
             class="bg-slate-800 p-2 text-white rounded-xl w-full"
-            placeholder="Search by player name..."
+            placeholder="Search notifications or reference..."
         />
 
         <select wire:model.live="type"
                 class="bg-slate-800 p-2 text-white rounded-xl">
 
             <option value="">All Types</option>
-            <option value="deposit_created">Deposits</option>
-            <option value="cashout_created">Cashouts</option>
-            <option value="brahma_deposit_created">Brahma Deposits</option>
-            <option value="brahma_play_created">Brahma Plays</option>
+            <option value="deposit">Deposits</option>
+            <option value="cashout">Cashouts</option>
+            <option value="brahma_deposit">Brahma Deposits</option>
+            <option value="brahma_play">Brahma Plays</option>
             <option value="wallet">Wallet</option>
             <option value="game">Games</option>
 

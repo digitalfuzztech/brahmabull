@@ -12,10 +12,12 @@ use App\Livewire\Admin\BrahmaDeposits;
 use App\Livewire\Admin\BrahmaPlays;
 use App\Livewire\Admin\Cashouts;
 use App\Livewire\Admin\ChatSettings;
+use App\Livewire\Admin\Cms\GeneralSettings;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Deposits;
 use App\Livewire\Admin\GameShow;
 use App\Livewire\Admin\Notifications;
+use App\Livewire\Admin\PlayerRankSettings;
 use App\Livewire\Admin\Players;
 use App\Livewire\Admin\PlayersAll;
 use App\Livewire\Admin\SpinningWheel;
@@ -37,6 +39,15 @@ use Illuminate\Support\Facades\Session;
 
 Route::get('/', HomePage::class)
     ->name('home');
+
+Route::view('/privacy-policy', 'public.privacy-policy')
+    ->name('privacy-policy');
+Route::view('/terms-and-conditions', 'public.terms-and-conditions')
+    ->name('terms-and-conditions');
+Route::view('/guide-to-play', 'public.guide-to-play')
+    ->name('guide-to-play');
+Route::view('/brahmabull-rules', 'public.brahmabull-rules')
+    ->name('brahmabull-rules');
 
 // Route::get('/dashboard', function () {
 //  return view('dashboard');
@@ -102,6 +113,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.chat-settings');
     Route::get('/admin/spinning-wheel', SpinningWheel::class)
         ->name('admin.spinning-wheel');
+    Route::get('/admin/player-rank-settings', PlayerRankSettings::class)
+        ->name('admin.player-rank-settings');
+    Route::get('/admin/cms/general-settings', GeneralSettings::class)
+        ->name('admin.cms.general-settings');
 });
 
 Route::middleware(['auth', 'role:agent'])->group(function () {

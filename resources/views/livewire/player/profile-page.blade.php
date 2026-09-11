@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div data-bb-reveal-page class="bb-player-page bb-profile-page mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
 
     @if(session('success'))
         <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400">
@@ -8,7 +8,7 @@
 
     {{-- PROFILE DETAILS --}}
 
-    <div class="rounded-3xl bg-slate-900 border border-slate-800 p-6">
+    <section data-bb-reveal class="bb-player-panel bb-profile-identity rounded-3xl bg-slate-900 border border-slate-800 p-6">
 
         <div class="flex flex-col md:flex-row gap-6 items-center">
 
@@ -16,7 +16,8 @@
                 src="{{ auth()->user()->photo
                     ? Storage::url(auth()->user()->photo)
                     : asset('images/default-user.png') }}"
-                class="w-32 h-32 rounded-full object-cover border-4 border-purple-500"
+                class="bb-profile-avatar w-32 h-32 rounded-full object-cover border-4 border-purple-500"
+                alt="{{ auth()->user()->name }} profile photo"
             >
 
             <div class="flex-1">
@@ -128,52 +129,52 @@
 
             <button
                 wire:click="openEditModal"
-                class="px-5 py-3 rounded-xl bg-purple-600"
+                class="bb-primary-action px-5 py-3 rounded-xl bg-purple-600"
             >
                 Edit Profile
             </button>
 
         </div>
 
-    </div>
+    </section>
 
-    <div class="mt-8 rounded-3xl border border-purple-500/40 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-8">
+    <section data-bb-reveal="scale" class="bb-profile-balance mt-8 rounded-3xl border border-purple-500/40 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-8" style="--bb-reveal-delay: 70ms">
         <div class="text-sm font-bold uppercase tracking-wider text-purple-300">Brahma Balance</div>
         <div class="mt-2 text-5xl font-black text-white">
             ${{ number_format((float) $brahmaBalance, 2) }}
         </div>
-    </div>
+    </section>
 
     {{-- STATS --}}
 
-    <div class="grid md:grid-cols-3 gap-6 mt-8">
+    <div class="bb-profile-stats grid gap-4 mt-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
 
-        <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+        <section data-bb-reveal class="bb-profile-stat bg-slate-900 rounded-3xl p-6 border border-slate-800" style="--bb-reveal-delay: 80ms">
             <div class="text-slate-400">Total Deposits</div>
             <div class="text-3xl font-black mt-2">
                 ${{ number_format($totalDeposits) }}
             </div>
-        </div>
+        </section>
 
-        <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+        <section data-bb-reveal class="bb-profile-stat bg-slate-900 rounded-3xl p-6 border border-slate-800" style="--bb-reveal-delay: 150ms">
             <div class="text-slate-400">Total Cashouts</div>
             <div class="text-3xl font-black mt-2">
                 ${{ number_format($totalCashouts) }}
             </div>
-        </div>
+        </section>
 
-        <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+        <section data-bb-reveal class="bb-profile-stat bg-slate-900 rounded-3xl p-6 border border-slate-800" style="--bb-reveal-delay: 220ms">
             <div class="text-slate-400">Total Referrals</div>
             <div class="text-3xl font-black mt-2">
                 {{ number_format($totalReferrals) }}
             </div>
-        </div>
+        </section>
 
     </div>
 
         {{-- MONTHLY SECTION --}}
 
-        <div class="mt-8 rounded-3xl bg-slate-900 border border-slate-800 p-6">
+        <section data-bb-reveal class="bb-player-panel bb-profile-history mt-8 rounded-3xl bg-slate-900 border border-slate-800 p-4 sm:p-6">
 
             <div class="flex justify-between items-center">
 
@@ -202,7 +203,7 @@
 
             {{-- TAB CARDS --}}
 
-            <div class="grid md:grid-cols-4 gap-6 mt-6">
+            <div class="bb-profile-tabs mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
 
                 <button
                     wire:click="$set('activeTab','deposits')"
@@ -375,7 +376,9 @@
                                     {{ $row->load_balance !== null ? '$'.number_format((float) $row->load_balance, 2) : '-' }}
                                 </td>
 
-                                <td class="py-3 capitalize">{{ $row->status }}</td>
+                                <td class="py-3 capitalize">
+                                    <span class="bb-status-badge">{{ $row->status }}</span>
+                                </td>
 
                             </tr>
 
@@ -554,11 +557,13 @@
                                 <td class="py-3">{{ $spinActionLabels[$spin->offer_snapshot_type] ?? Str::headline($spin->offer_snapshot_type) }}</td>
                                 <td class="py-3">{{ in_array($spin->offer_snapshot_type, ['sajilo_points','bonus_points','free_spin'], true) ? ($spin->offer_snapshot_value ?: '-') : '-' }}</td>
                                 <td class="py-3 capitalize">
+                                    <span class="bb-status-badge">
                                     @if($spin->offer_snapshot_type === 'bonus_points')
                                         {{ $spin->promotionalPoints?->status === 'fulfilled' ? 'Awarded' : 'Pending' }}
                                     @else
                                         {{ $spin->status }}
                                     @endif
+                                    </span>
                                 </td>
                             </tr>
                         @empty
@@ -569,14 +574,14 @@
                 </div>
             @endif
 
-        </div>
+        </section>
     {{-- EDIT MODAL --}}
 
         @if($showEditModal)
 
             <div class="fixed inset-0 z-[99999] flex justify-center bg-black/70 backdrop-blur-sm">
 
-                <div class="w-full max-w-lg h-[70vh] flex flex-col m-auto rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden">
+                <div class="bb-profile-edit-modal w-full max-w-lg h-[70vh] flex flex-col m-auto rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden">
 
                     {{-- HEADER --}}
                     <div class="flex justify-between items-center p-6 border-b border-slate-800">

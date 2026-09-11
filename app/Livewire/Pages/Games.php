@@ -36,6 +36,7 @@ class Games extends Component
     {
         $game = Game::findOrFail($gameId);
 
+        $this->resetValidation();
         $this->depositSubmitted = false;
         $this->brahmaPlaySubmitted = false;
         $this->playModalTab = 'payment';
@@ -93,6 +94,8 @@ class Games extends Component
             'paymentType' => 'required',
             'selectedWallet' => 'required',
             'proofImage' => 'required|image|max:5120',
+        ], [
+            'proofImage.required' => 'Payment screenshot is required.',
         ]);
 
         $proofPath = $this->proofImage->store('deposit-proofs', 'public');

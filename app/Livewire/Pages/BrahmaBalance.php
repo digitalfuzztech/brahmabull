@@ -87,6 +87,8 @@ class BrahmaBalance extends Component
             'paymentType' => 'required|string',
             'selectedWallet' => 'required|exists:wallets,id',
             'proofImage' => 'required|image|max:5120',
+        ], [
+            'proofImage.required' => 'Payment screenshot is required.',
         ]);
 
         $wallet = Wallet::with(['walletType'])

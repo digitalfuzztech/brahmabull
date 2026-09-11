@@ -15,15 +15,15 @@
         <div class="space-y-4">
             <button type="button" data-spin-add-type wire:click="openTypeForm" class="rounded-xl bg-purple-600 px-5 py-2 font-bold">Add Offer Type</button>
             @if($showTypeForm)
-            <div data-spin-type-modal class="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" wire:key="offer-type-form-modal">
-            <form wire:submit="saveType" class="w-full max-w-md space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl">
+            <div data-spin-type-modal class="bb-admin-modal-overlay fixed inset-0 z-[200] flex items-center justify-center" wire:key="offer-type-form-modal">
+            <form wire:submit="saveType" class="bb-admin-modal-shell bb-admin-modal-self-scroll max-w-md space-y-4 p-5">
                 <div><h2 class="text-xl font-black">{{ $typeId?'Edit':'Add' }} Offer Type</h2><p class="text-xs text-slate-400">Maximum 10 active types.</p></div>
                 <label class="block text-sm font-bold">Offer Name<input data-spin-type-name wire:model.live.debounce.250ms="typeName" class="mt-1 w-full rounded-xl border-slate-700 bg-slate-950" placeholder="Loyalty Reward"></label>
                 <label class="block text-sm font-bold">Offer Slug<input value="{{ Str::slug($typeName) }}" disabled class="mt-1 w-full rounded-xl border-slate-800 bg-slate-950/60 text-slate-400" placeholder="generated-automatically"></label>
                 <label class="block text-sm font-bold">Category<select data-spin-type-category wire:model="typeAction" class="mt-1 w-full rounded-xl border-slate-700 bg-slate-950">@foreach($actionLabels as $value=>$label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                 <label class="flex justify-between rounded-xl bg-slate-950 p-3 text-sm font-bold">Active<input type="checkbox" wire:model="typeActive"></label>
                 @error('typeName')<p class="text-sm text-red-300">{{ $message }}</p>@enderror @error('typeActive')<p class="text-sm text-red-300">{{ $message }}</p>@enderror
-                <div class="flex gap-2"><button type="submit" data-spin-save-type class="rounded-xl bg-purple-600 px-5 py-2 font-bold">Save Type</button><button type="button" wire:click="closeTypeForm" class="rounded-xl bg-slate-700 px-4 py-2">Cancel</button></div>
+                <div class="flex gap-2"><button type="submit" data-spin-save-type class="bb-admin-modal-primary px-5 py-2">Save Type</button><button type="button" wire:click="closeTypeForm" class="bb-admin-modal-secondary px-4 py-2">Cancel</button></div>
             </form>
             </div>
             @endif
@@ -102,27 +102,27 @@
     @endif
 
     @if($showTypeDeleteConfirm)
-        <div data-spin-delete-modal class="fixed inset-0 z-[210] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" wire:key="offer-type-delete-modal">
-            <section class="w-full max-w-md rounded-2xl border border-red-400/30 bg-slate-900 p-6 text-center shadow-2xl">
+        <div data-spin-delete-modal class="bb-admin-modal-overlay fixed inset-0 z-[210] flex items-center justify-center" wire:key="offer-type-delete-modal">
+            <section class="bb-admin-modal-shell max-w-md p-6 text-center">
                 <h2 class="text-xl font-black">Do you really want to delete this offer type?</h2>
                 <p class="mt-2 text-sm text-slate-400">Types already used by offers will be safely disabled.</p>
-                <div class="mt-6 flex justify-center gap-3"><button type="button" data-spin-delete-yes wire:click="deleteConfirmedType" class="rounded-xl bg-red-600 px-5 py-2 font-bold">Yes</button><button type="button" data-spin-delete-no wire:click="cancelDeleteType" class="rounded-xl bg-slate-700 px-5 py-2 font-bold">No</button></div>
+                <div class="mt-6 flex justify-center gap-3"><button type="button" data-spin-delete-yes wire:click="deleteConfirmedType" class="rounded-xl bg-red-600 px-5 py-2 font-bold">Yes</button><button type="button" data-spin-delete-no wire:click="cancelDeleteType" class="bb-admin-modal-secondary px-5 py-2">No</button></div>
             </section>
         </div>
     @endif
     @if($pendingOfferDeleteId)
-        <div class="fixed inset-0 z-[210] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" wire:key="offer-delete-modal">
-            <div class="w-full max-w-md rounded-2xl border border-red-500/40 bg-slate-900 p-6 text-center shadow-2xl">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[210] flex items-center justify-center" wire:key="offer-delete-modal">
+            <div class="bb-admin-modal-shell max-w-md p-6 text-center">
                 <h3 class="text-xl font-black">Delete this offer?</h3><p class="mt-3 text-slate-300">Used offers will be safely disabled to preserve history.</p>
-                <div class="mt-6 flex justify-center gap-3"><button type="button" wire:click="deleteConfirmedOffer" class="rounded-xl bg-red-600 px-5 py-2 font-bold">Yes</button><button type="button" wire:click="cancelDeleteOffer" class="rounded-xl bg-slate-700 px-5 py-2 font-bold">No</button></div>
+                <div class="mt-6 flex justify-center gap-3"><button type="button" wire:click="deleteConfirmedOffer" class="rounded-xl bg-red-600 px-5 py-2 font-bold">Yes</button><button type="button" wire:click="cancelDeleteOffer" class="bb-admin-modal-secondary px-5 py-2">No</button></div>
             </div>
         </div>
     @endif
     @if($pendingAssignmentDeleteId)
-        <div class="fixed inset-0 z-[210] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" wire:key="assignment-delete-modal">
-            <div class="w-full max-w-md rounded-2xl border border-red-500/40 bg-slate-900 p-6 text-center shadow-2xl">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[210] flex items-center justify-center" wire:key="assignment-delete-modal">
+            <div class="bb-admin-modal-shell max-w-md p-6 text-center">
                 <h3 class="text-xl font-black">Remove this wheel assignment?</h3>
-                <div class="mt-6 flex justify-center gap-3"><button type="button" wire:click="deleteConfirmedAssignment" class="rounded-xl bg-red-600 px-5 py-2 font-bold">Yes</button><button type="button" wire:click="cancelDeleteAssignment" class="rounded-xl bg-slate-700 px-5 py-2 font-bold">No</button></div>
+                <div class="mt-6 flex justify-center gap-3"><button type="button" wire:click="deleteConfirmedAssignment" class="rounded-xl bg-red-600 px-5 py-2 font-bold">Yes</button><button type="button" wire:click="cancelDeleteAssignment" class="bb-admin-modal-secondary px-5 py-2">No</button></div>
             </div>
         </div>
     @endif

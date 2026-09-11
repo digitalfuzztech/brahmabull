@@ -17,17 +17,21 @@
     @teleport('body')
     <div>
     @if($showModal)
-        <div class="fixed inset-0 z-[10000] overflow-y-auto bg-black/70 backdrop-blur-sm">
+        <div class="bb-player-form-overlay fixed inset-0 z-[10000] overflow-y-auto bg-black/70 backdrop-blur-sm">
             <div class="flex min-h-full items-center justify-center p-4">
-            <div class="w-full max-w-lg max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-white">
-                <div class="flex items-center justify-between border-b border-slate-800 p-5">
-                    <h2 class="text-lg font-bold">Brahma Balance Deposit</h2>
-                    <button wire:click="closeModal" class="text-xl text-slate-300">x</button>
+            <div class="bb-player-form-shell w-full max-w-lg max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-white">
+                <div class="bb-player-form-header flex items-center justify-between border-b border-slate-800 p-5">
+                    <div>
+                        <p class="bb-player-form-kicker">Brahma Wallet</p>
+                        <h2 class="text-lg font-bold">Brahma Balance Deposit</h2>
+                        <p class="bb-player-form-description">Add funds to your Brahma Balance.</p>
+                    </div>
+                    <button wire:click="closeModal" class="bb-player-form-close text-xl text-slate-300" aria-label="Close Brahma Balance Deposit">×</button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+                <div class="bb-player-form-body flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
                     @if($depositSubmitted)
-                        <div class="rounded-2xl border border-green-500/30 bg-green-500/10 p-4 text-green-300">
+                        <div class="bb-player-form-success rounded-2xl border border-green-500/30 bg-green-500/10 p-4 text-green-300">
                             <div class="font-bold">Deposit Submitted Successfully</div>
                             <div class="mt-1 text-sm">Reference: {{ $depositReference }}</div>
                         </div>
@@ -47,6 +51,10 @@
                         <label class="text-sm text-slate-400">Amount</label>
                         <input type="number" step="0.01" wire:model="amount" class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white" placeholder="Enter amount">
                         @error('amount') <p class="mt-1 text-sm text-red-400">{{ $message }}</p> @enderror
+                        <div class="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2.5 text-xs leading-relaxed text-amber-100" role="note">
+                            <span class="font-bold text-amber-300">Payment Reminder:</span>
+                            When sending payment through your payment provider, use a generic payment remark such as “Food” or “Clothes”.
+                        </div>
                     </div>
 
                     <div>
@@ -67,7 +75,7 @@
                                 <div
                                     wire:key="brahma-wallet-{{ $wallet->id }}"
                                     wire:click="selectWallet({{ $wallet->id }})"
-                                    class="cursor-pointer rounded-xl border p-4 transition {{ $selectedWallet == $wallet->id ? 'border-purple-500 bg-slate-800' : 'border-slate-700 bg-slate-900' }}"
+                                    class="bb-player-form-wallet cursor-pointer rounded-xl border p-4 transition {{ $selectedWallet == $wallet->id ? 'is-selected border-purple-500 bg-slate-800' : 'border-slate-700 bg-slate-900' }}"
                                 >
                                     <div class="flex items-center justify-between gap-3">
                                         <div>
@@ -86,14 +94,24 @@
                     @error('selectedWallet') <p class="text-sm text-red-400">{{ $message }}</p> @enderror
 
                     @if($selectedWallet)
-                        <button wire:click="$set('showWalletPreview', true)" type="button" class="text-sm font-semibold text-purple-400 hover:text-purple-300">
-                            Preview Selected Wallet for QR-Code
-                        </button>
+                        <div class="space-y-3">
+                            <x-wallet-actions :wallet="$this->selectedWalletModel" />
+
+                            @if($this->selectedWalletModel?->qr_image)
+                                <button wire:click="$set('showWalletPreview', true)" type="button" class="block rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="Preview selected wallet QR code">
+                                    <img src="{{ asset('storage/' . $this->selectedWalletModel->qr_image) }}" alt="Selected wallet QR code" class="h-24 w-24 cursor-zoom-in rounded-xl border border-slate-700 object-cover">
+                                </button>
+                            @endif
+
+                            <button wire:click="$set('showWalletPreview', true)" type="button" class="text-sm font-semibold text-purple-400 hover:text-purple-300">
+                                Preview Selected Wallet for QR-Code
+                            </button>
+                        </div>
                     @endif
 
                     <div>
                         <label class="text-sm text-slate-400">Payment Screenshot</label>
-                        <label for="brahmaProofImage" class="group mt-2 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-600 bg-slate-800/40 p-6 transition hover:border-indigo-500 hover:bg-slate-800">
+                        <label for="brahmaProofImage" class="bb-player-form-upload group mt-2 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-600 bg-slate-800/40 p-6 transition hover:border-indigo-500 hover:bg-slate-800">
                             @if($proofImage)
                                 <img src="{{ $proofImage->temporaryUrl() }}" class="max-h-52 rounded-xl border-2 border-indigo-500 object-cover">
                                 <span class="mt-3 text-indigo-300">Click to change screenshot</span>
@@ -108,12 +126,16 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 border-t border-slate-800 p-5">
-                    <button wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
-                    <button wire:click="submitDeposit" wire:loading.attr="disabled" wire:target="submitDeposit" class="rounded-xl bg-green-600 px-4 py-2 font-bold disabled:opacity-70">
-                        <span wire:loading.remove wire:target="submitDeposit">Submit Deposit</span>
-                        <span wire:loading wire:target="submitDeposit">Submitting...</span>
-                    </button>
+                <div class="bb-player-form-footer flex justify-end gap-3 border-t border-slate-800 p-5">
+                    @if($depositSubmitted)
+                        <button wire:click="closeModal" class="bb-player-form-primary rounded-xl bg-green-600 px-4 py-2 font-bold">Close</button>
+                    @else
+                        <button wire:click="closeModal" class="bb-player-form-secondary rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
+                        <button wire:click="submitDeposit" wire:loading.attr="disabled" wire:target="proofImage,submitDeposit" class="bb-player-form-primary rounded-xl bg-green-600 px-4 py-2 font-bold disabled:cursor-wait disabled:opacity-70">
+                            <span wire:loading.remove wire:target="submitDeposit">Submit Deposit</span>
+                            <span wire:loading wire:target="submitDeposit">{{ $proofImage ? 'Submitting...' : 'Submit Deposit' }}</span>
+                        </button>
+                    @endif
                 </div>
             </div>
             </div>
@@ -127,15 +149,16 @@
     @if($showWalletPreview && $this->selectedWalletModel)
         <div class="fixed inset-0 z-[10001] overflow-y-auto bg-black/80">
             <div class="flex min-h-full items-center justify-center p-4">
-            <div class="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 text-white">
+            <div class="bb-player-form-shell bb-player-wallet-preview w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 text-white">
                 <div class="mb-6 flex items-center justify-between">
                     <h3 class="text-xl font-bold">Wallet Details</h3>
-                    <button wire:click="$set('showWalletPreview', false)" class="text-xl">x</button>
+                    <button wire:click="$set('showWalletPreview', false)" class="bb-player-form-close text-xl" aria-label="Close wallet preview">×</button>
                 </div>
 
                 <div class="space-y-4">
                     <p><span class="text-slate-400">Wallet Owner:</span> <span class="font-bold">{{ $this->selectedWalletModel->name }}</span></p>
-                    <p><span class="text-slate-400">Payment Tag:</span> <span class="break-all font-bold text-purple-400">{{ $this->selectedWalletModel->account_identifier }}</span></p>
+
+                    <x-wallet-actions :wallet="$this->selectedWalletModel" />
 
                     @if($this->selectedWalletModel->qr_image)
                         <div>

@@ -1,26 +1,31 @@
-<div class="min-h-screen bg-slate-950 text-white">
+<div data-bb-reveal-page class="bb-player-page bb-games-page min-h-screen bg-slate-950 text-white {{ $showModal || $showWalletPreview ? 'z-[1000]' : '' }}">
 
 
     {{-- HERO SECTION --}}
-    <div class="border-b border-slate-800">
-        <div class="mx-auto max-w-7xl px-6 py-14">
-            <h1 class="text-4xl font-black text-white">
-                All Games
+    <div class="bb-player-hero border-b border-slate-800">
+        <div data-bb-reveal class="bb-player-hero__inner mx-auto max-w-7xl px-6 py-14">
+            <div class="bb-player-kicker">Game Catalog</div>
+            <h1 class="mt-3 text-4xl font-black text-white">
+                Games
             </h1>
             <p class="mt-3 text-slate-400">
-                Browse all available games at BrahmaBull Gaming Club.
+                Choose your game and start playing.
             </p>
+            <div data-bb-reveal="scale" class="bb-games-balance mt-6" style="--bb-reveal-delay: 90ms" aria-label="Current Brahma Balance">
+                <span>Brahma Balance</span>
+                <strong>${{ number_format((float) $playerBalance, 2) }}</strong>
+            </div>
         </div>
     </div>
 
 
     <div class="mx-auto max-w-7xl px-6 py-12">
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div class="bb-games-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
-            @foreach($games as $game)
+            @forelse($games as $game)
 
-                <div class="group overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 transition hover:-translate-y-2 hover:border-purple-500">
+                <article data-bb-reveal style="--bb-reveal-delay: {{ min($loop->index, 5) * 70 }}ms" class="bb-game-catalog-card group overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 transition hover:-translate-y-2 hover:border-purple-500">
 
                     <div class="aspect-[4/5] overflow-hidden">
                         <img
@@ -30,7 +35,7 @@
                         >
                     </div>
 
-                    <div class="p-4">
+                    <div class="flex flex-1 flex-col p-5">
                         <h3 class="font-bold text-white">
                             {{ $game['name'] }}
                         </h3>
@@ -41,15 +46,21 @@
 
                         <button
                             wire:click="openPlayModal({{ $game->id }})"
-                            class="mt-4 w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-2 text-sm font-bold"
+                            class="bb-primary-action mt-auto w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-2.5 text-sm font-bold"
                         >
                             Play
                         </button>
                     </div>
 
-                </div>
+                </article>
 
-            @endforeach
+            @empty
+                <div data-bb-reveal class="bb-player-empty col-span-full">
+                    <span class="bb-player-empty__icon" aria-hidden="true">◇</span>
+                    <h2>No games found</h2>
+                    <p>There are no active games available right now.</p>
+                </div>
+            @endforelse
 
         </div>
 
@@ -160,6 +171,11 @@
                            class="w-full mt-1 rounded-xl bg-slate-800 border-slate-700 text-white"
                            placeholder="Enter amount"
                     />
+
+                    <div class="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2.5 text-xs leading-relaxed text-amber-100" role="note">
+                        <span class="font-bold text-amber-300">Payment Reminder:</span>
+                        When sending payment through your payment provider, use a generic payment remark such as “Food” or “Clothes”.
+                    </div>
                 </div>
 
                 <!-- WALLET TYPE -->
@@ -226,7 +242,9 @@
                 @endif
                 @if($selectedWallet)
 
-                    <div class="mt-3">
+                    <div class="mt-3 space-y-3">
+
+                        <x-wallet-actions :wallet="$this->selectedWalletModel" />
 
                         @if($this->selectedWalletModel?->qr_image)
                             <button
@@ -312,6 +330,10 @@
 
                         </label>
 
+                        @error('proofImage')
+                            <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+
                         <div
                             wire:loading
                             wire:target="proofImage"
@@ -393,28 +415,29 @@
                 <!-- SUBMIT -->
                 <div class="p-6 border-t border-slate-800">
                     @if($playModalTab === 'payment')
-                <button
-                    wire:click="submitDeposit"
-                    wire:loading.attr="disabled"
-                    wire:target="submitDeposit"
-                    class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-bold text-white"
-                >
+                        @if($depositSubmitted)
+                            <button
+                                wire:click="closeModal"
+                                class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-bold text-white"
+                            >
+                                Close
+                            </button>
+                        @else
+                            <button
+                                wire:click="submitDeposit"
+                                wire:loading.attr="disabled"
+                                wire:target="proofImage,submitDeposit"
+                                class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-bold text-white disabled:cursor-wait disabled:opacity-70"
+                            >
+                                <span wire:loading.remove wire:target="submitDeposit">
+                                    Submit Deposit
+                                </span>
 
-    <span
-        wire:loading.remove
-        wire:target="submitDeposit"
-    >
-        Submit Deposit
-    </span>
-
-                    <span
-                        wire:loading
-                        wire:target="submitDeposit"
-                    >
-        Submitting...
-    </span>
-
-                </button>
+                                <span wire:loading wire:target="submitDeposit">
+                                    {{ $proofImage ? 'Submitting...' : 'Submit Deposit' }}
+                                </span>
+                            </button>
+                        @endif
                     @else
                         <button
                             wire:click="submitBrahmaPlay"
@@ -478,15 +501,7 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <p class="text-slate-400 text-sm">
-                            Payment Tag:
-                        </p>
-
-                        <p class="font-bold text-purple-400 break-all">
-                            {{ $this->selectedWalletModel->account_identifier }}
-                        </p>
-                    </div>
+                    <x-wallet-actions :wallet="$this->selectedWalletModel" />
 
                     @if($this->selectedWalletModel->qr_image)
 

@@ -15,7 +15,7 @@
         >{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
     </button>
 
-        <div data-team-dropdown x-cloak x-show="dropdownOpen" x-on:click.outside="dropdownOpen = false" class="absolute right-0 top-11 z-[9999] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+        <div data-team-dropdown x-cloak x-show="dropdownOpen" x-on:click.outside="dropdownOpen = false" class="fixed left-1/2 top-20 z-[9999] w-[calc(100vw-1.5rem)] max-w-[22rem] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl md:absolute md:left-auto md:right-0 md:top-11 md:w-[22rem] md:translate-x-0">
             <div class="border-b border-slate-700 px-4 py-3"><h3 class="font-bold text-white">Messenger</h3><p class="text-xs text-slate-400">Recent authorized conversations</p></div>
             <div class="max-h-80 overflow-y-auto">
                 @forelse($recent as $conversation)

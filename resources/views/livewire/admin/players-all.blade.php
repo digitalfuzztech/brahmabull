@@ -92,21 +92,15 @@
 
         @php $player = $selectedPlayer; @endphp
 
-        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
 
-            <div class="bg-slate-900  max-w-5xl rounded-2xl border border-slate-700 relative">
-                <div class="flex justify-end ">
-                    <button wire:click="closePlayer"
-                            class="text-white  p-2 m-2 bg-red-600 rounded-tr-2xl">
-                        ✕
-                    </button>
-                </div>
+            <div class="bb-admin-modal-shell relative max-w-5xl">
 
 
                 {{-- HEADER --}}
-                <div class="p-5 border-b border-slate-800">
+                <div class="bb-admin-modal-header flex items-start justify-between gap-4 border-b border-slate-800 p-5">
 
-                    <h2 class="text-white text-xl font-bold">
+                    <div><h2 class="text-white text-xl font-bold">
                         {{ $player->name }}
 
                         @if($player->username)
@@ -127,12 +121,14 @@
                     <div class="mt-4 inline-block rounded-2xl border border-purple-500/40 bg-purple-500/10 px-5 py-3">
                         <p class="text-xs font-bold uppercase tracking-wider text-purple-300">Brahma Balance</p>
                         <p class="mt-1 text-3xl font-black text-white">${{ number_format((float) $player->brahma_balance, 2) }}</p>
-                    </div>
+                    </div></div>
+
+                    <button type="button" wire:click="closePlayer" class="bb-admin-modal-close" aria-label="Close player details">×</button>
 
                 </div>
 
                 {{-- BODY --}}
-                <div class="p-5 space-y-5 text-white">
+                <div class="bb-admin-modal-body p-5 space-y-5 text-white">
 
                     {{-- GAME ACCOUNTS --}}
                     <div class="max-h-[350px] overflow-y-auto rounded-xl custom-scrollbar">

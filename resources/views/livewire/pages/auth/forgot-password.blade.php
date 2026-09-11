@@ -36,35 +36,30 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-<div class="flex flex-col gap-3 items-center">
-    <div class="mb-6 text-sm text-slate-300">
-        {{ __("Forgot your password? Enter the email address associated with your account and we'll send you a secure password reset link.") }}
-    </div>
+<div class="bb-auth-content">
+    <header class="bb-auth-card-heading">
+        <p class="bb-auth-card-kicker">Account recovery</p>
+        <h2>Forgot Password?</h2>
+        <p>Enter the email associated with your account and we’ll send your secure reset link.</p>
+    </header>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <x-auth-session-status class="mb-5" :status="session('status')" />
 
-    <form wire:submit="sendPasswordResetLink">
-        <!-- Email Address -->
+    <form wire:submit="sendPasswordResetLink" class="bb-auth-form">
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus />
+            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="email" placeholder="you@example.com" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-center mt-4">
-            <x-primary-button
-                wire:loading.attr="disabled"
-                wire:target="sendPasswordResetLink"
-            >
-        <span wire:loading.remove wire:target="sendPasswordResetLink">
-            {{ __('Email Password Reset Link') }}
-        </span>
-
-                <span wire:loading wire:target="sendPasswordResetLink">
-            Sending...
-        </span>
-            </x-primary-button>
-        </div>
+        <x-primary-button class="bb-auth-submit" wire:loading.attr="disabled" wire:target="sendPasswordResetLink">
+            <span wire:loading.remove wire:target="sendPasswordResetLink">Email Password Reset Link</span>
+            <span wire:loading wire:target="sendPasswordResetLink">Sending...</span>
+        </x-primary-button>
     </form>
+
+    <p class="bb-auth-switch-copy">
+        Remembered your password?
+        <a href="{{ route('login') }}" class="bb-auth-text-link" wire:navigate>Return to Login</a>
+    </p>
 </div>

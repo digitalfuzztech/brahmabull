@@ -1,8 +1,9 @@
-<div class="min-h-screen bg-slate-950 text-white">
+<div class="bb-player-page bb-withdrawal-page min-h-screen bg-slate-950 text-white">
 
-    <div class="border-b border-slate-800">
-        <div class="mx-auto max-w-7xl px-6 py-14">
-            <h1 class="text-4xl font-black text-white">
+    <div class="bb-player-hero border-b border-slate-800">
+        <div class="bb-player-hero__inner mx-auto max-w-7xl px-6 py-14">
+            <div class="bb-player-kicker">Player Cashout</div>
+            <h1 class="mt-3 text-4xl font-black text-white">
                 Request Withdrawal
             </h1>
 
@@ -12,11 +13,11 @@
         </div>
     </div>
 
-    <div class="mx-auto max-w-xl px-6 py-12">
+    <div class="bb-withdrawal-content mx-auto max-w-2xl px-6 py-12">
 
         @if($cashoutSubmitted)
 
-            <div class="rounded-3xl border border-green-500/30 bg-green-500/10 p-8">
+            <div class="bb-withdrawal-success rounded-3xl border border-green-500/30 bg-green-500/10 p-8">
 
                 <h2 class="text-2xl font-bold text-green-300">
                     Cashout Request Submitted
@@ -42,9 +43,15 @@
 
         @else
 
-            <div class="rounded-3xl border border-slate-800 bg-slate-900 p-8">
+            <div class="bb-player-panel bb-player-form-shell bb-player-form-shell--inline bb-withdrawal-form rounded-3xl border border-slate-800 bg-slate-900 p-8">
 
-                <form wire:submit="submit" class="space-y-6">
+                <div class="bb-player-form-header mb-8 border-b border-white/10 pb-6">
+                    <p class="bb-player-form-kicker">Cashout Request</p>
+                    <h2 class="text-xl font-black text-white">Withdrawal details</h2>
+                    <p class="bb-player-form-description">Choose the game account and provide the wallet details for this request.</p>
+                </div>
+
+                <form wire:submit="submit" class="bb-player-form-body space-y-6">
 
                     {{-- GAME --}}
                     <div>
@@ -186,7 +193,7 @@
 
                         <label
                             for="qr_image"
-                            class="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-600 bg-slate-800/40 p-6 transition hover:border-indigo-500"
+                            class="bb-player-form-upload group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-600 bg-slate-800/40 p-6 transition hover:border-indigo-500"
                         >
 
                             @if($qr_image)
@@ -237,7 +244,7 @@
                         type="submit"
                         wire:loading.attr="disabled"
                         wire:target="submit"
-                        class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-bold text-white"
+                        class="bb-player-form-primary bb-primary-action w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 py-3 font-bold text-white"
                     >
 
                         <span

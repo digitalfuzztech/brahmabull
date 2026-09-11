@@ -11,6 +11,13 @@ class Notifications extends Component
 {
     use WithPagination;
 
+    private const TYPE_GROUPS = [
+        'deposit' => ['deposit_created', 'deposit_admin', 'deposit_submitted', 'deposit_verified', 'deposit_rejected'],
+        'cashout' => ['cashout_created', 'cashout_admin', 'cashout_submitted', 'cashout_paid', 'cashout_rejected'],
+        'brahma_deposit' => ['brahma_deposit_created', 'brahma_deposit_submitted', 'brahma_deposit_verified', 'brahma_deposit_rejected', 'brahma_deposit_rejected_admin', 'brahma_balance_loaded', 'brahma_balance_adjusted'],
+        'brahma_play' => ['brahma_play_created', 'brahma_play_submitted', 'brahma_play_verified', 'brahma_play_verified_admin', 'brahma_play_rejected', 'brahma_play_rejected_admin'],
+    ];
+
     public $search = '';
 
     public $type = '';
@@ -25,16 +32,25 @@ class Notifications extends Component
 
     public function getNotificationsProperty()
     {
+        $search = trim($this->search);
+
         return Notification::query()
 
             ->where('user_id', Auth::id())
 
-            ->when($this->search, function ($q) {
-                $q->where('message', 'like', '%'.$this->search.'%');
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $like = '%'.$search.'%';
+
+                    $sub->where('title', 'like', $like)
+                        ->orWhere('message', 'like', $like)
+                        ->orWhere('action_text', 'like', $like)
+                        ->orWhere('data', 'like', $like);
+                });
             })
 
             ->when($this->type, function ($q) {
-                $q->where('type', $this->type);
+                $q->whereIn('type', self::TYPE_GROUPS[$this->type] ?? [$this->type]);
             })
             ->when($this->readStatus !== '', function ($q) {
 
@@ -46,6 +62,21 @@ class Notifications extends Component
             })
             ->latest()
             ->paginate(30);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedType(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedReadStatus(): void
+    {
+        $this->resetPage();
     }
 
     public function render()

@@ -69,7 +69,7 @@
 
         <!-- BACKDROP -->
         <div
-            class="fixed inset-0 bg-black/70 backdrop-blur-2xl"
+            class="bb-admin-modal-overlay fixed inset-0"
             @click="open = false"
         ></div>
 
@@ -78,7 +78,7 @@
 
             <!-- MODAL -->
             <div
-                class="w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl"
+                class="bb-admin-modal-shell max-w-sm p-8"
             >
 
                 <h2 class="mb-3 text-center text-2xl font-black text-white">
@@ -93,7 +93,7 @@
 
                     <button
                         @click="open = false"
-                        class="flex-1 rounded-xl border border-slate-600 py-3 font-semibold text-slate-300 hover:bg-slate-800"
+                        class="bb-admin-modal-secondary flex-1 py-3"
                     >
                         Cancel
                     </button>

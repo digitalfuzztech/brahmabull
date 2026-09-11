@@ -101,14 +101,14 @@
     </div>
 
     @if($selectedPlay)
-        <div class="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4">
-            <div class="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900">
-                <div class="flex items-center justify-between border-b border-slate-800 p-5">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
+            <div class="bb-admin-modal-shell max-w-xl">
+                <div class="bb-admin-modal-header flex items-center justify-between border-b border-slate-800 p-5">
                     <h2 class="font-bold text-white">{{ $selectedPlay->reference }} Processing</h2>
-                    <button wire:click="closeModal" class="text-white">x</button>
+                    <button type="button" wire:click="closeModal" class="bb-admin-modal-close" aria-label="Close Brahma play processing">×</button>
                 </div>
 
-                <div class="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto p-5 text-white">
+                <div class="bb-admin-modal-body custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto p-5 text-white">
                     <p>Player: {{ $selectedPlay->user?->name }}</p>
                     <p>Username: {{ $selectedPlay->user?->username ?? '-' }}</p>
                     <p>Player ID: {{ $selectedPlay->user?->playerProfile?->player_id ?? '-' }}</p>
@@ -161,10 +161,10 @@
                     @endif
                 </div>
 
-                <div class="flex justify-end gap-3 border-t border-slate-800 p-5">
+                <div class="bb-admin-modal-footer flex justify-end gap-3 border-t border-slate-800 p-5">
                     @php($playSaveMethod = auth()->user()?->hasRole('admin') ? 'adminProcessPlay' : 'processPlay')
-                    <button type="button" wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
-                    <button type="button" wire:click="{{ $playSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $playSaveMethod }}" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
+                    <button type="button" wire:click="closeModal" class="bb-admin-modal-secondary rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
+                    <button type="button" wire:click="{{ $playSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $playSaveMethod }}" class="bb-admin-modal-primary rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
                         <span wire:loading.remove wire:target="{{ $playSaveMethod }}">Save</span>
                         <span wire:loading wire:target="{{ $playSaveMethod }}">Processing...</span>
                     </button>

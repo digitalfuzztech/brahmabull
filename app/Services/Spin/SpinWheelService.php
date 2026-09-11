@@ -3,6 +3,7 @@
 namespace App\Services\Spin;
 
 use App\Models\SpinAttemptGrant;
+use App\Models\SpinRewardEntitlement;
 use App\Models\SpinWheelAssignment;
 use App\Models\SpinWheelSetting;
 use App\Models\SpinWheelSpin;
@@ -32,6 +33,7 @@ class SpinWheelService
             if ($existing = SpinWheelSpin::where('request_token', $requestToken)->where('user_id', $player->id)->first()) {
                 return $existing;
             }
+            $player = User::query()->whereKey($player->id)->lockForUpdate()->firstOrFail();
             $settings = SpinWheelSetting::find(1);
             if (! $settings?->is_enabled) {
                 throw ValidationException::withMessages(['spin' => 'The Spin Wheel is currently unavailable.']);
@@ -68,7 +70,27 @@ class SpinWheelService
                 throw ValidationException::withMessages(['spin' => 'The Spin Wheel is temporarily unavailable. Your spin was not used.']);
             }
             $category = $this->probabilities->select($settings, $eligibleCategories);
+            $activeBadge = null;
+            if ($category === 'badge') {
+                $activeBadge = SpinRewardEntitlement::query()
+                    ->where('user_id', $player->id)
+                    ->where('entitlement_type', 'badge')
+                    ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', $now))
+                    ->latest('expires_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($activeBadge) {
+                    $category = 'try_again';
+                }
+            }
             $categoryAssignments = $assignments->filter(fn ($item) => $item->offer->type->action_type === $category);
+            if ($categoryAssignments->isEmpty()) {
+                Log::warning('Spin Wheel cannot map an active VIP outcome to an eligible Try Again landing slot.', [
+                    'user_id' => $player->id,
+                ]);
+                throw ValidationException::withMessages(['spin' => 'The Spin Wheel is temporarily unavailable. Your spin was not used.']);
+            }
             $offers = $categoryAssignments->pluck('offer')->unique('id')->values();
             $offerTicket = random_int(1, (int) $offers->sum(fn ($item) => max(1, (int) $item->rarity_weight)));
             $offer = $offers->first(function ($item) use (&$offerTicket) {
@@ -78,17 +100,27 @@ class SpinWheelService
             });
             $landingSlots = $categoryAssignments->where('offer_id', $offer->id)->values();
             $assignment = $landingSlots->get(random_int(0, $landingSlots->count() - 1));
+            $snapshotMetadata = ($offer->metadata ?? []) + [
+                'description' => $offer->description,
+                'display_label' => $assignment->display_label ?: $offer->name,
+            ];
+            if ($activeBadge) {
+                $expiration = $activeBadge->expires_at;
+                $snapshotMetadata['description'] = $expiration
+                    ? 'You already have a VIP badge valid until '.$expiration->format('F j, Y g:i A').'.'
+                    : 'You already have an active VIP badge.';
+                $snapshotMetadata['display_label'] = 'Try Again';
+            }
             $spin = SpinWheelSpin::create([
                 'request_token' => $requestToken, 'user_id' => $player->id, 'attempt_grant_id' => $grant->id,
                 'spin_number' => ((int) SpinWheelSpin::where('user_id', $player->id)->max('spin_number')) + 1,
                 'wheel_number' => $assignment->wheel_number, 'wheel_slot' => app(SpinOfferService::class)->visualSlot($assignment->slot_type, $assignment->slot_position), 'offer_id' => $offer->id,
-                'offer_snapshot_name' => $offer->name, 'offer_snapshot_value' => $offer->display_value,
-                'offer_snapshot_type' => $offer->type->action_type, 'offer_snapshot_category' => $offer->category,
-                'offer_snapshot_score' => $offer->ranking_score,
-                'offer_snapshot_metadata' => ($offer->metadata ?? []) + [
-                    'description' => $offer->description,
-                    'display_label' => $assignment->display_label ?: $offer->name,
-                ],
+                'offer_snapshot_name' => $activeBadge ? 'Try Again' : $offer->name,
+                'offer_snapshot_value' => $activeBadge ? null : $offer->display_value,
+                'offer_snapshot_type' => $activeBadge ? 'try_again' : $offer->type->action_type,
+                'offer_snapshot_category' => $activeBadge ? 'try_again' : $offer->category,
+                'offer_snapshot_score' => $activeBadge ? 0 : $offer->ranking_score,
+                'offer_snapshot_metadata' => $snapshotMetadata,
                 'status' => 'awarded', 'spun_at' => now(),
             ]);
             $grant->decrement('attempts_remaining');

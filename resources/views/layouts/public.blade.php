@@ -1,3 +1,12 @@
+@php
+    $siteSettings = \App\Models\SiteSetting::current();
+    $documentTitle = isset($title) && filled($title)
+        ? $title
+        : ($siteSettings->meta_title ?: $siteSettings->site_name ?: \App\Models\SiteSetting::DEFAULT_META_TITLE);
+    $documentDescription = isset($description) && filled($description)
+        ? $description
+        : ($siteSettings->meta_description ?: \App\Models\SiteSetting::DEFAULT_META_DESCRIPTION);
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,17 +14,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-          content="BrahmaBull Member Platform">
+          content="{{ $documentDescription }}">
 
     <meta name="robots"
           content="index,follow">
 
     <meta property="og:title"
-          content="BrahmaBull">
+          content="{{ $documentTitle }}">
 
     <meta property="og:description"
-          content="BrahmaBull Member Platform">
-    <title>{{ $title ?? 'BrahmaBull Member Portal' }}</title>
+          content="{{ $documentDescription }}">
+    <title>{{ $documentTitle }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,13 +50,13 @@
 
 
     <x-public-preloader />
-    <x-public-header />
+    <x-public-header :site-settings="$siteSettings" />
 
     <main class="min-h-screen">
         {{ $slot }}
     </main>
 
-    <x-footer />
+    <x-footer :site-settings="$siteSettings" />
 
     @if(auth()->check() && auth()->user()->hasRole('player'))
         <livewire:player.spin-wheel />

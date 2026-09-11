@@ -3,6 +3,14 @@
     class="bb-top-games-section relative overflow-hidden py-14 md:py-16 relative"
 >
     <img src="{{asset('images/ui/casino/top-games-bg.png')}}" alt="" class="bg-top-games">
+    <div data-bb-reveal="left" class="bb-brahma-mascot-left" aria-hidden="true">
+        <img src="{{ asset('images/ui/casino/brahma-mascot-left.png') }}" alt="" class="bb-brahma-mascot-image bb-brahma-mascot-image-left">
+    </div>
+    <div data-bb-reveal="right" class="bb-brahma-mascot-right" aria-hidden="true">
+        <img src="{{ asset('images/ui/casino/brahma-mascot-right.png') }}" alt="" class="bb-brahma-mascot-image bb-brahma-mascot-image-right">
+    </div>
+
+
     <div class="relative z-10 mx-auto max-w-[1180px] px-5 md:px-7">
 
         {{-- ===================================================== --}}
@@ -14,7 +22,7 @@
             <div class="flex gap-3 flex-col justify-center items-center">
 
 
-                <div class="flex gap-3 items-center">
+                <div data-bb-reveal class="flex gap-3 items-center">
                     <img
                         src="{{ asset('images/ui/casino/top-games-fire.png') }}"
                         alt=""
@@ -33,7 +41,7 @@
                     >
 
                 </div>
-                <p class="text-[14px] md:text-[16px]" >
+                <p data-bb-reveal class="text-[14px] md:text-[16px]" style="--bb-reveal-delay: 70ms">
                     Play the most amazing games we have and start winning today
                 </p>
 
@@ -44,6 +52,8 @@
 
             @guest
                 <a
+                    data-bb-reveal
+                    style="--bb-reveal-delay: 120ms"
                     href="/login"
                     class="bb-top-games-see-all whitespace-nowrap text-sm font-bold text-fuchsia-300"
                 >
@@ -56,6 +66,8 @@
                 @if(auth()->user()->hasRole('player'))
 
                     <a
+                        data-bb-reveal
+                        style="--bb-reveal-delay: 120ms"
                         href="{{ route('games') }}"
                         class="bb-top-games-see-all whitespace-nowrap text-sm font-bold text-fuchsia-300"
                     >
@@ -90,7 +102,11 @@
 
                 @foreach($games as $game)
 
-                    <div class="bb-game-slide">
+                    <div
+                        data-bb-reveal
+                        class="bb-game-slide"
+                        style="--bb-reveal-delay: {{ min($loop->index, 5) * 80 }}ms"
+                    >
 
                         @guest
 
@@ -146,7 +162,7 @@
             {{-- SLIDER CONTROLS                                       --}}
             {{-- ===================================================== --}}
 
-            <div class="bb-games-slider-footer">
+            <div data-bb-reveal class="bb-games-slider-footer" style="--bb-reveal-delay: 120ms">
 
                 <div class="bb-games-slider-hint">
 
@@ -232,6 +248,14 @@
 
                 </div>
 
+            </div>
+
+            <div data-bb-reveal="scale" class="bb-brahma-mascot-half" style="--bb-reveal-delay: 160ms" aria-hidden="true">
+                <img
+                    src="{{ asset('images/ui/casino/brahma_mascot_half.png') }}"
+                    alt=""
+                    class="bb-brahma-mascot-image bb-brahma-mascot-image-half"
+                >
             </div>
 
         </div>

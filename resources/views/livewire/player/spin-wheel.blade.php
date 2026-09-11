@@ -38,7 +38,7 @@
     @if($settings->is_enabled && $settings->launcher_enabled)
         <button x-ref="launcher" type="button" @click="show()" class="group fixed bottom-4 left-3 z-[800] flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-amber-200/80 bg-slate-950/95 p-2 pr-4 shadow-[0_0_18px_#f59e0b,0_0_45px_rgba(217,70,239,.55)] backdrop-blur-xl transition hover:scale-105 sm:bottom-7 sm:left-7" aria-label="Open BrahmaBull Spin and Win">
             <span class="relative block h-16 w-16 shrink-0 overflow-hidden rounded-full ring-2 ring-amber-300 sm:h-20 sm:w-20">
-                <img src="{{ $assetUrl }}" alt="Spin Wheel" class="h-full w-full object-cover transition duration-700 group-hover:rotate-180 group-hover:scale-110">
+                <img src="{{ asset('images/spinning-wheel.png')}}" alt="Spin Wheel" class="h-full w-full object-cover transition duration-700 group-hover:rotate-180 group-hover:scale-110">
                 <span class="absolute inset-0 animate-ping rounded-full ring-4 ring-fuchsia-400/30"></span>
             </span>
             <span class="min-w-0 text-left"><span class="block truncate font-black tracking-wider text-amber-300">SPIN & WIN</span><span class="block truncate text-xs font-bold text-emerald-300" x-text="visibleAttempts>0 ? visibleAttempts+' '+(visibleAttempts===1?'SPIN':'SPINS')+' AVAILABLE' : 'LOCKED'"></span></span>

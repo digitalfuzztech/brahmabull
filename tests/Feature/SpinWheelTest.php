@@ -29,6 +29,7 @@ use App\Services\Spin\SpinCategoryProbabilityService;
 use App\Services\Spin\SpinEligibilityService;
 use App\Services\Spin\SpinOfferService;
 use App\Services\Spin\SpinRewardService;
+use App\Services\Spin\SpinStatisticsService;
 use App\Services\Spin\SpinWheelService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,6 +80,85 @@ class SpinWheelTest extends TestCase
         Livewire::actingAs($player)->test(SpinWheel::class)->assertSet('availableSpins', 3);
     }
 
+    public function test_normal_deposits_only_replenish_spins_at_the_ten_dollar_threshold(): void
+    {
+        $game = Game::create(['name' => 'Deposit Threshold', 'image' => 'test.png', 'is_active' => true]);
+
+        $below = $this->user('player');
+        $belowDeposit = $this->normalDeposit($below, $game, '9.99', 'pending');
+        $belowDeposit->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(0, app(SpinEligibilityService::class)->available($below));
+        $this->assertDatabaseMissing('spin_attempt_grants', ['source_type' => Deposit::class, 'source_id' => $belowDeposit->id]);
+
+        $exact = $this->user('player');
+        $exactDeposit = $this->normalDeposit($exact, $game, '10.00', 'pending');
+        $exactDeposit->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(3, app(SpinEligibilityService::class)->available($exact));
+        $this->assertDatabaseHas('spin_attempt_grants', [
+            'source_type' => Deposit::class, 'source_id' => $exactDeposit->id,
+            'attempts_granted' => 3, 'attempts_remaining' => 3,
+        ]);
+
+        $above = $this->user('player');
+        $this->grant($above, 2);
+        $aboveDeposit = $this->normalDeposit($above, $game, '10.01', 'pending');
+        $aboveDeposit->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(3, app(SpinEligibilityService::class)->available($above));
+        $this->assertDatabaseHas('spin_attempt_grants', [
+            'source_type' => Deposit::class, 'source_id' => $aboveDeposit->id,
+            'attempts_granted' => 1, 'attempts_remaining' => 1,
+        ]);
+
+        $rejected = $this->user('player');
+        $rejectedDeposit = $this->normalDeposit($rejected, $game, '100.00', 'pending');
+        $this->assertSame(0, app(SpinEligibilityService::class)->available($rejected));
+        $rejectedDeposit->update(['status' => 'rejected']);
+        $this->assertSame(0, app(SpinEligibilityService::class)->available($rejected));
+
+        $exactDeposit->update(['admin_notes' => 'idempotent reprocessing']);
+        app(SpinEligibilityService::class)->grantForVerifiedEvent($exactDeposit->fresh(), $exact);
+        $this->assertSame(1, SpinAttemptGrant::where('source_type', Deposit::class)->where('source_id', $exactDeposit->id)->count());
+    }
+
+    public function test_brahma_deposits_use_deposited_amount_instead_of_load_balance_for_spin_eligibility(): void
+    {
+        $below = $this->user('player');
+        $belowDeposit = BrahmaDeposit::create([
+            'user_id' => $below->id, 'amount' => '9.99', 'load_balance' => '20.00',
+            'proof_image' => 'proof.jpg', 'status' => 'pending',
+        ]);
+        $belowDeposit->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(0, app(SpinEligibilityService::class)->available($below));
+        $this->assertDatabaseMissing('spin_attempt_grants', ['source_type' => BrahmaDeposit::class, 'source_id' => $belowDeposit->id]);
+
+        $exact = $this->user('player');
+        $exactDeposit = BrahmaDeposit::create([
+            'user_id' => $exact->id, 'amount' => '10.00', 'load_balance' => '10.00',
+            'proof_image' => 'proof.jpg', 'status' => 'pending',
+        ]);
+        $exactDeposit->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(3, app(SpinEligibilityService::class)->available($exact));
+
+        $corrected = $this->user('player');
+        $correctedDeposit = BrahmaDeposit::create([
+            'user_id' => $corrected->id, 'amount' => '20.00', 'load_balance' => '5.00',
+            'proof_image' => 'proof.jpg', 'status' => 'pending',
+        ]);
+        $correctedDeposit->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(3, app(SpinEligibilityService::class)->available($corrected));
+
+        $rejected = $this->user('player');
+        $rejectedDeposit = BrahmaDeposit::create([
+            'user_id' => $rejected->id, 'amount' => '50.00', 'load_balance' => '50.00',
+            'proof_image' => 'proof.jpg', 'status' => 'pending',
+        ]);
+        $rejectedDeposit->update(['status' => 'rejected']);
+        $this->assertSame(0, app(SpinEligibilityService::class)->available($rejected));
+
+        app(SpinEligibilityService::class)->grantForVerifiedEvent($exactDeposit->fresh(), $exact);
+        $this->assertSame(1, SpinAttemptGrant::where('source_type', BrahmaDeposit::class)->where('source_id', $exactDeposit->id)->count());
+    }
+
     public function test_second_event_replenishes_to_three_and_refresh_and_login_preserve_usage(): void
     {
         $player = $this->user('player');
@@ -94,22 +174,40 @@ class SpinWheelTest extends TestCase
         Livewire::actingAs($player->fresh())->test(SpinWheel::class)->assertSet('availableSpins', 2);
     }
 
-    public function test_verified_brahma_play_transition_unlocks_three_once(): void
+    public function test_verified_brahma_play_requests_each_add_one_spin_and_remain_idempotent(): void
     {
-        $player = $this->user('player');
         $game = Game::create(['name' => 'Spin Test', 'image' => 'test.png', 'is_active' => true]);
-        $play = BrahmaPlayRequest::create([
-            'user_id' => $player->id, 'game_id' => $game->id, 'points_to_load' => 10,
-            'balance_at_submission' => 10, 'status' => 'pending',
-        ]);
+
+        $player = $this->user('player');
+        $play = $this->brahmaPlay($player, $game, 'pending');
         $play->update(['status' => 'verified', 'verified_at' => now()]);
-        $this->assertSame(3, app(SpinEligibilityService::class)->available($player));
+        $this->assertSame(1, app(SpinEligibilityService::class)->available($player));
         $this->assertDatabaseHas('spin_attempt_grants', [
             'source_type' => BrahmaPlayRequest::class, 'source_id' => $play->id,
-            'attempts_granted' => 3, 'attempts_remaining' => 3,
+            'attempts_granted' => 1, 'attempts_remaining' => 1,
         ]);
         $play->update(['game_username' => 'unchanged-reward-state']);
-        $this->assertDatabaseCount('spin_attempt_grants', 1);
+        app(SpinEligibilityService::class)->grantForVerifiedEvent($play->fresh(), $player);
+        $this->assertSame(1, SpinAttemptGrant::where('source_type', BrahmaPlayRequest::class)->where('source_id', $play->id)->count());
+
+        $playerWithTwo = $this->user('player');
+        $this->grant($playerWithTwo, 2);
+        $this->brahmaPlay($playerWithTwo, $game, 'pending')->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(3, app(SpinEligibilityService::class)->available($playerWithTwo));
+
+        $playerAboveMaximum = $this->user('player');
+        $this->grant($playerAboveMaximum, 5);
+        $this->brahmaPlay($playerAboveMaximum, $game, 'pending')->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(6, app(SpinEligibilityService::class)->available($playerAboveMaximum));
+
+        $multiple = $this->user('player');
+        $this->brahmaPlay($multiple, $game, 'pending')->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->brahmaPlay($multiple, $game, 'pending')->update(['status' => 'verified', 'verified_at' => now()]);
+        $this->assertSame(2, app(SpinEligibilityService::class)->available($multiple));
+
+        $rejected = $this->user('player');
+        $this->brahmaPlay($rejected, $game, 'pending')->update(['status' => 'rejected']);
+        $this->assertSame(0, app(SpinEligibilityService::class)->available($rejected));
     }
 
     public function test_free_spin_rewards_are_additive_above_the_verified_event_limit(): void
@@ -136,6 +234,7 @@ class SpinWheelTest extends TestCase
             ->set('username', 'onboarding-player')
             ->set('password', 'Secure1!Pass')
             ->set('password_confirmation', 'Secure1!Pass')
+            ->set('terms', true)
             ->call('register')
             ->assertHasNoErrors()
             ->assertSet('registered', true);
@@ -302,6 +401,72 @@ class SpinWheelTest extends TestCase
         $this->actingAs($player)->get(route('home'))->assertDontSee('data-spin-player-badge', false);
         Livewire::actingAs($player)->test(ProfilePage::class)->set('activeTab', 'spin_wins')
             ->assertDontSee('data-spin-player-badge', false)->assertSee('Badge')->assertSee('Awarded');
+    }
+
+    public function test_active_vip_badge_converts_a_badge_draw_to_a_try_again_landing_and_result(): void
+    {
+        $admin = $this->user('admin');
+        [$player] = $this->configuredReward('badge', null, null, ['valid_days' => 5], $admin);
+        $this->grant($player);
+        $firstSpin = app(SpinWheelService::class)->spin($player, '56565656-5656-4565-8565-565656565656');
+        $activeBadge = SpinRewardEntitlement::where('spin_id', $firstSpin->id)->firstOrFail();
+        $originalExpiry = $activeBadge->expires_at->copy();
+
+        $tryAgainType = SpinWheelOfferType::create([
+            'name' => 'Try Again', 'slug' => 'try-again-active-vip', 'action_type' => 'try_again',
+            'is_active' => true, 'created_by' => $admin->id,
+        ]);
+        $tryAgainOffer = SpinWheelOffer::create([
+            'offer_type_id' => $tryAgainType->id, 'name' => 'Try Again', 'category' => 'try_again',
+            'rarity_weight' => 1, 'ranking_score' => 0, 'is_active' => true, 'created_by' => $admin->id,
+        ]);
+        $tryAgainAssignment = $this->assignment($tryAgainOffer, 'numeric', 2);
+        $this->grant($player);
+
+        $notificationsBefore = Notification::where('user_id', $player->id)->where('type', 'spin_wheel_win')->count();
+        $entitlementsBefore = SpinRewardEntitlement::where('user_id', $player->id)->count();
+        $balanceBefore = (float) $player->fresh()->brahma_balance;
+
+        Livewire::actingAs($player)->test(SpinWheel::class)
+            ->call('spin')
+            ->assertSet('result.name', 'Try Again')
+            ->assertSet('result.type', 'try_again')
+            ->assertSet('result.description', 'You already have a VIP badge valid until '.$originalExpiry->format('F j, Y g:i A').'.')
+            ->assertDispatched('spin-wheel-result');
+
+        $effectiveSpin = SpinWheelSpin::where('user_id', $player->id)->latest('id')->firstOrFail();
+        $this->assertSame('try_again', $effectiveSpin->offer_snapshot_type);
+        $this->assertSame('try_again', $effectiveSpin->offer_snapshot_category);
+        $this->assertSame('Try Again', $effectiveSpin->offer_snapshot_name);
+        $this->assertSame('Try Again', $effectiveSpin->offer_snapshot_metadata['display_label']);
+        $this->assertSame(app(SpinOfferService::class)->visualSlot($tryAgainAssignment->slot_type, $tryAgainAssignment->slot_position), $effectiveSpin->wheel_slot);
+        $this->assertSame($entitlementsBefore, SpinRewardEntitlement::where('user_id', $player->id)->count());
+        $this->assertTrue($originalExpiry->equalTo($activeBadge->fresh()->expires_at));
+        $this->assertSame($notificationsBefore, Notification::where('user_id', $player->id)->where('type', 'spin_wheel_win')->count());
+        $this->assertFalse(app(SpinStatisticsService::class)->topWins()->whereKey($effectiveSpin->id)->exists());
+        $this->assertSame($balanceBefore, (float) $player->fresh()->brahma_balance);
+    }
+
+    public function test_expired_vip_badge_allows_a_new_badge_award(): void
+    {
+        [$player] = $this->configuredReward('badge', null, null, ['valid_days' => 3]);
+        $this->grant($player);
+        $firstSpin = app(SpinWheelService::class)->spin($player, '57575757-5757-4575-8575-575757575757');
+        $expiredBadge = SpinRewardEntitlement::where('spin_id', $firstSpin->id)->firstOrFail();
+        $expiredBadge->update(['expires_at' => now()->subSecond()]);
+        $this->grant($player);
+
+        $secondSpin = app(SpinWheelService::class)->spin($player, '58585858-5858-4585-8585-585858585858');
+
+        $this->assertSame('badge', $secondSpin->offer_snapshot_type);
+        $this->assertDatabaseHas('spin_reward_entitlements', [
+            'spin_id' => $secondSpin->id, 'user_id' => $player->id, 'entitlement_type' => 'badge',
+        ]);
+        $this->assertSame(2, SpinRewardEntitlement::where('user_id', $player->id)->where('entitlement_type', 'badge')->count());
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $player->id, 'type' => 'spin_wheel_win', 'entity_id' => $secondSpin->id,
+        ]);
+        $this->assertTrue(app(SpinStatisticsService::class)->topWins()->whereKey($secondSpin->id)->exists());
     }
 
     public function test_sajilo_and_bonus_points_use_separate_idempotent_promotional_ledgers(): void
@@ -915,6 +1080,22 @@ class SpinWheelTest extends TestCase
     private function deposit(User $player, string $status): BrahmaDeposit
     {
         return BrahmaDeposit::create(['user_id' => $player->id, 'amount' => 10, 'proof_image' => 'proof.jpg', 'status' => $status]);
+    }
+
+    private function normalDeposit(User $player, Game $game, string $amount, string $status): Deposit
+    {
+        return Deposit::create([
+            'user_id' => $player->id, 'game_id' => $game->id, 'wallet_type' => 'cashapp',
+            'amount' => $amount, 'proof_image' => 'proof.jpg', 'status' => $status,
+        ]);
+    }
+
+    private function brahmaPlay(User $player, Game $game, string $status): BrahmaPlayRequest
+    {
+        return BrahmaPlayRequest::create([
+            'user_id' => $player->id, 'game_id' => $game->id, 'points_to_load' => 10,
+            'balance_at_submission' => 10, 'status' => $status,
+        ]);
     }
 
     private function user(string $role): User

@@ -30,7 +30,7 @@
                 {{-- TROPHY                                            --}}
                 {{-- ================================================= --}}
 
-                <div class="bb-about-trophy-column">
+                <div data-bb-reveal="left" class="bb-about-trophy-column">
 
                     <div
                         class="bb-about-trophy-glow"
@@ -52,7 +52,7 @@
 
                 <div class="bb-about-content">
 
-                    <h2 class="bb-about-title">
+                    <h2 data-bb-reveal class="bb-about-title">
 
                         <span class="text-white">
                             About
@@ -65,12 +65,12 @@
                     </h2>
 
 
-                    <div class="bb-about-title-line"></div>
+                    <div data-bb-reveal class="bb-about-title-line" style="--bb-reveal-delay: 70ms"></div>
 
 
                     <ul class="bb-about-benefits">
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 100ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -92,7 +92,7 @@
                         </li>
 
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 160ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -114,7 +114,7 @@
                         </li>
 
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 220ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -136,7 +136,7 @@
                         </li>
 
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 280ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -158,7 +158,7 @@
                         </li>
 
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 340ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -180,7 +180,7 @@
                         </li>
 
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 400ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -202,7 +202,7 @@
                         </li>
 
 
-                        <li>
+                        <li data-bb-reveal style="--bb-reveal-delay: 460ms">
                             <span class="bb-about-check">
                                 <svg
                                     viewBox="0 0 24 24"
@@ -235,7 +235,7 @@
                 <div class="bb-about-stats">
 
                     {{-- PLAYERS --}}
-                    <div class="bb-about-stat-card">
+                    <div data-bb-reveal="right" class="bb-about-stat-card" style="--bb-reveal-delay: 80ms">
 
                         <div class="bb-about-stat-icon">
 
@@ -274,7 +274,7 @@
 
 
                     {{-- REWARDS --}}
-                    <div class="bb-about-stat-card">
+                    <div data-bb-reveal="right" class="bb-about-stat-card" style="--bb-reveal-delay: 150ms">
 
                         <div class="bb-about-stat-icon">
 
@@ -305,7 +305,7 @@
 
 
                     {{-- SUPPORT --}}
-                    <div class="bb-about-stat-card">
+                    <div data-bb-reveal="right" class="bb-about-stat-card" style="--bb-reveal-delay: 220ms">
 
                         <div class="bb-about-stat-icon">
 
@@ -346,7 +346,7 @@
 
 
                     {{-- SECURE --}}
-                    <div class="bb-about-stat-card">
+                    <div data-bb-reveal="right" class="bb-about-stat-card" style="--bb-reveal-delay: 290ms">
 
                         <div class="bb-about-stat-icon">
 

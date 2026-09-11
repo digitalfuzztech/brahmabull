@@ -152,15 +152,16 @@
     </div>
 
     @if($showEditModal)
-        <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
 
-            <div class="bg-slate-900 w-full max-w-lg p-6 rounded-2xl border border-slate-800">
+            <div class="bb-admin-modal-shell max-w-lg">
 
-                <h2 class="text-xl font-bold mb-4">
-                    Edit Agent
-                </h2>
+                <div class="bb-admin-modal-header flex items-center justify-between border-b border-slate-800 p-5">
+                    <h2 class="text-xl font-bold">Edit Agent</h2>
+                    <button type="button" wire:click="closeEditModal" class="bb-admin-modal-close" aria-label="Close edit agent">×</button>
+                </div>
 
-                <form wire:submit.prevent="updateAgent" class="space-y-4">
+                <form wire:submit.prevent="updateAgent" class="bb-admin-modal-body space-y-4 p-5">
 
                     {{-- NAME --}}
                     <div>
@@ -221,7 +222,7 @@
 
                         <button type="button"
                                 wire:click="closeEditModal"
-                                class="px-4 py-2 bg-slate-700 rounded-xl">
+                                class="bb-admin-modal-secondary px-4 py-2 bg-slate-700 rounded-xl">
                             Cancel
                         </button>
 
@@ -229,7 +230,7 @@
                             type="submit"
                             wire:loading.attr="disabled"
                             wire:target="updateAgent"
-                            class="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-xl font-semibold flex items-center justify-center gap-2"
+                            class="bb-admin-modal-primary flex w-full items-center justify-center gap-2 bg-indigo-600 py-2 font-semibold hover:bg-indigo-700"
                         >
                             <svg wire:loading wire:target="updateAgent" class="w-4 h-4 animate-spin" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

@@ -120,14 +120,14 @@
     </div>
 
     @if($selectedDeposit)
-        <div class="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4">
-            <div class="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900">
-                <div class="flex items-center justify-between border-b border-slate-800 p-5">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
+            <div class="bb-admin-modal-shell max-w-xl">
+                <div class="bb-admin-modal-header flex items-center justify-between border-b border-slate-800 p-5">
                     <h2 class="font-bold text-white">{{ $selectedDeposit->reference }} Processing</h2>
-                    <button wire:click="closeModal" class="text-white">x</button>
+                    <button type="button" wire:click="closeModal" class="bb-admin-modal-close" aria-label="Close Brahma deposit processing">×</button>
                 </div>
 
-                <div class="min-h-0 flex-1 space-y-3 overflow-y-auto p-5 text-white custom-scrollbar">
+                <div class="bb-admin-modal-body min-h-0 flex-1 space-y-3 overflow-y-auto p-5 text-white custom-scrollbar">
                     <p>Player: {{ $selectedDeposit->user?->name }}</p>
                     <p>Username: {{ $selectedDeposit->user?->username ?? '-' }}</p>
                     <p>Player ID: {{ $selectedDeposit->user?->playerProfile?->player_id ?? '-' }}</p>
@@ -175,10 +175,10 @@
                     <textarea wire:model="admin_notes" class="w-full rounded-xl bg-slate-800 p-2 text-white" placeholder="Notes"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-3 border-t border-slate-800 p-5">
+                <div class="bb-admin-modal-footer flex justify-end gap-3 border-t border-slate-800 p-5">
                     @php($depositSaveMethod = auth()->user()?->hasRole('admin') ? 'adminProcessDeposit' : 'processDeposit')
-                    <button wire:click="closeModal" class="rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
-                    <button wire:click="{{ $depositSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $depositSaveMethod }}" class="rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
+                    <button wire:click="closeModal" class="bb-admin-modal-secondary rounded-xl bg-gray-700 px-4 py-2">Cancel</button>
+                    <button wire:click="{{ $depositSaveMethod }}" wire:loading.attr="disabled" wire:target="{{ $depositSaveMethod }}" class="bb-admin-modal-primary rounded-xl bg-green-600 px-4 py-2 disabled:opacity-70">
                         <span wire:loading.remove wire:target="{{ $depositSaveMethod }}">Save</span>
                         <span wire:loading wire:target="{{ $depositSaveMethod }}">Processing...</span>
                     </button>
@@ -188,10 +188,10 @@
     @endif
 
     @if($proofPreview)
-        <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
-            <div class="relative rounded-xl bg-slate-900 p-4">
-                <button wire:click="closeProof" class="absolute right-2 top-2 rounded bg-red-600 px-2 text-white">x</button>
-                <img src="{{ asset('storage/'.$proofPreview) }}" class="max-h-[600px] rounded-lg">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[9999] flex items-center justify-center">
+            <div class="bb-admin-modal-shell relative max-w-4xl p-4">
+                <button wire:click="closeProof" class="bb-admin-modal-close absolute right-2 top-2 z-10" aria-label="Close Brahma deposit proof preview">×</button>
+                <img src="{{ asset('storage/'.$proofPreview) }}" class="max-h-[calc(100dvh-4rem)] max-w-full rounded-lg object-contain">
             </div>
         </div>
     @endif

@@ -182,17 +182,17 @@
     <!-- ADD WALLET MODAL -->
     @if($showWalletModal)
 
-        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
 
-            <div class="w-full max-w-lg h-[70vh] flex flex-col m-auto rounded-2xl bg-slate-900 border border-slate-700 overflow-hidden">
+            <div class="bb-admin-modal-shell max-w-lg">
 
-                <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+                <div class="bb-admin-modal-header p-5 border-b border-slate-800 flex justify-between items-center">
                     <h2 class="text-white font-bold">Add Wallet</h2>
 
-                    <button wire:click="$set('showWalletModal', false)">✕</button>
+                    <button type="button" wire:click="$set('showWalletModal', false)" class="bb-admin-modal-close" aria-label="Close add wallet">×</button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-5 min-h-0 custom-scrollbar space-y-4">
+                <div class="bb-admin-modal-body flex-1 overflow-y-auto p-5 min-h-0 custom-scrollbar space-y-4">
 
                     <input
                         wire:model="wallet_name"
@@ -287,11 +287,11 @@
 
                 </div>
 
-                <div class="p-5 flex justify-end gap-3 border-t border-slate-800">
+                <div class="bb-admin-modal-footer p-5 flex justify-end gap-3 border-t border-slate-800">
 
                     <button
                         wire:click="$set('showWalletModal', false)"
-                        class="px-4 py-2 bg-gray-700 rounded-xl"
+                        class="bb-admin-modal-secondary px-4 py-2 bg-gray-700 rounded-xl"
                     >
                         Cancel
                     </button>
@@ -300,7 +300,7 @@
                         wire:click="createWallet"
                         wire:loading.attr="disabled"
                         wire:target="createWallet"
-                        class="px-4 py-2 bg-purple-600 rounded-xl"
+                        class="bb-admin-modal-primary px-4 py-2 bg-purple-600 rounded-xl"
                     >
                         <span wire:loading.remove wire:target="createWallet">
                             Save

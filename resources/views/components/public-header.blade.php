@@ -1,5 +1,8 @@
+@props(['siteSettings' => null])
+
 @php
     use Illuminate\Support\Facades\Storage;
+        $siteSettings ??= \App\Models\SiteSetting::current();
         $isGuest = !auth()->check();
 
         $isPlayer = auth()->check() && auth()->user()->hasRole('player');
@@ -7,6 +10,8 @@
         $isAgent = auth()->check() && auth()->user()->hasRole('agent');
 
         $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
+
+        $headerSiteName = $siteSettings->site_name ?: \App\Models\SiteSetting::DEFAULT_SITE_NAME;
 
         $activeSpinBadge = $isPlayer
             ? auth()->user()->spinRewardEntitlements()->where('entitlement_type', 'badge')
@@ -32,25 +37,27 @@
             <div class="flex h-20 items-center justify-between gap-4">
 
                 <!-- Logo -->
-                <div class="flex items-center gap-1 md:gap-3">
+                <div class="flex min-w-0 items-center gap-1 md:gap-3">
 
                     <a
-                        href="/">
+                        href="/"
+                        class="shrink-0">
 
                         <img
-                            src="{{ asset('images/logo.png') }}"
+                            src="{{ $siteSettings->logoUrl('images/logo.png') }}"
                             class="bb-header-logo w-10 rounded-xl object-contain md:w-14"
-                            alt="logo"
+                            alt="{{ $headerSiteName }}"
                         >
 
                     </a>
 
-                    <a href="/">
+                    <a href="/" class="min-w-0 max-w-[112px] sm:max-w-[190px] md:max-w-[280px]">
 
                         <h1
-                            class="bb-display text-sm font-black uppercase tracking-[0.06em] text-white md:text-[19px]">
+                            title="{{ $headerSiteName }}"
+                            class="bb-display break-words text-[10px] font-black uppercase leading-tight tracking-[0.04em] text-white sm:text-sm md:text-[19px] md:tracking-[0.06em]">
 
-                            BrahmaBull
+                            {{ $headerSiteName }}
 
                         </h1>
 
@@ -184,6 +191,12 @@
                                         My Profile
                                     </a>
 
+                                    <a
+                                        href="{{ route('brahmabull-rules') }}"
+                                        class="block px-5 py-3 hover:bg-slate-800"
+                                    >
+                                        BrahmaBull Rules
+                                    </a>
 
                                     <button
                                         x-data
@@ -338,6 +351,13 @@
                     class="block rounded-xl px-4 py-3 hover:bg-slate-800"
                 >
                     My Profile
+                </a>
+
+                <a
+                    href="{{ route('brahmabull-rules') }}"
+                    class="block rounded-xl px-4 py-3 hover:bg-slate-800"
+                >
+                    BrahmaBull Rules
                 </a>
 
                 <a

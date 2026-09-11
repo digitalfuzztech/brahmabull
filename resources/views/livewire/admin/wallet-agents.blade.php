@@ -58,19 +58,19 @@
     <!-- ADD MODAL -->
     @if($showAddModal)
 
-        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
 
-            <div class="w-full max-w-md bg-slate-900 rounded-2xl border border-slate-700">
+            <div class="bb-admin-modal-shell max-w-md">
 
                 <!-- HEADER -->
-                <div class="p-5 border-b border-slate-800 flex justify-between">
+                <div class="bb-admin-modal-header p-5 border-b border-slate-800 flex justify-between">
                     <h2 class="text-white font-bold">Add Wallet Agent</h2>
 
-                    <button wire:click="$set('showAddModal', false)">✕</button>
+                    <button type="button" wire:click="$set('showAddModal', false)" class="bb-admin-modal-close" aria-label="Close add wallet agent">×</button>
                 </div>
 
                 <!-- BODY -->
-                <div class="p-5 space-y-4">
+                <div class="bb-admin-modal-body p-5 space-y-4">
 
                     <input
                         wire:model="name"
@@ -81,18 +81,18 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div class="p-5 flex justify-end gap-3 border-t border-slate-800">
+                <div class="bb-admin-modal-footer p-5 flex justify-end gap-3 border-t border-slate-800">
 
                     <button
                         wire:click="$set('showAddModal', false)"
-                        class="px-4 py-2 bg-gray-700 rounded-xl"
+                        class="bb-admin-modal-secondary px-4 py-2 bg-gray-700 rounded-xl"
                     >
                         Cancel
                     </button>
 
                     <button
                         wire:click="createAgent"
-                        class="px-4 py-2 bg-purple-600 rounded-xl"
+                        class="bb-admin-modal-primary px-4 py-2 bg-purple-600 rounded-xl"
                     >
                         Save
                     </button>

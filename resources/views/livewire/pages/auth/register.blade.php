@@ -25,6 +25,7 @@ new #[Layout('layouts.guest')] class extends Component
     public bool $registered = false;
     public string $referral_code = '';
     public string $phone = '';
+    public bool $terms = false;
 
     /**
      * Handle an incoming registration request.
@@ -71,6 +72,7 @@ new #[Layout('layouts.guest')] class extends Component
             'photo' => ['nullable', 'image', 'max:2048'],
             'referral_code' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'terms' => ['accepted'],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -171,27 +173,22 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-<div class="">
-    @if($registered)
+<div class="bb-auth-register-content">
+    <form wire:submit="register" class="bb-auth-register-form">
+        <header class="bb-auth-register-heading">
+            <p class="bb-auth-card-kicker">Join the club</p>
+            <h2>Create Account</h2>
+            <p>Set up your player account and get ready to play.</p>
+        </header>
 
-        <div class="mb-6 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-300">
-
-            <h3 class="font-bold text-lg">
-                Registration Successful
-            </h3>
-
-            <p class="mt-2">
-                A verification email has been sent to your email address.
-            </p>
-
-            <p class="mt-2">
-                Please verify your email before logging in.
-            </p>
-
-        </div>
-
-    @endif
-    <form wire:submit="register">
+        <div class="bb-auth-register-scroll">
+            @if($registered)
+                <div class="mb-6 rounded-2xl border border-green-500/30 bg-green-500/10 p-5 text-green-300">
+                    <h3 class="font-bold text-lg">Registration Successful</h3>
+                    <p class="mt-2">A verification email has been sent to your email address.</p>
+                    <p class="mt-2">Please verify your email before logging in.</p>
+                </div>
+            @endif
         <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Name')" />
@@ -389,24 +386,37 @@ new #[Layout('layouts.guest')] class extends Component
         <div wire:loading wire:target="photo" class="mt-3 text-sm text-indigo-400">
             Uploading image...
         </div>
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
-            </a>
+        </div>
+
+        <footer class="bb-auth-register-actions">
+            <div class="bb-auth-terms-panel">
+                <h3>Terms &amp; Conditions</h3>
+                <p>By creating an account, you confirm that you have reviewed and agree to our Terms and Conditions.</p>
+                <a href="{{ route('terms-and-conditions') }}" target="_blank" rel="noopener noreferrer">View Terms and Conditions</a>
+
+                <label for="terms" class="bb-auth-check-label bb-auth-terms-check">
+                    <input wire:model.live="terms" id="terms" name="terms" type="checkbox" class="bb-auth-checkbox" required>
+                    <span>I agree to the Terms and Conditions</span>
+                </label>
+                <x-input-error :messages="$errors->get('terms')" class="mt-2" />
+            </div>
 
             <x-primary-button
-                class="ms-4"
+                class="bb-auth-submit"
                 wire:loading.attr="disabled"
                 wire:target="register"
+                :disabled="! $terms"
             >
-    <span wire:loading.remove wire:target="register">
-        Register
-    </span>
-
+                <span wire:loading.remove wire:target="register">Register</span>
                 <span wire:loading wire:target="register">
-        Registering...
-    </span>
+                    Registering...
+                </span>
             </x-primary-button>
-        </div>
+
+            <p class="bb-auth-switch-copy">
+                Already registered?
+                <a href="{{ route('login') }}" class="bb-auth-text-link" wire:navigate>Sign In</a>
+            </p>
+        </footer>
     </form>
 </div>

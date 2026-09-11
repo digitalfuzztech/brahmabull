@@ -296,21 +296,21 @@
 
     @if($selectedCashout)
 
-        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[999] flex items-center justify-center">
 
-            <div class="w-full max-w-xl h-[70vh] flex flex-col m-auto rounded-2xl bg-slate-900 border border-slate-700 overflow-hidden">
+            <div class="bb-admin-modal-shell max-w-xl">
 
-                <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+                <div class="bb-admin-modal-header p-5 border-b border-slate-800 flex justify-between items-center">
 
                     <h2 class="text-white font-bold">
                         {{ $selectedCashout->reference }} Processing
                     </h2>
-                    <button wire:click="closeModal">
+                    <button type="button" wire:click="closeModal" class="bb-admin-modal-close" aria-label="Close cashout processing">
                         ✕
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 custom-scrollbar">
+                <div class="bb-admin-modal-body flex-1 overflow-y-auto p-5 space-y-4 min-h-0 custom-scrollbar">
 
                     <p class="text-white">
                         Player Name:
@@ -454,11 +454,11 @@
 
                 </div>
 
-                <div class="p-5 border-t border-slate-800 flex justify-end gap-3">
+                <div class="bb-admin-modal-footer p-5 border-t border-slate-800 flex justify-end gap-3">
 
                     <button
                         wire:click="closeModal"
-                        class="px-4 py-2 bg-gray-700 rounded-xl"
+                        class="bb-admin-modal-secondary px-4 py-2 bg-gray-700 rounded-xl"
                     >
                         Cancel
                     </button>
@@ -466,7 +466,7 @@
                     <button
                         wire:click="processCashout"
                         wire:loading.attr="disabled"
-                        class="px-4 py-2 bg-green-600 rounded-xl"
+                        class="bb-admin-modal-primary px-4 py-2 bg-green-600 rounded-xl"
                     >
 
                         <span wire:loading.remove>
@@ -490,13 +490,14 @@
 
     @if($proofPreview)
 
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+        <div class="bb-admin-modal-overlay fixed inset-0 z-[9999] flex items-center justify-center">
 
-            <div class="relative max-w-full bg-slate-900 p-4 rounded-xl">
+            <div class="bb-admin-modal-shell relative max-w-4xl p-4">
 
                 <button
                     wire:click="closeProof"
-                    class="absolute top-2 right-2 bg-red-600 text-white px-2 rounded"
+                    class="bb-admin-modal-close absolute right-2 top-2 z-10"
+                    aria-label="Close cashout proof preview"
                 >
                     ✕
                 </button>

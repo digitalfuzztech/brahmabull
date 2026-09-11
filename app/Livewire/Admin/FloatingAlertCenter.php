@@ -61,7 +61,12 @@ class FloatingAlertCenter extends Component
             if ($viewer->hasRole('agent')) {
                 $url = str_replace(['/admin/', 'admin.'], ['/agent/', 'agent.'], $url);
             }
-            $this->redirect($url, navigate: true);
+            $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+            $targetHost = parse_url($url, PHP_URL_HOST);
+            $isInternal = (str_starts_with($url, '/') && ! str_starts_with($url, '//'))
+                || ($targetHost !== null && $targetHost === $appHost);
+
+            $this->redirect($url, navigate: $isInternal);
 
             return;
         }

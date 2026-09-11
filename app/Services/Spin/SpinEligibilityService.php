@@ -16,6 +16,8 @@ class SpinEligibilityService
 {
     public const ONBOARDING_SOURCE = 'onboarding';
 
+    private const MINIMUM_DEPOSIT_CENTS = 1000;
+
     /** Verified records from these models may unlock promotional attempts. */
     public const QUALIFYING_SOURCES = [
         Deposit::class,
@@ -25,7 +27,17 @@ class SpinEligibilityService
 
     public function grantForVerifiedEvent(Model $source, User $player): ?SpinAttemptGrant
     {
-        if (! $player->hasRole('player') || ! in_array($source::class, self::QUALIFYING_SOURCES, true)) {
+        if (! $player->hasRole('player')
+            || ! in_array($source::class, self::QUALIFYING_SOURCES, true)
+            || $source->getAttribute('status') !== 'verified') {
+            return null;
+        }
+
+        if ($source instanceof BrahmaPlayRequest) {
+            return $this->storeGrant($source::class, $source->getKey(), $player, 1, false);
+        }
+
+        if ($this->depositAmountInCents($source) < self::MINIMUM_DEPOSIT_CENTS) {
             return null;
         }
 
@@ -84,5 +96,17 @@ class SpinEligibilityService
     private function maximumAttempts(): int
     {
         return max(1, min(3, (int) (SpinWheelSetting::find(1)?->maximum_stored_attempts ?? 3)));
+    }
+
+    private function depositAmountInCents(Model $source): int
+    {
+        $amount = trim((string) $source->getAttribute('amount'));
+        if (! preg_match('/^(\d+)(?:\.(\d+))?$/', $amount, $matches)) {
+            return 0;
+        }
+
+        $fraction = substr(str_pad($matches[2] ?? '', 2, '0'), 0, 2);
+
+        return ((int) $matches[1] * 100) + (int) $fraction;
     }
 }

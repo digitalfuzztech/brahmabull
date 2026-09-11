@@ -113,10 +113,72 @@ class ModalRegressionTest extends TestCase
             ->assertDontSee('Wallet Details');
     }
 
+    public function test_player_wallet_actions_render_in_normal_and_brahma_main_and_preview_displays(): void
+    {
+        $player = $this->userWithRole('player');
+        $game = $this->game();
+        $wallet = $this->wallet();
+
+        $games = Livewire::actingAs($player)
+            ->test(PlayerGames::class)
+            ->call('openPlayModal', $game->id)
+            ->set('paymentType', $wallet->type)
+            ->assertSeeHtml('wire:click="selectWallet('.$wallet->id.')"')
+            ->call('selectWallet', $wallet->id)
+            ->assertSee('$modal')
+            ->assertSee('Copy')
+            ->assertSee('Download QR')
+            ->assertSeeHtml('download="brahmabull-wallet-qr.png"')
+            ->set('showWalletPreview', true);
+
+        $this->assertSame(2, substr_count($games->html(), 'data-wallet-actions'));
+        $this->assertSame(2, substr_count($games->html(), 'data-wallet-qr-download'));
+
+        $brahma = Livewire::actingAs($player)
+            ->test(BrahmaBalance::class)
+            ->call('openModal')
+            ->set('paymentType', $wallet->type)
+            ->assertSeeHtml('wire:click="selectWallet('.$wallet->id.')"')
+            ->call('selectWallet', $wallet->id)
+            ->assertSee('$modal')
+            ->assertSee('Copy')
+            ->assertSee('Download QR')
+            ->set('showWalletPreview', true);
+
+        $this->assertSame(2, substr_count($brahma->html(), 'data-wallet-actions'));
+        $this->assertSame(2, substr_count($brahma->html(), 'data-wallet-qr-download'));
+    }
+
+    public function test_missing_wallet_values_do_not_render_dead_copy_or_download_actions(): void
+    {
+        $player = $this->userWithRole('player');
+        $game = $this->game();
+        $wallet = $this->wallet();
+        $wallet->update(['account_identifier' => '', 'qr_image' => null]);
+
+        $games = Livewire::actingAs($player)
+            ->test(PlayerGames::class)
+            ->call('openPlayModal', $game->id)
+            ->set('paymentType', $wallet->type)
+            ->call('selectWallet', $wallet->id);
+
+        $this->assertStringNotContainsString('data-wallet-actions', $games->html());
+        $this->assertStringNotContainsString('data-wallet-qr-download', $games->html());
+
+        $brahma = Livewire::actingAs($player)
+            ->test(BrahmaBalance::class)
+            ->call('openModal')
+            ->set('paymentType', $wallet->type)
+            ->call('selectWallet', $wallet->id);
+
+        $this->assertStringNotContainsString('data-wallet-actions', $brahma->html());
+        $this->assertStringNotContainsString('data-wallet-qr-download', $brahma->html());
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create([
-            'username' => $role . fake()->unique()->numberBetween(1000, 9999),
+            'username' => $role.fake()->unique()->numberBetween(1000, 9999),
             'role' => $role,
         ]);
 
@@ -129,7 +191,7 @@ class ModalRegressionTest extends TestCase
     {
         return Game::create([
             'name' => 'Modal Test Game',
-            'slug' => 'modal-test-' . fake()->unique()->numberBetween(1000, 9999),
+            'slug' => 'modal-test-'.fake()->unique()->numberBetween(1000, 9999),
             'image' => 'games/test.jpg',
             'game_url' => 'example.com/play',
             'is_active' => true,
@@ -141,14 +203,14 @@ class ModalRegressionTest extends TestCase
         $owner = $this->userWithRole('admin');
         $agent = WalletAgent::create([
             'name' => 'Modal Wallet Agent',
-            'slug' => 'modal-agent-' . fake()->unique()->numberBetween(1000, 9999),
+            'slug' => 'modal-agent-'.fake()->unique()->numberBetween(1000, 9999),
             'is_active' => true,
             'created_by' => $owner->id,
         ]);
         $type = WalletType::create([
             'wallet_agent_id' => $agent->id,
             'name' => 'CashApp',
-            'slug' => 'modal-cashapp-' . fake()->unique()->numberBetween(1000, 9999),
+            'slug' => 'modal-cashapp-'.fake()->unique()->numberBetween(1000, 9999),
         ]);
 
         return Wallet::create([
