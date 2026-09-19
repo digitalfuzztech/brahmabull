@@ -1,19 +1,24 @@
-<div class="flex h-[calc(100dvh-9rem)] min-h-0 flex-col overflow-hidden">
+<div class="flex h-[calc(100dvh-9rem)] min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden">
     <div class="mb-4 flex shrink-0 gap-2 rounded-xl border border-slate-800 bg-slate-900 p-1">
         <button type="button" wire:click="selectDomain('support')" class="flex-1 rounded-lg px-4 py-2 text-sm font-bold {{ $domain === 'support' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Support</button>
         <button type="button" wire:click="selectDomain('team')" class="flex-1 rounded-lg px-4 py-2 text-sm font-bold {{ $domain === 'team' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:bg-slate-800' }}">Team</button>
     </div>
 
     @if($domain === 'team')
-        <div class="min-h-0 flex-1"><livewire:admin.team-messenger :initial-conversation-id="$deepLinkedConversationId" wire:key="inbox-team-messenger" /></div>
-    @else
+        <div class="min-h-0 min-w-0 w-full max-w-full flex-1 overflow-hidden overflow-x-hidden">
+            <livewire:admin.team-messenger
+                :initial-conversation-id="$deepLinkedConversationId"
+                wire:key="inbox-team-messenger"
+            />
+        </div>
+     @else
 <div
     @if($selectedConversationId)
         wire:poll.3s.visible="pollInbox"
     @else
         wire:poll.5s.visible="pollInbox"
     @endif
-    class="flex min-h-0 flex-1 flex-col overflow-hidden"
+    class="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col overflow-hidden overflow-x-hidden"
 >
     <div class="mb-4 flex shrink-0 items-end justify-between gap-4">
         <div>
@@ -29,9 +34,9 @@
         <div class="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">{{ $message }}</div>
     @enderror
 
-    <div class="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl lg:grid-cols-[310px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)_320px]">
-        <section class="{{ $showConversationOnMobile ? 'hidden lg:flex' : 'flex' }} min-h-0 flex-col border-r border-slate-800 bg-slate-900/70">
-            <div class="border-b border-slate-800 p-4">
+    <div class="grid min-h-0 min-w-0 w-full max-w-full flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl lg:grid-cols-[310px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)_320px]">
+        <section class="{{ $showConversationOnMobile ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden border-r border-slate-800 bg-slate-900/70">
+           <div class="border-b border-slate-800 p-4">
                 <label class="sr-only" for="support-search">Search support conversations</label>
                 <input
                     id="support-search"
@@ -62,12 +67,15 @@
                         type="button"
                         wire:key="support-conversation-{{ $conversation['id'] }}"
                         wire:click="selectConversation({{ $conversation['id'] }})"
-                        class="block w-full border-b border-slate-800 px-4 py-4 text-left transition hover:bg-slate-800/80 {{ $selectedConversationId === $conversation['id'] ? 'bg-purple-500/10' : '' }}"
+                        class="block min-w-0 w-full max-w-full overflow-hidden border-b border-slate-800 px-4 py-4 text-left transition hover:bg-slate-800/80 {{ $selectedConversationId === $conversation['id'] ? 'bg-purple-500/10' : '' }}"
                     >
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <p class="truncate font-bold text-white">{{ $conversation['player_name'] }}</p>
-                                <p class="truncate text-xs text-slate-400">{{ '@'.$conversation['player_username'] }}</p>
+                        <div class="flex min-w-0 w-full max-w-full items-start justify-between gap-3 overflow-hidden">
+                            <div class="min-w-0 flex-1 overflow-hidden">
+                                <div>
+                                    <p class="truncate font-bold text-white">{{ $conversation['player_name'] }}</p>
+                                    <p class="truncate text-xs text-slate-400">{{ '@'.$conversation['player_username'] }}</p>
+                                </div>
+
                             </div>
                             @if($conversation['unread_count'])
                                 <span class="min-w-5 rounded-full bg-purple-600 px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
@@ -75,15 +83,20 @@
                                 </span>
                             @endif
                         </div>
-                        <p class="mt-2 truncate text-sm text-slate-300">{{ $conversation['preview'] ?: 'No messages yet' }}</p>
-                        <div class="mt-2 flex items-center justify-between gap-2 text-[11px]">
-                            <span class="capitalize text-purple-300">
-                                {{ $conversation['status'] }}
-                                @if($conversation['assigned_name']) · {{ $conversation['assigned_name'] }} @endif
-                            </span>
-                            <span class="text-slate-500">
-                                {{ $conversation['last_message_at'] ? \Illuminate\Support\Carbon::parse($conversation['last_message_at'])->diffForHumans(short: true) : '' }}
-                            </span>
+                        <p class="mt-2 block min-w-0 max-w-full overflow-hidden truncate text-sm text-slate-300">
+                            {{ $conversation['preview'] ?: 'No messages yet' }}
+                        </p>
+                        <div class="mt-2 flex min-w-0 w-full items-center justify-between gap-2 overflow-hidden text-[11px]">
+    <span class="min-w-0 flex-1 truncate capitalize text-purple-300">
+        {{ $conversation['status'] }}
+        @if($conversation['assigned_name'])
+            · {{ $conversation['assigned_name'] }}
+        @endif
+    </span>
+
+                            <span class="shrink-0 whitespace-nowrap text-slate-500">
+        {{ $conversation['last_message_at'] ? \Illuminate\Support\Carbon::parse($conversation['last_message_at'])->diffForHumans(short: true) : '' }}
+    </span>
                         </div>
                     </button>
                 @empty
@@ -92,7 +105,7 @@
             </div>
         </section>
 
-        <section class="{{ ! $showConversationOnMobile && ! $selectedConversationId ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 flex-col overflow-hidden bg-slate-950">
+        <section class="{{ ! $showConversationOnMobile && ! $selectedConversationId ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden bg-slate-950">
             @if($selectedConversationId && $selectedConversation)
                 @php
                     $isClaimable = in_array(($selectedConversation['status'] ?? null), ['bot', 'waiting'], true) && empty($selectedConversation['assigned_to']);
@@ -167,15 +180,31 @@
                 <div
                     x-data="{ scroll() { this.$nextTick(() => { this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight }) } }"
                     x-init="scroll(); window.addEventListener('support-inbox-scroll', () => scroll())"
-                    class="flex min-h-0 flex-1 flex-col overflow-hidden"
+                    class="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col overflow-hidden overflow-x-hidden"
                 >
-                    <div x-ref="messages" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+                    <div
+                        x-ref="messages"
+                        class="min-h-0 min-w-0 w-full max-w-full flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-5"
+                    >
                         @foreach($timeline as $chatMessage)
-                            <div wire:key="support-message-{{ $chatMessage['id'] }}" class="{{ $chatMessage['sender_type'] === 'player' ? 'flex justify-start' : 'flex justify-end' }}">
-                                <div class="max-w-[85%] rounded-2xl px-4 py-3 {{ $chatMessage['sender_type'] === 'player' ? 'bg-slate-800 text-white' : 'bg-purple-600/90 text-white' }}">
-                                    <p class="mb-1 text-[11px] font-bold {{ $chatMessage['sender_type'] === 'player' ? 'text-cyan-300' : 'text-purple-100' }}">{{ $chatMessage['display_name'] }}</p>
-                                    <p class="whitespace-pre-wrap break-words text-sm">{{ $chatMessage['body'] }}</p>
-                                    <p class="mt-1 text-right text-[10px] opacity-60">{{ \Illuminate\Support\Carbon::parse($chatMessage['created_at'])->format('M j, g:i A') }}</p>
+                            <div
+                                wire:key="support-message-{{ $chatMessage['id'] }}"
+                                class="flex min-w-0 w-full max-w-full overflow-hidden {{ $chatMessage['sender_type'] === 'player' ? 'justify-start' : 'justify-end' }}"
+                            >
+                                <div
+                                    class="w-fit min-w-0 max-w-[85%] overflow-hidden rounded-2xl px-4 py-3 {{ $chatMessage['sender_type'] === 'player' ? 'bg-slate-800 text-white' : 'bg-purple-600/90 text-white' }}"
+                                >
+                                    <p
+                                        class="mb-1 min-w-0 max-w-full truncate text-[11px] font-bold {{ $chatMessage['sender_type'] === 'player' ? 'text-cyan-300' : 'text-purple-100' }}"
+                                    >
+                                        {{ $chatMessage['display_name'] }}
+                                    </p>
+
+                                    <p class="min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">{{ $chatMessage['body'] }}</p>
+
+                                    <p class="mt-1 whitespace-nowrap text-right text-[10px] opacity-60">
+                                        {{ \Illuminate\Support\Carbon::parse($chatMessage['created_at'])->format('M j, g:i A') }}
+                                    </p>
                                 </div>
                             </div>
                         @endforeach
@@ -184,10 +213,17 @@
 
                 <footer class="shrink-0 border-t border-slate-800 p-4">
                     @if($canReply)
-                        <form wire:submit="sendReply" class="flex items-end gap-3">
-                            <div class="flex-1">
+                        <form wire:submit="sendReply" class="flex min-w-0 w-full max-w-full items-end gap-3">
+                            <div class="min-w-0 flex-1">
                                 <label class="sr-only" for="staff-reply">Reply to player</label>
-                                <textarea id="staff-reply" wire:model="message" rows="2" maxlength="2000" placeholder="Reply as Brahmabull Support Team..." class="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"></textarea>
+                                <textarea
+                                    id="staff-reply"
+                                    wire:model="message"
+                                    rows="2"
+                                    maxlength="2000"
+                                    placeholder="Reply as Brahmabull Support Team..."
+                                    class="min-w-0 w-full max-w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+                                ></textarea>
                                 @error('message') <p class="mt-1 text-xs text-red-300">{{ $message }}</p> @enderror
                             </div>
                             <button type="submit" wire:loading.attr="disabled" wire:target="sendReply" class="rounded-xl bg-purple-600 px-5 py-3 text-sm font-bold text-white hover:bg-purple-500 disabled:opacity-50">Send</button>

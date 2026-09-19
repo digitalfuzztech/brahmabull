@@ -10,14 +10,14 @@
         'revokeUrl' => route('team.e2ee.devices.destroy', '__DEVICE__'),
     ]))"
     x-init="init"
-    class="flex h-full min-h-0 flex-col overflow-hidden"
+    class="flex h-full min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden"
 >
     <div class="mb-4 flex shrink-0 flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-black text-white">Team Messenger</h1>
             <p class="mt-1 text-sm text-slate-400">Staff noticeboard, private direct messages, and Agent groups</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 max-w-full flex-wrap">
             <button type="button" x-on:click="show()" class="rounded-xl border border-emerald-500/50 px-4 py-2 text-sm font-bold text-emerald-200 hover:bg-emerald-500/10">Secure Devices</button>
             <button type="button" wire:click="openNewMessage" class="rounded-xl bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-500">New Message</button>
             @if(! $isAdmin)
@@ -26,8 +26,8 @@
         </div>
     </div>
 
-    <div class="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl lg:grid-cols-[310px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)_300px]">
-        <section class="{{ $showConversationOnMobile ? 'hidden lg:flex' : 'flex' }} min-h-0 flex-col border-r border-slate-800 bg-slate-900/70">
+    <div class="grid min-h-0 min-w-0 w-full max-w-full flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl lg:grid-cols-[310px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)_300px]">
+        <section class="{{ $showConversationOnMobile ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden border-r border-slate-800 bg-slate-900/70">
             <div class="border-b border-slate-800 p-4">
                 <input wire:model.live.debounce.350ms="search" type="search" placeholder="Search Team conversations" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-purple-500">
                 <div class="mt-3 grid grid-cols-3 gap-2">
@@ -54,12 +54,16 @@
                         wire:click="selectTeamConversation({{ $conversation['id'] }})"
 
                         class="
-        block w-full
-        border-b border-slate-800
-        px-4 py-4
-        text-left
-        transition-colors
-        hover:bg-slate-800/80
+        block
+    min-w-0
+    w-full
+    max-w-full
+    overflow-hidden
+    border-b border-slate-800
+    px-4 py-4
+    text-left
+    transition-colors
+    hover:bg-slate-800/80
 
         {{ $selectedConversationId === $conversation['id']
             ? 'bg-purple-500/5'
@@ -70,25 +74,30 @@
             : '' }}
     "
                     >
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
+                        <div class="flex min-w-0 w-full max-w-full items-start justify-between gap-3 overflow-hidden">
+                            <div class="min-w-0 flex-1 overflow-hidden">
                                 <p class="truncate {{ $rowUnread > 0 ? 'font-black text-white' : 'font-bold text-slate-200' }}">{{ $conversation['name'] }}</p>
                                 <p class="mt-1 text-xs text-slate-500">{{ $conversation['type'] === 'internal_channel' ? 'Staff channel' : ($conversation['type'] === 'internal_group' ? $conversation['member_count'].' members' : 'Direct message') }}</p>
                             </div>
                             <span data-team-conversation-unread data-unread-count="{{ $rowUnread }}" class="rounded-full bg-purple-600 px-2 py-0.5 text-[10px] font-bold text-white {{ $rowUnread > 0 ? 'inline-flex items-center justify-center' : 'hidden' }}">{{ $rowUnread > 99 ? '99+' : $rowUnread }}</span>
                         </div>
                         <p
-                            class="mt-2 truncate text-sm
+                            class="mt-2 block min-w-0 max-w-full overflow-hidden truncate text-sm
         {{ $rowUnread > 0
             ? 'font-bold text-white'
             : 'font-normal text-slate-300' }}"
                         >
                             {{ $conversation['preview'] }}
                         </p>
-                        <div class="mt-2 flex justify-between text-[11px] text-slate-500">
-                            <span>{{ $conversation['is_observer'] ? 'Read-only oversight' : ($conversation['type'] === 'internal_channel' ? 'Noticeboard' : 'Team chat') }}</span>
-                            <span>{{ $conversation['last_message_at'] ? \Illuminate\Support\Carbon::parse($conversation['last_message_at'])->diffForHumans(short: true) : '' }}</span>
-                        </div>
+                        <div class="mt-2 flex min-w-0 w-full max-w-full items-center justify-between gap-2 overflow-hidden text-[11px] text-slate-500">
+                       <span class="min-w-0 flex-1 truncate">
+    {{ $conversation['is_observer'] ? 'Read-only oversight' : ($conversation['type'] === 'internal_channel' ? 'Noticeboard' : 'Team chat') }}
+</span>
+
+                            <span class="shrink-0 whitespace-nowrap">
+    {{ $conversation['last_message_at'] ? \Illuminate\Support\Carbon::parse($conversation['last_message_at'])->diffForHumans(short: true) : '' }}
+</span>
+                          </div>
                     </button>
                 @empty
                     <p class="p-8 text-center text-sm text-slate-400">No Team conversations found.</p>
@@ -96,9 +105,9 @@
             </div>
         </section>
 
-        <section class="{{ ! $showConversationOnMobile && ! $selectedConversationId ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 flex-col overflow-hidden">
+        <section class="{{ ! $showConversationOnMobile && ! $selectedConversationId ? 'hidden lg:flex' : 'flex' }} min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden">
             @if($selectedConversationId && $details)
-                <header class="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+                <header class="flex min-w-0 w-full max-w-full flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
                     <div class="flex min-w-0 items-center gap-3">
                         <button type="button" wire:click="showConversationList" class="rounded-lg p-2 text-slate-300 hover:bg-slate-800 lg:hidden" aria-label="Back to Team conversations">←</button>
                         <div class="min-w-0">
@@ -106,7 +115,7 @@
                             <p class="flex items-center gap-2 text-xs text-slate-400">@if($details['type'] === 'internal_direct')<span class="h-2.5 w-2.5 rounded-full {{ $details['other_online'] ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.8)]' : 'bg-slate-600' }}"></span>@endif{{ $details['type'] === 'internal_channel' ? 'Staff announcement channel' : ($details['type'] === 'internal_group' ? $details['member_count'].' members' : ($details['other_online'] ? 'Online' : 'Offline')) }}{{ $details['is_observer'] ? ' · Read-only oversight' : '' }}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex max-w-full flex-wrap items-center justify-end gap-2">
                         @if($details['type'] === 'internal_direct' && ! $details['is_e2ee'])
                             <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('team-e2ee-enable'))" class="rounded-lg border border-emerald-500/50 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/10">Enable End-to-End Encryption</button>
                         @endif
@@ -143,7 +152,7 @@
                     x-on:team-e2ee-enable.window="enable"
                     x-on:team-e2ee-rotate.window="rotate"
                     x-on:e2ee-device-status-changed.window="deviceStatusChanged"
-                    class="flex min-h-0 flex-1 flex-col overflow-hidden"
+                    class="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col overflow-hidden"
                 >
                     <p x-show="securityMessage" x-text="securityMessage" class="shrink-0 border-b border-slate-800 bg-slate-900 px-4 py-2 text-center text-xs text-amber-200"></p>
                     @if($details['is_e2ee'] && $details['e2ee_disable_requested_by'])
@@ -159,7 +168,7 @@
                             @endif
                         </div>
                     @endif
-                    <div x-ref="messages" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+                    <div x-ref="messages" class="min-h-0 min-w-0 w-full max-w-full flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-5">
                         @foreach($teamMessages as $chatMessage)
                             @if($chatMessage['is_e2ee_boundary'])
                                 <div wire:key="team-message-{{ $chatMessage['id'] }}" class="py-2 text-center">
@@ -172,12 +181,18 @@
                                 </div>
                             @else
                             @php $mine = $chatMessage['sender_id'] === auth()->id(); @endphp
-                            <div wire:key="team-message-{{ $chatMessage['id'] }}" class="flex {{ $mine ? 'justify-end' : 'justify-start' }}">
-                                <div class="group max-w-[88%] rounded-2xl px-4 py-3 {{ $mine ? 'bg-purple-600/90' : 'bg-slate-800' }} text-white sm:max-w-[75%]">
-                                    <div class="mb-1 flex items-center justify-between gap-4">
-                                        <p class="text-[11px] font-bold {{ $mine ? 'text-purple-100' : 'text-cyan-300' }}">{{ $chatMessage['sender_name'] }}</p>
+                                <div
+                                    wire:key="team-message-{{ $chatMessage['id'] }}"
+                                    class="flex min-w-0 w-full max-w-full overflow-hidden {{ $mine ? 'justify-end' : 'justify-start' }}"
+                                >
+
+                                    <div class="group w-fit min-w-0 max-w-[88%] overflow-hidden rounded-2xl px-4 py-3 {{ $mine ? 'bg-purple-600/90' : 'bg-slate-800' }} text-white sm:max-w-[75%]">
+                                        <div class="mb-1 flex min-w-0 max-w-full flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                                            <p class="min-w-0 flex-1 truncate text-[11px] font-bold {{ $mine ? 'text-purple-100' : 'text-cyan-300' }}">
+                                                {{ $chatMessage['sender_name'] }}
+                                            </p>
                                         @if($details['can_send'] && ! $chatMessage['deleted'])
-                                            <div class="flex gap-2 text-[10px] opacity-70 group-hover:opacity-100">
+                                                <div class="flex shrink-0 flex-wrap gap-2 text-[10px] opacity-70 group-hover:opacity-100">
                                                 @if($details['can_reply'])
                                                     @if($details['is_e2ee'])<button type="button" x-on:click="setReply(@js($chatMessage))">Reply</button>@else<button type="button" wire:click="setReply({{ $chatMessage['id'] }})">Reply</button>@endif
                                                 @endif
@@ -189,24 +204,33 @@
                                         @endif
                                     </div>
 
-                                    @if($chatMessage['reply'])
-                                        <div class="mb-2 rounded-lg border-l-2 border-cyan-300 bg-black/20 px-3 py-2 text-xs">
-                                            <p class="font-bold text-cyan-200">{{ $chatMessage['reply']['sender_name'] }}</p>
-                                            @if($chatMessage['reply']['is_encrypted'])
-                                                <p class="mt-1 line-clamp-2 opacity-80" x-text="replyText(@js($chatMessage['reply']))"></p>
-                                            @else
-                                                <p class="mt-1 line-clamp-2 opacity-80">{{ $chatMessage['reply']['deleted'] ? 'This message was deleted.' : $chatMessage['reply']['body'] }}</p>
-                                            @endif
-                                        </div>
-                                    @endif
+                                        @if($chatMessage['reply'])
+                                            <div class="mb-2 min-w-0 max-w-full overflow-hidden rounded-lg border-l-2 border-cyan-300 bg-black/20 px-3 py-2 text-xs">
+                                                <p class="min-w-0 max-w-full truncate font-bold text-cyan-200">
+                                                    {{ $chatMessage['reply']['sender_name'] }}
+                                                </p>
+
+                                                @if($chatMessage['reply']['is_encrypted'])
+                                                    <p
+                                                        class="mt-1 min-w-0 max-w-full line-clamp-2 break-words [overflow-wrap:anywhere] opacity-80"
+                                                        x-text="replyText(@js($chatMessage['reply']))"
+                                                    ></p>
+                                                @else
+                                                    <p class="mt-1 min-w-0 max-w-full line-clamp-2 break-words [overflow-wrap:anywhere] opacity-80">{{ $chatMessage['reply']['deleted'] ? 'This message was deleted.' : $chatMessage['reply']['body'] }}</p>
+                                                @endif
+                                            </div>
+                                        @endif
 
                                     @if($chatMessage['deleted'])
                                         <p class="italic text-sm text-slate-300">This message was deleted.</p>
                                     @elseif($chatMessage['is_encrypted'])
-                                        <p class="whitespace-pre-wrap break-words text-sm" x-text="textFor(@js($chatMessage))"></p>
-                                    @elseif(filled($chatMessage['body']))
-                                        <p class="whitespace-pre-wrap break-words text-sm">{{ $chatMessage['body'] }}</p>
-                                    @endif
+                                            <p
+                                                class="min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm"
+                                                x-text="textFor(@js($chatMessage))"
+                                            ></p>
+                                        @elseif(filled($chatMessage['body']))
+                                            <p class="min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm">{{ $chatMessage['body'] }}</p>
+                                        @endif
 
                                     @foreach($chatMessage['attachments'] as $media)
                                         <div class="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black/20">
@@ -240,7 +264,7 @@
                                             @else
                                                 <div class="flex items-center justify-between gap-3 p-3">
                                                     <div class="min-w-0"><p class="truncate text-sm font-bold">{{ $media['original_name'] }}</p><p class="text-[10px] opacity-60">{{ number_format($media['file_size'] / 1024, 1) }} KB</p></div>
-                                                    <div class="flex gap-2"><a href="{{ $media['view_url'] }}" target="_blank" rel="noopener" class="text-xs text-cyan-200">View</a><a href="{{ $media['download_url'] }}" class="text-xs text-purple-200">Download</a></div>
+                                                    <div class="flex max-w-full flex-wrap gap-2"><a href="{{ $media['view_url'] }}" target="_blank" rel="noopener" class="text-xs text-cyan-200">View</a><a href="{{ $media['download_url'] }}" class="text-xs text-purple-200">Download</a></div>
                                                 </div>
                                             @endif
                                         </div>
@@ -291,9 +315,28 @@
                                 <div class="flex items-end gap-2"><textarea x-model="editText" rows="2" maxlength="2000" class="min-w-0 flex-1 resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"></textarea><button type="button" x-on:click="saveEdit(messageById(editingId))" x-bind:disabled="busy" class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-bold disabled:opacity-50">Save</button></div>
                             </div>
                             <div x-show="!details.e2ee_rotation_required && !editingId">
-                                <div x-show="replyToId" class="mb-2 flex items-start justify-between rounded-lg border-l-2 border-cyan-400 bg-slate-900 p-3 text-xs">
-                                    <div><p class="font-bold text-cyan-300">Replying to encrypted message</p><p class="mt-1 line-clamp-1 text-slate-400" x-text="replyText(messageById(replyToId))"></p></div>
-                                    <button type="button" x-on:click="replyToId = null" class="text-slate-400">×</button>
+                                <div
+                                    x-show="replyToId"
+                                    class="mb-2 flex min-w-0 w-full max-w-full items-start justify-between gap-3 overflow-hidden rounded-lg border-l-2 border-cyan-400 bg-slate-900 p-3 text-xs"
+                                >
+                                    <div class="min-w-0 flex-1 overflow-hidden">
+                                        <p class="truncate font-bold text-cyan-300">
+                                            Replying to encrypted message
+                                        </p>
+
+                                        <p
+                                            class="mt-1 min-w-0 max-w-full truncate text-slate-400"
+                                            x-text="replyText(messageById(replyToId))"
+                                        ></p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        x-on:click="replyToId = null"
+                                        class="shrink-0 text-slate-400"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
                                 <div x-show="selectedFile" class="mb-2 flex items-center justify-between rounded-lg bg-slate-900 p-3 text-xs text-slate-300">
                                     <span class="truncate" x-text="selectedFile?.name"></span>
@@ -336,13 +379,29 @@
                                 @error('editingMessage')<p class="mt-1 text-xs text-red-300">{{ $message }}</p>@enderror
                             </form>
                         @else
-                        @if($replyToMessageId)
-                            @php $replying = collect($teamMessages)->firstWhere('id', $replyToMessageId); @endphp
-                            <div class="mb-2 flex items-start justify-between rounded-lg border-l-2 border-cyan-400 bg-slate-900 p-3 text-xs">
-                                <div><p class="font-bold text-cyan-300">Replying to {{ $replying['sender_name'] ?? 'message' }}</p><p class="mt-1 line-clamp-1 text-slate-400">{{ $replying['body'] ?? 'Attachment' }}</p></div>
-                                <button type="button" wire:click="cancelReply" class="text-slate-400">×</button>
-                            </div>
-                        @endif
+                                @if($replyToMessageId)
+                                    @php $replying = collect($teamMessages)->firstWhere('id', $replyToMessageId); @endphp
+
+                                    <div class="mb-2 flex min-w-0 w-full max-w-full items-start justify-between gap-3 overflow-hidden rounded-lg border-l-2 border-cyan-400 bg-slate-900 p-3 text-xs">
+                                        <div class="min-w-0 flex-1 overflow-hidden">
+                                            <p class="truncate font-bold text-cyan-300">
+                                                Replying to {{ $replying['sender_name'] ?? 'message' }}
+                                            </p>
+
+                                            <p class="mt-1 min-w-0 max-w-full truncate text-slate-400">
+                                                {{ $replying['body'] ?? 'Attachment' }}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            wire:click="cancelReply"
+                                            class="shrink-0 text-slate-400"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                @endif
                         @if($attachment)
                             <div class="mb-2 flex items-center justify-between rounded-lg bg-slate-900 p-3 text-xs text-slate-300"><span class="truncate">{{ $attachment->getClientOriginalName() }}</span><button type="button" wire:click="removeAttachment" class="text-red-300">Remove</button></div>
                         @endif
