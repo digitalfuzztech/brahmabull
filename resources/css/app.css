@@ -2768,6 +2768,1220 @@ header.bb-public-header.bb-public-header-scrolled {
 }
 
 
+/* =========================================================
+   BRAHMABULL RULES + CTA CASINO ENVIRONMENT
+   ========================================================= */
+
+.bb-rules-cta-zone {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: #02030b;
+}
+
+/* actual background image with controlled opacity */
+.bb-rules-cta-zone::before {
+    content: '';
+
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    background-image: url('/images/ui/casino/rules-bg.png');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+
+    opacity: 0.58;
+}
+
+/* dark overlay but DO NOT kill the neon */
+.bb-rules-zone-shade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(2, 4, 18, 0.08) 0%,
+            rgba(7, 5, 22, 0.16) 42%,
+            rgba(5, 4, 18, 0.34) 100%
+        );
+}
+
+/* casino atmospheric glows */
+.bb-rules-zone-glow {
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(100px);
+}
+
+.bb-rules-zone-glow-1 {
+    width: 760px;
+    height: 470px;
+    left: 4%;
+    top: 12%;
+
+    background: rgba(192, 38, 211, 0.22); /* richer purple */
+}
+
+.bb-rules-zone-glow-2 {
+    width: 760px;
+    height: 470px;
+    right: 2%;
+    top: 18%;
+
+    background: rgba(251, 191, 36, 0.18); /* gold glow */
+}
+
+
+
+/* =========================================================
+   RULES SECTION
+   ========================================================= */
+
+.bb-rules-section {
+    position: relative;
+    padding: 55px 0 22px;
+    overflow: visible;
+}
+
+.bb-rules-wrap {
+    position: relative;
+
+    width: min(1540px, calc(100% - 32px));
+
+    margin: 0 auto;
+}
+
+
+
+/* =========================================================
+   IMPORTANT:
+   THE FRAME KEEPS ITS REAL 16:9 RATIO
+   ========================================================= */
+
+.bb-rules-marquee {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    margin: 0 auto;
+
+    isolation: isolate;
+}
+
+
+/* actual PNG frame */
+.bb-rules-frame-image {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    pointer-events: none;
+
+    opacity: 0.76;              /* frame transparent */
+    transform: scale(1.08);     /* frame slightly larger */
+    transform-origin: center;
+
+    filter:
+        drop-shadow(0 16px 34px rgba(0, 0, 0, 0.55))
+        drop-shadow(0 0 28px rgba(255, 120, 20, 0.22))
+        drop-shadow(0 0 54px rgba(251, 191, 36, 0.18));
+}
+/* glow behind marquee */
+.bb-rules-frame-glow {
+    position: absolute;
+    z-index: 0;
+
+    left: 10%;
+    right: 10%;
+    top: 16%;
+    bottom: 13%;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(239, 68, 68, 0.24) 0%,
+            rgba(251, 146, 60, 0.18) 32%,
+            rgba(251, 191, 36, 0.12) 52%,
+            rgba(168, 85, 247, 0.12) 72%,
+            transparent 84%
+        );
+
+    filter: blur(72px);
+}
+
+
+/* =========================================================
+   CONTENT SAFE AREA
+   ========================================================= */
+
+/*
+    THIS IS THE IMPORTANT PART.
+
+    We position the content inside the EMPTY RED AREA
+    instead of making the frame fit around the content.
+*/
+
+.bb-rules-frame-content {
+    position: absolute;
+
+    z-index: 5;
+
+    left: 13.5%;
+    right: 13.5%;
+
+    top: 19%;
+    bottom: 25.5%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    min-height: 0;
+}
+
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.bb-rules-header {
+    text-align: center;
+
+    flex: 0 0 auto;
+}
+
+.bb-rules-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.32em;
+
+    text-transform: uppercase;
+
+    color: #fde68a;
+
+    text-shadow:
+        0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.bb-rules-eyebrow-line {
+    width: 55px;
+    height: 1px;
+
+    background:
+        linear-gradient(
+            to right,
+            transparent,
+            rgba(253, 224, 71, 0.85),
+            transparent
+        );
+}
+
+
+
+.bb-rules-title {
+    margin-top: 7px;
+
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(25px, 2.4vw, 44px);
+    line-height: 0.95;
+    font-weight: 1000;
+    letter-spacing: -0.04em;
+    color: white;
+    text-transform: uppercase;
+
+    text-shadow:
+        0 2px 2px rgba(0, 0, 0, 0.45),
+        0 0 20px rgba(255, 255, 255, 0.10),
+        0 0 30px rgba(251, 191, 36, 0.06);
+}
+.bb-rules-title span {
+    background:
+        linear-gradient(
+            90deg,
+            #fef3c7,
+            #fbbf24,
+            #fb923c,
+            #fde68a
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+
+    text-shadow: none;
+}
+
+
+
+.bb-rules-subtitle {
+    margin: 8px auto 0;
+    max-width: 630px;
+
+    font-size: 12px;
+    line-height: 1.55;
+
+    color: rgba(255, 248, 240, 0.88);
+
+    text-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.22);
+}
+
+
+
+/* =========================================================
+   GOLD ORNAMENT
+   ========================================================= */
+
+.bb-rules-ornament {
+    width: min(600px, 80%);
+
+    margin: 10px auto 11px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+}
+
+.bb-rules-ornament span {
+    height: 1px;
+
+    flex: 1;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(251, 191, 36, 0.55),
+            transparent
+        );
+}
+
+.bb-rules-ornament i {
+    font-style: normal;
+
+    color: #fde68a;
+
+    font-size: 10px;
+
+    text-shadow:
+        0 0 12px rgba(251, 191, 36, 0.8);
+}
+
+
+
+/* =========================================================
+   RULE GRID
+   ========================================================= */
+
+.bb-rules-grid {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+
+    gap: 14px 16px;
+
+    align-items: center;
+    justify-items: center;
+}
+
+
+
+/* =========================================================
+   LAVISH RULE CARD
+   ========================================================= */
+
+.bb-rule-card {
+    position: relative;
+    min-width: 0;
+    width: 100%;              /* makes card visually smaller */
+    align-self: center;
+    justify-self: center;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 18px 20px;      /* reduced padding */
+    border-radius: 16px;
+
+    border: 1px solid rgba(253, 224, 71, 0.18);
+
+    background: linear-gradient(
+        135deg,
+        rgba(35, 8, 68, 0.56),
+        rgba(88, 28, 135, 0.52) 52%,
+        rgba(24, 8, 48, 0.56)
+    );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 rgba(255, 192, 50, 0.04),
+        0 10px 24px rgba(0, 0, 0, 0.16);
+
+    backdrop-filter: blur(10px);
+
+    transition:
+        transform 300ms ease,
+        border-color 300ms ease,
+        box-shadow 300ms ease,
+        background 300ms ease;
+}
+
+.bb-rule-card::before {
+    content: '';
+
+    position: absolute;
+
+    inset: 0;
+
+    opacity: 0;
+
+    background:
+        radial-gradient(
+            circle at 15% 0%,
+            rgba(251, 191, 36, 0.14),
+            transparent 35%
+        );
+
+    transition: opacity 300ms ease;
+}
+
+
+.bb-rule-card:hover {
+    transform: translateY(-4px) scale(1.015);
+
+    border-color: rgba(253, 224, 71, 0.42);
+
+    background:
+        radial-gradient(
+            circle at 14% 18%,
+            rgba(251, 191, 36, 0.12),
+            transparent 34%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(40, 10, 82, 0.62),
+            rgba(101, 32, 196, 0.58) 52%,
+            rgba(36, 12, 72, 0.60)
+        );
+
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.24),
+        0 0 24px rgba(251, 191, 36, 0.10),
+        0 0 28px rgba(168, 85, 247, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.bb-rule-card:hover::before {
+    opacity: 1;
+}
+
+
+
+/* giant faded number */
+.bb-rule-watermark {
+    position: absolute;
+
+    right: 8px;
+    bottom: -15px;
+
+    font-family: 'Montserrat', sans-serif;
+
+    font-size: clamp(50px, 4vw, 78px);
+
+    line-height: 1;
+
+    font-weight: 1000;
+
+    color: rgba(255, 204, 102, 0.035);
+
+    pointer-events: none;
+}
+
+
+
+/* small top golden light */
+.bb-rule-card-glow {
+    position: absolute;
+
+    top: -30px;
+    left: 8%;
+
+    width: 120px;
+    height: 56px;
+
+    border-radius: 999px;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(251, 191, 36, 0.24) 0%,
+            rgba(168, 85, 247, 0.16) 45%,
+            transparent 78%
+        );
+
+    filter: blur(24px);
+}
+
+
+/* gold medallion */
+.bb-rule-number {
+    position: relative;
+
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    padding: 2px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #fde68a,
+            #f59e0b 40%,
+            #a855f7 72%,
+            #6b21a8
+        );
+
+    box-shadow:
+        0 0 16px rgba(245, 158, 11, 0.24),
+        0 0 18px rgba(168, 85, 247, 0.14);
+}
+
+.bb-rule-number::before {
+    content: '';
+
+    position: absolute;
+
+    inset: 2px;
+
+    border-radius: inherit;
+
+    background:
+        radial-gradient(
+            circle at 35% 25%,
+            #7c3aed 0%,
+            #4c1d95 45%,
+            #1f0a3d 72%
+        );
+}
+
+
+.bb-rule-number span {
+    position: relative;
+
+    z-index: 2;
+
+    color: #fde68a;
+
+    font-family: 'Montserrat', sans-serif;
+
+    font-size: 14px;
+
+    font-weight: 900;
+}
+
+
+
+/* card content */
+.bb-rule-body {
+    position: relative;
+
+    z-index: 2;
+
+    min-width: 0;
+}
+
+
+.bb-rule-mini-label {
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.24em;
+
+    color:
+        rgba(253, 224, 71, 0.58);
+
+    text-transform: uppercase;
+}
+
+
+.bb-rule-body h3 {
+    margin-top: 2px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(14px, 0.98vw, 16px);
+    font-weight: 900;
+    color: #ffffff;
+
+    text-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.35),
+        0 0 10px rgba(255, 255, 255, 0.05);
+}
+
+.bb-rule-body p {
+    margin-top: 4px;
+    font-size: clamp(10px, 0.7vw, 12px);
+    line-height: 1.45;
+    color: rgba(255, 246, 240, 0.82);
+}
+
+/* tiny sparkle in each card */
+.bb-rule-corner-spark {
+    position: absolute;
+
+    right: 11px;
+    top: 8px;
+
+    font-size: 10px;
+
+    color: rgba(253, 224, 71, 0.45);
+
+    animation:
+        bbSparklePulse 2.6s ease-in-out infinite;
+}
+
+
+
+/* =========================================================
+   BUTTON AREA
+   ========================================================= */
+
+.bb-rules-footer {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 15px;
+
+    margin-top: 30px;
+}
+
+
+.bb-rules-footer-line {
+    width: min(125px, 12vw);
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(251, 191, 36, 0.6)
+        );
+}
+
+
+.bb-rules-footer-line:last-child {
+    transform: scaleX(-1);
+}
+
+
+
+.bb-rules-button {
+    position: relative;
+    overflow: hidden;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    min-height: 40px;
+    padding: 10px 23px;
+
+    border-radius: 999px;
+    border: 1px solid rgba(253, 224, 71, 0.72);
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(59, 7, 100, 0.96) 0%,
+            rgba(109, 40, 217, 0.95) 38%,
+            rgba(168, 85, 247, 0.94) 68%,
+            rgba(251, 191, 36, 0.92) 100%
+        );
+
+    color: white;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 0 22px rgba(245, 158, 11, 0.20),
+        0 0 22px rgba(168, 85, 247, 0.12);
+
+    transition:
+        transform 250ms ease,
+        box-shadow 250ms ease;
+}
+
+.bb-rules-button:hover {
+    transform: translateY(-2px) scale(1.04);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(245, 158, 11, 0.34);
+}
+
+
+.bb-rules-button svg {
+    width: 13px;
+    height: 13px;
+
+    transition:
+        transform 250ms ease;
+}
+
+
+.bb-rules-button:hover svg {
+    transform: translateX(4px);
+}
+
+
+.bb-rules-button-glow {
+    position: absolute;
+
+    width: 80px;
+    height: 80px;
+
+    left: -100px;
+
+    background:
+        rgba(255, 255, 255, 0.30);
+
+    filter: blur(25px);
+
+    transform: skewX(-25deg);
+
+    transition:
+        left 650ms ease;
+}
+
+
+.bb-rules-button:hover .bb-rules-button-glow {
+    left: calc(100% + 40px);
+}
+
+
+
+/* =========================================================
+   FLOATING LABELS
+   ========================================================= */
+
+.bb-rule-floating-label {
+    position: absolute;
+
+    z-index: 20;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 7px 13px;
+
+    border:
+        1px solid rgba(253, 224, 71, 0.24);
+
+    border-radius: 999px;
+
+    background:
+        rgba(5, 4, 14, 0.48);
+
+    backdrop-filter:
+        blur(10px);
+
+    color:
+        rgba(254, 243, 199, 0.86);
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.19em;
+
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    animation:
+        bbFloat 4s ease-in-out infinite;
+}
+
+
+.bb-rule-floating-label-left {
+    left: 7%;
+    top: 16%;
+}
+
+
+.bb-rule-floating-label-right {
+    right: 7%;
+    top: 19%;
+
+    animation-delay: -1.3s;
+}
+
+
+.bb-floating-dot {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: #fbbf24;
+
+    box-shadow:
+        0 0 10px #fbbf24;
+}
+
+
+
+/* =========================================================
+   FLOATING SPARKLES
+   ========================================================= */
+
+.bb-rules-sparkle {
+    position: absolute;
+
+    z-index: 18;
+
+    pointer-events: none;
+
+    color: #fde68a;
+
+    text-shadow:
+        0 0 10px rgba(251, 191, 36, 0.9),
+        0 0 25px rgba(249, 115, 22, 0.5);
+
+    animation:
+        bbSparklePulse 2.2s ease-in-out infinite;
+}
+
+
+.sparkle-1 {
+    left: 13%;
+    top: 21%;
+
+    font-size: 16px;
+}
+
+
+.sparkle-2 {
+    left: 21%;
+    top: 8%;
+
+    font-size: 10px;
+
+    animation-delay: -0.7s;
+}
+
+
+.sparkle-3 {
+    right: 18%;
+    top: 14%;
+
+    font-size: 18px;
+
+    animation-delay: -1.1s;
+}
+
+
+.sparkle-4 {
+    right: 9%;
+    top: 36%;
+
+    font-size: 11px;
+
+    animation-delay: -1.8s;
+}
+
+
+.sparkle-5 {
+    left: 9%;
+    top: 51%;
+
+    font-size: 9px;
+
+    animation-delay: -0.3s;
+}
+
+
+
+/* =========================================================
+   FRAME LIGHT SWEEP
+   ========================================================= */
+
+.bb-rules-marquee-shine {
+    position: absolute;
+
+    z-index: 4;
+
+    top: 10%;
+    bottom: 10%;
+
+    left: -25%;
+
+    width: 12%;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.10),
+            rgba(255, 235, 175, 0.24),
+            transparent
+        );
+
+    filter: blur(7px);
+
+    transform:
+        skewX(-18deg);
+
+    animation:
+        bbMarqueeShine 7s ease-in-out infinite;
+}
+
+
+
+/* =========================================================
+   CTA
+   Make CTA section itself transparent.
+   The existing CTA BOX remains untouched.
+   ========================================================= */
+
+.bb-rules-cta-zone .bb-cta-section {
+    position: relative;
+
+    z-index: 5;
+
+    background: transparent !important;
+
+    padding-top: 5px;
+    padding-bottom: 65px;
+}
+
+
+
+/* give CTA more luxury separation */
+.bb-rules-cta-zone .bb-cta-shell {
+    box-shadow:
+        0 24px 65px rgba(0, 0, 0, 0.50),
+        0 0 40px rgba(217, 70, 239, 0.10);
+
+    backdrop-filter:
+        blur(2px);
+}
+
+
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes bbFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-8px);
+    }
+
+}
+
+
+@keyframes bbSparklePulse {
+
+    0%,
+    100% {
+        opacity: 0.35;
+
+        transform:
+            scale(0.8)
+            rotate(0deg);
+    }
+
+    50% {
+        opacity: 1;
+
+        transform:
+            scale(1.25)
+            rotate(18deg);
+    }
+
+}
+
+
+@keyframes bbMarqueeShine {
+
+    0% {
+        left: -25%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    48% {
+        left: 112%;
+        opacity: 0;
+    }
+
+    100% {
+        left: 112%;
+        opacity: 0;
+    }
+
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .bb-rules-wrap {
+        width: min(1440px, calc(100% - 18px));
+    }
+
+    .bb-rules-frame-content {
+        left: 12%;
+        right: 12%;
+
+        top: 18.5%;
+        bottom: 14%;
+    }
+
+    .bb-rule-card {
+        padding:
+            10px 11px;
+
+        gap: 9px;
+    }
+
+    .bb-rule-number {
+        width: 37px;
+        height: 37px;
+    }
+
+}
+
+
+
+@media (max-width: 950px) {
+
+    .bb-rules-section {
+        padding-top: 35px;
+    }
+
+    .bb-rules-marquee {
+        aspect-ratio: auto;
+
+        min-height: 730px;
+
+        border-radius: 38px;
+
+        overflow: hidden;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(120 ,56, 167 ,0.15),
+                rgba(120 ,59 ,237 ,0.25)
+            );
+
+        border:
+            2px solid rgba(251, 191, 36, 0.62);
+
+        box-shadow:
+            0 0 35px rgba(245, 158, 11, 0.18);
+    }
+
+
+    /*
+     * Do not stretch the 16:9 image vertically on tablet/mobile.
+     */
+    .bb-rules-frame-image {
+        display: none;
+    }
+
+
+    .bb-rules-frame-content {
+        position: relative;
+
+        inset: auto;
+
+        padding:
+            48px 35px 40px;
+
+        height: auto;
+    }
+
+
+    .bb-rules-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        grid-template-rows:
+            auto;
+
+        margin-top: 5px;
+    }
+
+
+    .bb-rule-card {
+        min-height: 105px;
+    }
+
+
+    .bb-rule-floating-label {
+        display: none;
+    }
+
+
+    .bb-rules-marquee-shine {
+        display: none;
+    }
+
+}
+
+
+
+@media (max-width: 640px) {
+
+    .bb-rules-wrap {
+        width:
+            calc(100% - 22px);
+    }
+
+
+    .bb-rules-section {
+        padding-top: 28px;
+        padding-bottom: 15px;
+    }
+
+
+    .bb-rules-marquee {
+        min-height: auto;
+
+        border-radius: 28px;
+    }
+
+
+    .bb-rules-frame-content {
+        padding:
+            38px 17px 32px;
+    }
+
+
+    .bb-rules-title {
+        font-size: 27px;
+    }
+
+
+    .bb-rules-subtitle {
+        font-size: 11px;
+    }
+
+
+    .bb-rules-grid {
+        grid-template-columns:
+            1fr;
+
+        gap: 10px;
+    }
+
+
+    .bb-rule-card {
+        min-height: auto;
+
+        padding:
+            14px;
+    }
+
+
+    .bb-rule-body p {
+        font-size: 10px;
+
+        line-height: 1.55;
+    }
+
+
+    .bb-rule-number {
+        width: 40px;
+        height: 40px;
+    }
+
+
+    .bb-rules-footer {
+        margin-top: 18px;
+    }
+
+
+    .bb-rules-footer-line {
+        display: none;
+    }
+
+
+    .bb-rules-cta-zone .bb-cta-section {
+        padding-top: 20px;
+        padding-bottom: 45px;
+    }
+
+}
+
+
 /* ============================================================
    CTA BUTTON
    ============================================================ */

@@ -8,9 +8,26 @@
 
     @include('livewire.public.sections.about-section')
 
-    @include('livewire.public.sections.rules-section')
+    {{-- ========================================================= --}}
+    {{-- RULES + CTA CASINO ENVIRONMENT                            --}}
+    {{-- ========================================================= --}}
 
-    @include('livewire.public.sections.cta-section')
+    <div class="bb-rules-cta-zone">
+
+        {{-- dark cinematic overlay --}}
+        <div class="bb-rules-zone-shade" aria-hidden="true"></div>
+
+        {{-- atmospheric glows --}}
+        <div class="bb-rules-zone-glow bb-rules-zone-glow-1" aria-hidden="true"></div>
+        <div class="bb-rules-zone-glow bb-rules-zone-glow-2" aria-hidden="true"></div>
+
+        <div class="relative z-10">
+            @include('livewire.public.sections.rules-section')
+
+            @include('livewire.public.sections.cta-section')
+        </div>
+
+    </div>
 
 
 </div>
