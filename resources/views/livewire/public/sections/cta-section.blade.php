@@ -101,7 +101,7 @@
                             </p>
 
                             <a
-                                href="/games"
+                                href="/catalog"
                                 class="bb-cta-button"
                             >
 
