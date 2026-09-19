@@ -57,7 +57,9 @@ class FloatingAlertCenter extends Component
                 ->findOrFail($alert['notification_id']);
             $notification->update(['is_read' => true, 'read_at' => now()]);
             $viewer = $this->viewer();
-            $url = $notification->action_url ?: route($viewer->hasRole('admin') ? 'admin.notifications' : ($viewer->hasRole('agent') ? 'agent.notifications' : 'player.notifications'));
+            $url = $viewer->hasRole('player')
+                ? route('player.notifications')
+                : ($notification->action_url ?: route($viewer->hasRole('admin') ? 'admin.notifications' : 'agent.notifications'));
             if ($viewer->hasRole('agent')) {
                 $url = str_replace(['/admin/', 'admin.'], ['/agent/', 'agent.'], $url);
             }

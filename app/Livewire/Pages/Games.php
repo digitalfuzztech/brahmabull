@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\BrahmaPlayRequest;
+use App\Models\SpecialOffer;
 
 
 class Games extends Component
@@ -243,6 +244,9 @@ class Games extends Component
                 ->select('type')
                 ->distinct()
                 ->pluck('type'),
+            'activeOffers' => $this->showModal && $this->playModalTab === 'payment'
+                ? SpecialOffer::query()->activeOnDate(today())->orderBy('ends_at')->limit(4)->get()
+                : collect(),
         ])->layout('layouts.public');
     }
 }

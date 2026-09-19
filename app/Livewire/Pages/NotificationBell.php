@@ -14,8 +14,17 @@ class NotificationBell extends Component
     ];
     public function toggle()
     {
-       $this->open = !$this->open;
-  }
+        $this->open = ! $this->open;
+
+        if ($this->open) {
+            $this->dispatch('bb:player-notifications-opened');
+        }
+    }
+
+    public function close(): void
+    {
+        $this->open = false;
+    }
 
     public function getUnreadCountProperty()
     {

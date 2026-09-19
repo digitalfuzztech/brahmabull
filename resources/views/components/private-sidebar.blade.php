@@ -131,6 +131,11 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/><circle cx="12" cy="12" r="2"/></svg>
                     <span class="sidebar-text">Spinning Wheel</span>
                 </a>
+                <a href="{{ route('admin.special-offers') }}"
+                   class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-slate-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.6 11 4 4 11l9.6 9.6a2 2 0 0 0 2.8 0l4.2-4.2a2 2 0 0 0 0-2.8Z"/><path d="M7.5 8.5h.01"/></svg>
+                    <span class="sidebar-text">Special Offers</span>
+                </a>
                 <a href="{{ route('admin.player-rank-settings') }}"
                    class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-slate-800">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4v2a4 4 0 0 0 4 4"/><path d="M17 6h3v2a4 4 0 0 1-4 4"/></svg>

@@ -4,6 +4,7 @@ namespace App\Livewire\Pages;
 
 use App\Models\BrahmaDeposit;
 use App\Models\Notification;
+use App\Models\SpecialOffer;
 use App\Models\User;
 use App\Models\Wallet;
 use Livewire\Component;
@@ -167,6 +168,9 @@ class BrahmaBalance extends Component
                     ->select('type')
                     ->distinct()
                     ->pluck('type')
+                : collect(),
+            'activeOffers' => $this->showModal
+                ? SpecialOffer::query()->activeOnDate(today())->orderBy('ends_at')->limit(4)->get()
                 : collect(),
         ]);
     }

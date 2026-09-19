@@ -1,6 +1,9 @@
 <div
+    x-data
     class="relative"
     wire:poll.5s
+    x-on:bb:player-profile-opened.window="$wire.close()"
+    x-on:keydown.escape.window="$wire.close()"
 >
 
     {{-- BELL --}}
@@ -52,6 +55,7 @@
     @if($open)
 
         <div
+            x-on:click.outside="$wire.close()"
             class="
         fixed md:absolute
         left-1/2 md:left-auto

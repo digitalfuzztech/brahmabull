@@ -4,7 +4,7 @@
     $siteSettings ??= \App\Models\SiteSetting::current();
 @endphp
 
-<footer class="bb-footer">
+<footer class="bb-footer" data-bb-parallax-footer>
 
     {{-- faint casino atmosphere --}}
     <div

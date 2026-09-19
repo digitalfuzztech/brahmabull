@@ -410,58 +410,75 @@
     </div>
     @auth
         @if(auth()->user()->hasRole('player'))
-
+            @teleport('body')
+            <div>
             <div
                 x-data="{
         open:false,
         copied:false,
+        setOpen(value){
+            this.open = value;
+            document.body.classList.toggle('overflow-hidden', value);
+        },
         copy(text){
             navigator.clipboard.writeText(text);
             this.copied = true;
             setTimeout(() => this.copied = false, 2000);
         }
-    }"
-                x-on:open-referral-modal.window="open=true"
+                }"
+                x-init="document.addEventListener('livewire:navigating', () => document.body.classList.remove('overflow-hidden'), { once: true })"
+                x-on:open-referral-modal.window="setOpen(true)"
+                x-on:keydown.escape.window="setOpen(false)"
                 x-show="open"
                 x-cloak
-                class="fixed inset-0 z-[9999]"
+                class="bb-player-form-overlay bb-invite-overlay-root fixed inset-0 z-[100000] overflow-y-auto"
             >
 
                 <!-- Backdrop -->
                 <div
-                    class="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                    @click="open=false"
+                    class="bb-invite-backdrop fixed inset-0 z-0"
+                    @click="setOpen(false)"
                 ></div>
 
                 <!-- Modal -->
-                <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="relative z-10 flex min-h-full items-center justify-center p-4">
 
                     <div
-                        class="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="invite-friends-title"
+                        class="bb-player-form-shell relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
                     >
 
-                        <h2 class="text-2xl font-black text-white mb-6">
-                            Invite Friends
-                        </h2>
+                        <div class="bb-player-form-header flex items-center justify-between border-b border-slate-800 p-5">
+                            <div>
+                                <p class="bb-player-form-kicker">Referral Rewards</p>
+                                <h2 id="invite-friends-title" class="text-xl font-black text-white">Invite Friends</h2>
+                                <p class="bb-player-form-description">Share your code or personal invite link.</p>
+                            </div>
+                            <button type="button" @click="setOpen(false)" class="bb-player-form-close" aria-label="Close invite friends modal">&times;</button>
+                        </div>
+
+                        <div class="bb-player-form-body space-y-5 p-5">
 
                         <!-- Referral ID -->
-                        <div class="mb-5">
+                        <div>
 
                             <label class="text-sm text-slate-400 block mb-2">
                                 Referral Code
                             </label>
 
-                            <div class="flex gap-2">
+                            <div class="flex flex-col gap-2 sm:flex-row">
 
                                 <input
                                     readonly
                                     value="{{ auth()->user()->referral_code }}"
-                                    class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white"
+                                    class="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white"
                                 >
 
                                 <button
                                     @click="copy('{{ auth()->user()->referral_code }}')"
-                                    class="rounded-xl bg-purple-600 px-4 py-3 font-semibold"
+                                    class="bb-player-form-primary rounded-xl px-5 py-3 font-bold"
                                 >
                                     Copy
                                 </button>
@@ -471,23 +488,23 @@
                         </div>
 
                         <!-- Referral Link -->
-                        <div class="mb-6">
+                        <div>
 
                             <label class="text-sm text-slate-400 block mb-2">
                                 Invite Link
                             </label>
 
-                            <div class="flex gap-2">
+                            <div class="flex flex-col gap-2 sm:flex-row">
 
                                 <input
                                     readonly
                                     value="{{ route('register',['ref'=>auth()->user()->referral_code]) }}"
-                                    class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white"
+                                    class="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white"
                                 >
 
                                 <button
                                     @click="copy('{{ route('register',['ref'=>auth()->user()->referral_code]) }}')"
-                                    class="rounded-xl bg-purple-600 px-4 py-3 font-semibold"
+                                    class="bb-player-form-primary rounded-xl px-5 py-3 font-bold"
                                 >
                                     Copy
                                 </button>
@@ -500,34 +517,39 @@
                         <div
                             x-show="copied"
                             x-transition
-                            class="mb-4 rounded-xl border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-400"
+                            class="bb-player-form-success rounded-xl border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-300"
                         >
                             Copied successfully.
                         </div>
 
                         <!-- Description -->
                         <div
-                            class="mb-6 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-300"
+                            class="rounded-xl border border-purple-500/20 bg-purple-950/20 p-4 text-sm leading-6 text-slate-300"
                         >
                             Send this referral code or the invite link to your friend.
                             After they register and start playing, you will receive the
                             referral bonus.
                         </div>
 
-                        <!-- Close -->
+                        </div>
+
+                        <div class="bb-player-form-footer border-t border-slate-800 p-5">
                         <button
-                            @click="open=false"
-                            class="w-full rounded-xl border border-slate-700 py-3 font-semibold hover:bg-slate-800"
+                            type="button"
+                            @click="setOpen(false)"
+                            class="bb-player-form-secondary w-full rounded-xl py-3 font-semibold"
                         >
                             Close
                         </button>
+                        </div>
 
                     </div>
 
                 </div>
 
             </div>
-
+            </div>
+            @endteleport
         @endif
     @endauth
 </section>

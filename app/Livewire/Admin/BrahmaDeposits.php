@@ -7,6 +7,7 @@ use App\Models\BrahmaDeposit;
 use App\Models\BrahmaDepositAdjustment;
 use App\Models\Notification;
 use App\Models\SpinRewardEntitlement;
+use App\Models\SpecialOffer;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletType;
@@ -33,6 +34,8 @@ class BrahmaDeposits extends Component
     public $proofPreview = null;
 
     public ?array $activeVipBadge = null;
+
+    public array $historicalOffers = [];
 
     public $search = '';
 
@@ -95,6 +98,16 @@ class BrahmaDeposits extends Component
         $this->resetValidation();
 
         $this->selectedDeposit = BrahmaDeposit::with(['user.playerProfile', 'wallet.walletType', 'wallet.walletAgent', 'processor'])->findOrFail($depositId);
+        $this->historicalOffers = SpecialOffer::withTrashed()
+            ->coveringDate($this->selectedDeposit->created_at)
+            ->orderBy('starts_at')
+            ->get()
+            ->map(fn (SpecialOffer $offer) => [
+                'name' => $offer->name,
+                'description' => $offer->description,
+                'starts_at' => $offer->starts_at->format('M j, Y'),
+                'ends_at' => $offer->ends_at->format('M j, Y'),
+            ])->all();
         $badge = SpinRewardEntitlement::where('user_id', $this->selectedDeposit->user_id)
             ->where('entitlement_type', 'badge')
             ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
@@ -110,7 +123,7 @@ class BrahmaDeposits extends Component
 
     public function closeModal(): void
     {
-        $this->reset(['selectedDeposit', 'status', 'load_balance', 'admin_notes', 'activeVipBadge']);
+        $this->reset(['selectedDeposit', 'status', 'load_balance', 'admin_notes', 'activeVipBadge', 'historicalOffers']);
     }
 
     public function processDeposit(): void

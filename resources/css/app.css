@@ -787,6 +787,316 @@ header.bb-public-header.bb-public-header-scrolled {
 
 }
 
+/* Special Offers player UI and informational deposit banners. */
+.bb-active-offers-note,
+.bb-admin-offers-note {
+    border: 1px solid rgba(251, 191, 36, 0.34);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    background:
+        radial-gradient(circle at top right, rgba(217, 70, 239, 0.18), transparent 42%),
+        linear-gradient(135deg, rgba(88, 28, 135, 0.34), rgba(30, 27, 75, 0.72));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.05), 0 0 24px rgba(126, 34, 206, 0.12);
+}
+
+.bb-active-offers-note__title,
+.bb-admin-offers-note__title {
+    color: #fcd34d;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.bb-offers-launcher__button {
+    position: relative;
+    display: flex;
+    width: 108px;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 1.25rem;
+    cursor: pointer;
+    filter: drop-shadow(0 9px 20px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 17px rgba(168, 85, 247, 0.62));
+    transition: transform 250ms ease, filter 250ms ease;
+}
+
+.bb-offers-launcher__button:hover {
+    transform: scale(1.06);
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 20px rgba(217, 70, 239, 0.7));
+}
+
+.bb-offers-launcher__label {
+    position: relative;
+    z-index: 2;
+    margin-bottom: -0.45rem;
+    border: 1px solid rgba(253, 224, 71, 0.76);
+    border-radius: 999px;
+    padding: 0.36rem 0.86rem;
+    color: #fff7c2;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    background: linear-gradient(135deg, rgba(88, 28, 135, 0.96), rgba(126, 34, 206, 0.94));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.24), 0 0 16px rgba(251, 191, 36, 0.38), 0 0 24px rgba(168, 85, 247, 0.3);
+}
+
+.bb-offers-launcher__mascot {
+    width: 100%;
+    height: 104px;
+    object-fit: contain;
+    animation: bbOffersFloat 3.6s ease-in-out infinite;
+}
+
+.bb-offers-launcher__spark {
+    position: absolute;
+    right: 4px;
+    top: 23px;
+    z-index: 3;
+    color: #fde68a;
+    font-size: 0.8rem;
+    animation: bbOffersSparkle 2.4s ease-in-out infinite;
+}
+
+.bb-offers-panel,
+.bb-offer-detail {
+    border: 1px solid rgba(251, 191, 36, 0.52);
+    color: white;
+    background:
+        radial-gradient(circle at 85% 10%, rgba(217, 70, 239, 0.25), transparent 36%),
+        linear-gradient(145deg, rgba(30, 13, 67, 0.97), rgba(46, 16, 101, 0.94) 48%, rgba(10, 7, 32, 0.98));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.1), 0 0 45px rgba(168, 85, 247, 0.4), 0 22px 60px rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(18px);
+}
+
+.bb-offers-panel__sparkle {
+    position: absolute;
+    right: 4.5rem;
+    top: 1rem;
+    color: #fde68a;
+    opacity: 0.8;
+}
+
+.bb-offers-close {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    color: #e9d5ff;
+    font-size: 1.4rem;
+    background: rgba(255, 255, 255, 0.07);
+    transition: background 180ms ease, color 180ms ease;
+}
+
+.bb-offers-close:hover {
+    color: white;
+    background: rgba(217, 70, 239, 0.2);
+}
+
+.bb-offers-card {
+    border: 1px solid rgba(216, 180, 254, 0.18);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    background: linear-gradient(135deg, rgba(126, 34, 206, 0.2), rgba(15, 23, 42, 0.42));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.bb-offers-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(251, 191, 36, 0.5);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.34), rgba(30, 27, 75, 0.55));
+}
+
+.bb-offer-detail::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url('/images/ui/casino/sparkle-overlay.png');
+    background-position: center;
+    background-size: cover;
+    opacity: 0.18;
+    z-index: 0;
+}
+
+.bb-offer-celebration {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.bb-offer-celebration::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.16), transparent 32%);
+    animation: bbOfferFlash 5.8s ease-in-out infinite;
+}
+
+.bb-offer-ribbon,
+.bb-offer-confetti {
+    position: absolute;
+    top: -12%;
+    left: var(--x);
+    width: 7px;
+    height: 18px;
+    border-radius: 2px;
+    background: #fbbf24;
+    opacity: 0;
+    transform: translate3d(0, -20px, 0) rotate(0deg);
+    animation: bbOfferConfetti var(--duration) linear var(--delay) infinite;
+}
+
+.bb-offer-ribbon {
+    width: 5px;
+    height: 34px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f0abfc, #a855f7 52%, #fcd34d);
+}
+
+.bb-offer-confetti:nth-child(3n) { background: #f0abfc; }
+.bb-offer-confetti:nth-child(3n + 1) { background: #c4b5fd; }
+.bb-offer-confetti:nth-child(3n + 2) { background: #fff7c2; }
+
+.bb-offer-spark {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: white;
+    box-shadow: 0 0 8px #fff, 0 0 15px #fbbf24;
+    animation: bbOfferParticle 2.8s ease-in-out var(--delay) infinite;
+}
+
+.bb-offer-firework {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(253, 224, 71, 0.75);
+    border-radius: 999px;
+    opacity: 0;
+    animation: bbOfferFirework 5.4s ease-out var(--delay) infinite;
+}
+
+.bb-offer-firework::before,
+.bb-offer-firework::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 48px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fef3c7, transparent);
+    transform: translate(-50%, -50%);
+}
+
+.bb-offer-firework::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.bb-offer-detail__mascot {
+    position: absolute;
+    bottom: 0;
+    z-index: 2;
+    width: min(24%, 190px);
+    max-height: 82%;
+    object-fit: contain;
+    pointer-events: none;
+    filter: drop-shadow(0 0 20px rgba(217, 70, 239, 0.4));
+}
+
+.bb-offer-detail__mascot--left { left: 0; }
+.bb-offer-detail__mascot--right { right: 0; }
+
+.bb-offer-detail__cta {
+    border: 1px solid #fff3b0;
+    background: linear-gradient(135deg, #fef3c7, #fbbf24 48%, #d97706);
+    box-shadow: 0 0 28px rgba(251, 191, 36, 0.4), inset 0 1px rgba(255, 255, 255, 0.7);
+    transition: transform 200ms ease, filter 200ms ease;
+}
+
+.bb-offer-detail__cta:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.08);
+}
+
+@keyframes bbOffersFloat {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -7px, 0); }
+}
+
+@keyframes bbOffersSparkle {
+    0%, 100% { opacity: 0.35; transform: scale(0.8) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.15) rotate(18deg); }
+}
+
+@keyframes bbOfferConfetti {
+    0% { opacity: 0; transform: translate3d(0, -20px, 0) rotate(0deg); }
+    10% { opacity: 0.9; }
+    84% { opacity: 0.75; }
+    100% { opacity: 0; transform: translate3d(var(--drift), 115vh, 0) rotate(var(--turn)); }
+}
+
+@keyframes bbOfferParticle {
+    0%, 100% { opacity: 0.18; transform: scale(0.6); }
+    45% { opacity: 1; transform: scale(1.45); }
+}
+
+@keyframes bbOfferFirework {
+    0%, 68% { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(0deg); }
+    76% { opacity: 0.85; }
+    92%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.9) rotate(35deg); }
+}
+
+@keyframes bbOfferFlash {
+    0%, 62%, 100% { opacity: 0; }
+    70% { opacity: 0.7; }
+    82% { opacity: 0; }
+}
+
+@media (max-width: 640px) {
+    .bb-offers-launcher {
+        bottom: 6.75rem;
+    }
+
+    .bb-offers-launcher__button {
+        width: 88px;
+    }
+
+    .bb-offers-launcher__mascot {
+        height: 84px;
+    }
+
+    .bb-offer-detail__mascot {
+        width: 25%;
+        max-height: 42%;
+        opacity: 0.72;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bb-offers-launcher__mascot,
+    .bb-offers-launcher__spark,
+    .bb-offer-celebration::before,
+    .bb-offer-ribbon,
+    .bb-offer-confetti,
+    .bb-offer-spark,
+    .bb-offer-firework {
+        animation: none !important;
+    }
+}
+
 /* Admin modal consistency and player wallet convenience actions. */
 .bb-admin-modal-overlay {
     padding: 1rem;
@@ -6966,5 +7276,103 @@ header.bb-public-header.bb-public-header-scrolled {
     .bb-brahma-mascot-image-half {
         animation: none !important;
         transform: none !important;
+    }
+}
+
+/* Homepage-only Rules / CTA / footer depth layers. */
+.bb-rules-cta-zone::before {
+    inset: -7%;
+    transform: translate3d(0, var(--bb-rules-bg-y, 0px), 0) scale(1.08);
+    transform-origin: center top;
+    will-change: transform;
+}
+
+.bb-rules-parallax-layer {
+    position: relative;
+    z-index: 3;
+    transform: translate3d(0, var(--bb-rules-parallax-y, 0px), 0);
+    will-change: transform;
+}
+
+.bb-cta-parallax-layer {
+    position: relative;
+    z-index: 6;
+}
+
+.bb-footer.bb-footer-parallax-active {
+    z-index: 8;
+    transform: translate3d(0, var(--bb-footer-y, 0px), 0);
+    will-change: transform;
+}
+
+.bb-rules-cta-zone .bb-cta-section {
+    padding-bottom: 40px;
+}
+
+/* The existing CTA composition, enlarged by roughly ten percent. */
+@media (min-width: 1024px) {
+    .bb-cta-title {
+        font-size: clamp(2.15rem, 3.85vw, 4rem);
+    }
+
+    .bb-cta-description {
+        max-width: 760px;
+        font-size: clamp(0.95rem, 1.28vw, 1.08rem);
+    }
+
+    .bb-cta-button {
+        min-width: min(465px, 100%);
+        min-height: 70px;
+        padding: 1rem 2.2rem;
+        font-size: 1.03rem;
+    }
+
+    .bb-cta-benefits {
+        gap: 1.2rem;
+    }
+
+    .bb-cta-benefit {
+        font-size: 0.88rem;
+    }
+
+    .bb-cta-benefit-check {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 640px) {
+    .bb-rules-cta-zone::before,
+    .bb-rules-parallax-layer,
+    .bb-footer.bb-footer-parallax-active {
+        will-change: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bb-rules-cta-zone::before,
+    .bb-rules-parallax-layer,
+    .bb-footer.bb-footer-parallax-active {
+        transform: none !important;
+        will-change: auto;
+    }
+}
+
+/* Invite Friends keeps the live Hero visible beneath its isolated backdrop. */
+.bb-player-form-overlay.bb-invite-overlay-root {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.bb-invite-backdrop {
+    background: linear-gradient(135deg, rgba(5, 2, 18, 0.2), rgba(28, 8, 50, 0.28));
+    -webkit-backdrop-filter: blur(16px) brightness(0.58) saturate(0.78);
+    backdrop-filter: blur(16px) brightness(0.58) saturate(0.78);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .bb-invite-backdrop {
+        background: rgba(5, 3, 15, 0.38);
     }
 }

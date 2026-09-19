@@ -21,6 +21,7 @@ use App\Livewire\Admin\PlayerRankSettings;
 use App\Livewire\Admin\Players;
 use App\Livewire\Admin\PlayersAll;
 use App\Livewire\Admin\SpinningWheel;
+use App\Livewire\Admin\SpecialOffers;
 use App\Livewire\Admin\SupportInbox;
 use App\Livewire\Admin\TopPlayers;
 use App\Livewire\Admin\WalletAgents;
@@ -113,6 +114,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.chat-settings');
     Route::get('/admin/spinning-wheel', SpinningWheel::class)
         ->name('admin.spinning-wheel');
+    Route::get('/admin/special-offers', SpecialOffers::class)
+        ->name('admin.special-offers');
     Route::get('/admin/player-rank-settings', PlayerRankSettings::class)
         ->name('admin.player-rank-settings');
     Route::get('/admin/cms/general-settings', GeneralSettings::class)

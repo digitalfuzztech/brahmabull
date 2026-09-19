@@ -60,6 +60,7 @@
 
     @if(auth()->check() && auth()->user()->hasRole('player'))
         <livewire:player.spin-wheel />
+        <livewire:player.special-offers />
         <livewire:player.player-support-chat />
         <livewire:admin.floating-alert-center />
     @endif

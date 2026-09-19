@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\GameAccount;
 use App\Models\Notification;
 use App\Models\SpinRewardEntitlement;
+use App\Models\SpecialOffer;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletType;
@@ -37,6 +38,8 @@ class Deposits extends Component
     public int $pendingPromotionalBonus = 0;
 
     public ?array $activeVipBadge = null;
+
+    public array $historicalOffers = [];
 
     protected $paginationTheme = 'tailwind';
 
@@ -191,6 +194,16 @@ class Deposits extends Component
         // $this->successMessage = null;
 
         $this->selectedDeposit = Deposit::findOrFail($depositId);
+        $this->historicalOffers = SpecialOffer::withTrashed()
+            ->coveringDate($this->selectedDeposit->created_at)
+            ->orderBy('starts_at')
+            ->get()
+            ->map(fn (SpecialOffer $offer) => [
+                'name' => $offer->name,
+                'description' => $offer->description,
+                'starts_at' => $offer->starts_at->format('M j, Y'),
+                'ends_at' => $offer->ends_at->format('M j, Y'),
+            ])->all();
         $this->pendingPromotionalBonus = $bonusService->pending($this->selectedDeposit->user);
         $badge = SpinRewardEntitlement::where('user_id', $this->selectedDeposit->user_id)
             ->where('entitlement_type', 'badge')
@@ -230,6 +243,7 @@ class Deposits extends Component
             'game_points_loaded',
             'pendingPromotionalBonus',
             'activeVipBadge',
+            'historicalOffers',
         ]);
     }
 

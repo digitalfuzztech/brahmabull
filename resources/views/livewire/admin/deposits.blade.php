@@ -332,6 +332,18 @@
                     <p class="text-white">
                         Deposit Amount: ${{ $selectedDeposit->amount }}
                     </p>
+                    @if($historicalOffers !== [])
+                        <section class="bb-admin-offers-note">
+                            <p class="bb-admin-offers-note__title">OFFERS ACTIVE WHEN THIS DEPOSIT WAS SUBMITTED</p>
+                            @foreach($historicalOffers as $offer)
+                                <div class="mt-2">
+                                    <p class="font-bold text-white">{{ $offer['name'] }}</p>
+                                    <p class="text-xs text-purple-100">{{ \Illuminate\Support\Str::limit($offer['description'], 90) }}</p>
+                                    <p class="text-[10px] font-bold text-amber-200">{{ $offer['starts_at'] }} – {{ $offer['ends_at'] }}</p>
+                                </div>
+                            @endforeach
+                        </section>
+                    @endif
                     @if($activeVipBadge)
                         <section data-spin-vip-banner class="rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-400/20 to-fuchsia-500/20 p-4 shadow-[0_0_24px_rgba(251,191,36,.25)]">
                             <p class="font-black tracking-wider text-amber-200">VIP BADGE ACTIVE</p>

@@ -3,7 +3,7 @@
     class="bb-cta-section py-6 md:py-8"
 >
 
-    <div class="mx-auto max-w-[1380px] px-5 md:px-7">
+    <div class="mx-auto max-w-[1480px] px-5 md:px-7">
 
         <div data-bb-reveal="scale" class="bb-cta-shell">
 
@@ -22,11 +22,11 @@
 
 
             <div
-                class="relative z-10 grid min-h-[300px]
-                       items-center gap-8 px-6 py-9
-                       md:px-10
+                class="relative z-10 grid min-h-[330px]
+                       items-center gap-9 px-7 py-10
+                       md:px-11 md:py-11
                        lg:grid-cols-[0.72fr_1.55fr_0.73fr]
-                       lg:px-12"
+                       lg:px-14"
             >
 
                 {{-- left empty composition area:

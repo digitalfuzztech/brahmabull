@@ -30,6 +30,20 @@
                 </div>
 
                 <div class="bb-player-form-body flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+                    @if($activeOffers->isNotEmpty())
+                        <section class="bb-active-offers-note" aria-label="Active offers">
+                            <p class="bb-active-offers-note__title">✦ Active Offers</p>
+                            <div class="mt-2 space-y-2">
+                                @foreach($activeOffers as $offer)
+                                    <div>
+                                        <p class="font-bold text-white">{{ $offer->name }}</p>
+                                        <p class="text-xs text-purple-100">{{ \Illuminate\Support\Str::limit($offer->description, 85) }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <p class="mt-2 text-[10px] text-amber-100/70">Offer information only. Deposit and balance amounts are unchanged.</p>
+                        </section>
+                    @endif
                     @if($depositSubmitted)
                         <div class="bb-player-form-success rounded-2xl border border-green-500/30 bg-green-500/10 p-4 text-green-300">
                             <div class="font-bold">Deposit Submitted Successfully</div>

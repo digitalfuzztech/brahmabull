@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\User;
 use App\Models\Deposit;
+use App\Models\BrahmaDeposit;
 use App\Models\Cashout;
 use App\Models\Game;
 use App\Models\Wallet;
@@ -22,7 +23,8 @@ class Dashboard extends Component
                 User::role('agent')->count(),
 
             'pendingDeposits' =>
-                Deposit::where('status', 'pending')->count(),
+                Deposit::where('status', 'pending')->count()
+                + BrahmaDeposit::where('status', 'pending')->count(),
 
             'pendingCashouts' =>
                 Cashout::where('status', 'pending')->count(),

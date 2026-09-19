@@ -150,6 +150,20 @@
                 <!-- BODY (SCROLL AREA) -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 custom-scrollbar">
                     @if($playModalTab === 'payment')
+                @if($activeOffers->isNotEmpty())
+                    <section class="bb-active-offers-note" aria-label="Active offers">
+                        <p class="bb-active-offers-note__title">✦ Active Offers</p>
+                        <div class="mt-2 space-y-2">
+                            @foreach($activeOffers as $offer)
+                                <div>
+                                    <p class="font-bold text-white">{{ $offer->name }}</p>
+                                    <p class="text-xs text-purple-100">{{ \Illuminate\Support\Str::limit($offer->description, 85) }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                        <p class="mt-2 text-[10px] text-amber-100/70">Offer information only. Deposit amounts are unchanged.</p>
+                    </section>
+                @endif
                 <!-- GAME -->
                 <div class="mb-4">
                     <label class="text-sm text-slate-400">Game</label>

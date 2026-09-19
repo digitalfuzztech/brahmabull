@@ -168,7 +168,7 @@ class NotificationNavigationUxTest extends TestCase
         $this->assertTrue((bool) $notification->fresh()->is_read);
     }
 
-    public function test_floating_notification_alert_preserves_internal_and_external_destinations(): void
+    public function test_player_floating_notification_alerts_always_open_the_notifications_page(): void
     {
         $player = $this->userWithRole('player');
         $internal = $this->notification($player, 'deposit_rejected', 'Rejected', 'Review it.', [], false, route('player.notifications'));
@@ -186,10 +186,11 @@ class NotificationNavigationUxTest extends TestCase
             ->test(FloatingAlertCenter::class)
             ->set('alerts', [$this->floatingAlert($externalKey, $external->id)])
             ->call('open', $externalKey)
-            ->assertRedirect('https://games.example.test/play');
+            ->assertRedirect(route('player.notifications'));
 
         $this->assertTrue((bool) $internal->fresh()->is_read);
         $this->assertTrue((bool) $external->fresh()->is_read);
+        $this->assertSame('https://games.example.test/play', $external->fresh()->action_url);
     }
 
     public function test_header_and_modal_markup_keep_dynamic_brand_and_viewport_safe_layers(): void

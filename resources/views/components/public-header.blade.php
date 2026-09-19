@@ -137,10 +137,12 @@
                             </a>
                             <div
                                 x-data="{ open: false }"
+                                x-on:bb:player-notifications-opened.window="open = false"
+                                x-on:keydown.escape.window="open = false"
                                 class="relative"
                             >
                                 <button
-                                    @click="open = !open"
+                                    @click="open = !open; if (open) { $dispatch('bb:player-profile-opened') }"
                                     class="flex items-center gap-2.5 rounded-full border border-purple-400/70
        bg-purple-500/5 py-1 pl-1 pr-3
        shadow-[0_0_18px_rgba(139,92,246,0.12)]

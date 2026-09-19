@@ -6,6 +6,7 @@ use App\Models\ChatConversation;
 use App\Models\User;
 use App\Services\Chat\PlayerSupportChatService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class PlayerSupportChat extends Component
@@ -41,6 +42,15 @@ class PlayerSupportChat extends Component
         $support->markRead($conversation, $player);
         $this->unreadCount = 0;
         $this->loadMessages($support, $conversation, true);
+        $this->dispatch('bb:support-opened');
+    }
+
+    #[On('bb:offers-opened')]
+    public function closeForOffers(): void
+    {
+        if ($this->isOpen) {
+            $this->closeChat();
+        }
     }
 
     public function closeChat(): void

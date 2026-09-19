@@ -1,5 +1,6 @@
 import './bootstrap';
 import './slider.js';
+import './home-parallax.js';
 
 const initializeHomepageReveals = () => {
     const revealElements = document.querySelectorAll('[data-bb-reveal]');
